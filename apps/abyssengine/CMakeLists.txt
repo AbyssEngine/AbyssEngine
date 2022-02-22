@@ -10,7 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(APP_NAME abyssengine)
 
 if (MSVC)
-    set(OPTIONS WIN32 src/node/inputlistener.cpp src/node/inputlistener.h)
+    set(OPTIONS WIN32)
     set(SOURCE_EXTRA resource.rc)
     set(APP_NAME "AbyssEngine")
     add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_HAS_DEPRECATED_RESULT_OF=1)
@@ -41,6 +41,7 @@ target_sources(${APP_NAME} PRIVATE
         src/engine/embeddedfileprovider.cpp
         src/engine/spritefont.cpp
         src/engine/ttffont.cpp
+        src/engine/ttfmanager.cpp
         src/engine/soundeffect.cpp
         src/common/alignment.cpp
         src/common/blendmode.cpp
@@ -78,6 +79,7 @@ cmrc_add_resource_library(abyssengine_resources
     PREFIX abyss-embedded
     embed/Hack-Regular.ttf
     embed/attribution.txt
+    embed/fontconfig.xml
     )
 
 # -------------------------------------------------------------------------------------------------
@@ -149,7 +151,6 @@ target_link_libraries(${APP_NAME}
         Threads::Threads
         SDL2::SDL2main
         SDL2::SDL2
-        SDL2::SDL2_ttf
         spdlog::spdlog
         sol2::sol2
         cppzmq
@@ -157,6 +158,10 @@ target_link_libraries(${APP_NAME}
         ${LUA_LIBRARIES}
         LUA::lpeg
         ICU::uc
+        PkgConfig::PangoCairo
+        PkgConfig::PangoMM
+        PkgConfig::Fontconfig
+        Freetype::Freetype
         )
 
 if (UNIX AND NOT APPLE)
