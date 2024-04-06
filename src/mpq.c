@@ -22,5 +22,6 @@ mpq_t* mpq_load(const char* mpq_path) {
 
 void mpq_free(mpq_t* mpq) {
     fclose(mpq->file);
+    free(mpq->hashes);
     free(mpq);
 }

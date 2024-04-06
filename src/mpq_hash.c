@@ -23,5 +23,7 @@ mpq_hash_entry_t* mpq_hash_read_table(FILE* file, const char* mpq_path, mpq_head
         result[i].key = ((uint64_t)entry->a << 32) | (uint64_t)entry->b;
     }
     
+    free(hash_data);
+    
     return result;
 }

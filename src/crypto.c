@@ -48,7 +48,6 @@ uint32_t* crypto_decrypt_table(FILE* file, uint32_t size, const char* name) {
     for (uint32_t i=0; i<size; i++) {
         seed2 += crypto_buffer[0x400+(seed&0xFF)];
         
-        // FIXME: This assumes little endian.. that's fine, riight?
         if (fread(&buff, sizeof(uint8_t), 4, file) != 4) {
             LOG_FATAL("Error decrypting table!");
         }

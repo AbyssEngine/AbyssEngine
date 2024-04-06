@@ -1,0 +1,13 @@
+{
+   <sdl2>
+   Memcheck:Leak
+   ...
+   obj:/usr/lib/libSDL2-*
+}
+
+{
+   <dri>
+   Memcheck:Leak
+   ...
+   obj:/usr/lib/dri/virtio_gpu_dri.so
+}
