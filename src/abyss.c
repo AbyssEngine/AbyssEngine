@@ -4,6 +4,7 @@
 #include "mpq.h"
 #include "crypto.h"
 #include "fileman.h"
+#include "palette.h"
 
 int main(int argc, char** argv) {
     log_set_level(LOG_LEVEL_EVERYTHING);
@@ -44,13 +45,9 @@ int main(int argc, char** argv) {
 
     SDL_RenderSetLogicalSize(sdl_renderer, 800, 600);
     
-    mpq_stream_t* stream = fileman_load("/data/global/excel/LvlPrest.txt");
-    char* data = malloc(mpq_stream_get_size(stream));
-    memset(data, 0, mpq_stream_get_size(stream));
-    mpq_stream_read(stream, data, 0, mpq_stream_get_size(stream));
-    printf("File Data:\n%s", data);
-    free(data);
-    mpq_stream_free(stream);
+    palette_initialize();
+    
+    palette_t* palette = palette_get(PALETTE_FECHAR);
 
     SDL_Event sdl_event;
     running = true;
@@ -67,6 +64,7 @@ int main(int argc, char** argv) {
         SDL_RenderPresent(sdl_renderer);
     }
     
+    palette_finalize();
     config_free();
     fileman_free();
 

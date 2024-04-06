@@ -23,6 +23,7 @@ add_executable(abyss
     src/crypto.c src/crypto.h
     src/fileman.c src/fileman.h
     src/implode.c src/implode.h
+    src/palette.c src/palette.h
 )
 
 target_link_libraries(abyss
