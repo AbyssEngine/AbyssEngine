@@ -10,6 +10,8 @@ mpq_t* mpq_load(const char* mpq_path) {
     mpq_t* result = malloc(sizeof(mpq_t));
     memset(result, 0, sizeof(mpq_t));
     
+    result->path = strdup(mpq_path);
+    
     result->file = fopen(mpq_path, "rb");
     if (result->file == NULL) {
         LOG_FATAL("Failed to load '%s'!", mpq_path);
@@ -23,7 +25,9 @@ mpq_t* mpq_load(const char* mpq_path) {
 }
 
 void mpq_free(mpq_t* mpq) {
+    LOG_DEBUG("Unloading '%s'...", mpq->path);
     fclose(mpq->file);
+    free(mpq->path);
     free(mpq->blocks);
     free(mpq->hashes);
     free(mpq);

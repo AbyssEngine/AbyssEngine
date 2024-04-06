@@ -19,6 +19,7 @@ add_executable(abyss
     src/mpq_block.c src/mpq_block.h
     src/mpq_stream.c src/mpq_stream.h
     src/crypto.c src/crypto.h
+    src/fileman.c src/fileman.h
 )
 
 target_link_libraries(abyss

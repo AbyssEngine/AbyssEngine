@@ -4,6 +4,8 @@
 #include <ctype.h>
 #include <stdbool.h>
 
+config_t* config = NULL;
+
 #define MAX_LINE_LEN 4096
 #define IS_STR_EQUAL(X,Y) (strcmp(X, Y)==0)
 
@@ -109,8 +111,8 @@ void config_set(config_t* config, char* category, char* key, char* value) {
     }
 }
 
-config_t* config_load(const char* file_path) {
-    config_t* config = malloc(sizeof(config_t));
+void config_load(const char* file_path) {
+    config = malloc(sizeof(config_t));
     memset(config, 0, sizeof(config_t));
     config->mpqs = calloc(0, sizeof(char*));
     
@@ -142,7 +144,6 @@ config_t* config_load(const char* file_path) {
         if (is_category(trimmed_line)) {
             memset(category, 0, sizeof(char)*MAX_LINE_LEN);
             extract_category(trimmed_line, category);
-            LOG_DEBUG("Category Line: '%s'", category);
             if (!is_valid_category(category)) {
                 LOG_FATAL("Invalid category '%s' in '%s'!", category, file_path);
             }
@@ -165,10 +166,9 @@ config_t* config_load(const char* file_path) {
     free(value);
     free(key);
     free(category);
-    return config;
 }
 
-void config_free(config_t *config) {
+void config_free() {
     free(config->base_path);
     
     for (int i=0; i<config->num_mpqs; i++) {
@@ -186,5 +186,4 @@ void config_add_mpq(config_t* config, const char* mpq_file) {
     memset(config->mpqs[config->num_mpqs-1], 0, sizeof(char)*MAX_LINE_LEN);
     strcat(config->mpqs[config->num_mpqs-1], config->base_path);
     strcat(config->mpqs[config->num_mpqs-1], mpq_file);
-    LOG_INFO("Registered MPQ '%s'", config->mpqs[config->num_mpqs-1]);
 }

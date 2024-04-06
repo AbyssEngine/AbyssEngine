@@ -3,20 +3,27 @@
 #include "config.h"
 #include "mpq.h"
 #include "crypto.h"
-#include "mpq_stream.h"
+#include "fileman.h"
 
 int main(int argc, char** argv) {
     log_set_level(LOG_LEVEL_EVERYTHING);
     LOG_INFO("Abyss Engine");
     
-    crypto_init();
-    
+    LOG_DEBUG("Initializing SDL...");
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         FATAL(SDL_GetError());
     }
     
-    config_t *config = config_load("abyss.ini");
+    LOG_DEBUG("Initializing crypto...");
+    crypto_init();
+    
+    LOG_DEBUG("Loading configuration...");
+    config_load("abyss.ini");
+    
+    LOG_DEBUG("Initializing file manager...");
+    fileman_init();
 
+    LOG_DEBUG("Creating window...");
     sdl_window = SDL_CreateWindow("Abyss Engine", 
                                   SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,
                                   800, 600, 
@@ -25,7 +32,8 @@ int main(int argc, char** argv) {
     if (sdl_window == NULL) {
         FATAL(SDL_GetError());
     }
-        
+    
+    LOG_DEBUG("Creating renderer...");
     sdl_renderer = SDL_CreateRenderer(sdl_window, -1, 
                         SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC);
     
@@ -36,15 +44,13 @@ int main(int argc, char** argv) {
 
     SDL_RenderSetLogicalSize(sdl_renderer, 800, 600);
     
-    mpq_t* mpq = mpq_load(config->mpqs[5]);
-    mpq_stream_t* stream = mpq_stream_create(mpq, "(listfile)");
-    char* data = malloc(mpq_stream_get_size(stream));
-    memset(data, 0, mpq_stream_get_size(stream));
-    mpq_stream_read(stream, data, 0, mpq_stream_get_size(stream));
-    printf("File Data:\n%s", data);
-    free(data);
+    mpq_stream_t* stream = fileman_load("/data/global/excel/LvlPrest.txt");
+    //char* data = malloc(mpq_stream_get_size(stream));
+    //memset(data, 0, mpq_stream_get_size(stream));
+    //mpq_stream_read(stream, data, 0, mpq_stream_get_size(stream));
+    //printf("File Data:\n%s", data);
+    //free(data);
     mpq_stream_free(stream);
-    mpq_free(mpq);
 
     SDL_Event sdl_event;
     running = true;
@@ -61,7 +67,8 @@ int main(int argc, char** argv) {
         SDL_RenderPresent(sdl_renderer);
     }
     
-    config_free(config);
+    config_free();
+    fileman_free();
 
     SDL_DestroyRenderer(sdl_renderer);
     SDL_DestroyWindow(sdl_window);
