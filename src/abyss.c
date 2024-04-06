@@ -3,6 +3,7 @@
 #include "config.h"
 #include "mpq.h"
 #include "crypto.h"
+#include "mpq_stream.h"
 
 int main(int argc, char** argv) {
     log_set_level(LOG_LEVEL_EVERYTHING);
@@ -36,6 +37,8 @@ int main(int argc, char** argv) {
     SDL_RenderSetLogicalSize(sdl_renderer, 800, 600);
     
     mpq_t* mpq = mpq_load(config->mpqs[5]);
+    mpq_stream_t* stream = mpq_stream_create(mpq, "(listfile)");
+    mpq_stream_free(stream);
     mpq_free(mpq);
 
     SDL_Event sdl_event;

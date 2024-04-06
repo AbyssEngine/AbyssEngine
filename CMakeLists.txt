@@ -15,6 +15,8 @@ add_executable(abyss
     src/mpq.c src/mpq.h
     src/mpq_hash.c src/mpq_hash.h
     src/mpq_header.c src/mpq_header.h
+    src/mpq_block.c src/mpq_block.h
+    src/mpq_stream.c src/mpq_stream.h
     src/crypto.c src/crypto.h
 )
 

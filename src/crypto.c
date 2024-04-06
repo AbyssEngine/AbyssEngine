@@ -61,3 +61,9 @@ uint32_t* crypto_decrypt_table(FILE* file, uint32_t size, const char* name) {
     
     return table;
 }
+
+uint64_t crypto_hash_file_name(const char* file_name) {
+    uint32_t a = crypto_hash_string(file_name, 1);
+    uint32_t b = crypto_hash_string(file_name, 2);
+    return (((uint64_t)a)<<32) | (uint64_t)b;
+}
