@@ -6,6 +6,7 @@ set(CMAKE_BUILD_TYPE Debug)
 
 find_package(SDL2 REQUIRED)
 include_directories(${SDL2_INCLUDE_DIRS})
+find_package(ZLIB REQUIRED)
 
 add_executable(abyss
     src/abyss.c
@@ -22,6 +23,7 @@ add_executable(abyss
 
 target_link_libraries(abyss
     ${SDL2_LIBRARIES}
+    ZLIB::ZLIB
 )
 
 target_compile_options(abyss PRIVATE -gdwarf-4)

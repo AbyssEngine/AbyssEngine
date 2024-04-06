@@ -38,6 +38,11 @@ int main(int argc, char** argv) {
     
     mpq_t* mpq = mpq_load(config->mpqs[5]);
     mpq_stream_t* stream = mpq_stream_create(mpq, "(listfile)");
+    char* data = malloc(mpq_stream_get_size(stream));
+    memset(data, 0, mpq_stream_get_size(stream));
+    mpq_stream_read(stream, data, 0, mpq_stream_get_size(stream));
+    printf("File Data:\n%s", data);
+    free(data);
     mpq_stream_free(stream);
     mpq_free(mpq);
 
