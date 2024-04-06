@@ -45,11 +45,11 @@ int main(int argc, char** argv) {
     SDL_RenderSetLogicalSize(sdl_renderer, 800, 600);
     
     mpq_stream_t* stream = fileman_load("/data/global/excel/LvlPrest.txt");
-    //char* data = malloc(mpq_stream_get_size(stream));
-    //memset(data, 0, mpq_stream_get_size(stream));
-    //mpq_stream_read(stream, data, 0, mpq_stream_get_size(stream));
-    //printf("File Data:\n%s", data);
-    //free(data);
+    char* data = malloc(mpq_stream_get_size(stream));
+    memset(data, 0, mpq_stream_get_size(stream));
+    mpq_stream_read(stream, data, 0, mpq_stream_get_size(stream));
+    printf("File Data:\n%s", data);
+    free(data);
     mpq_stream_free(stream);
 
     SDL_Event sdl_event;

@@ -6,7 +6,9 @@ set(CMAKE_BUILD_TYPE Debug)
 
 find_package(SDL2 REQUIRED)
 include_directories(${SDL2_INCLUDE_DIRS})
+
 find_package(ZLIB REQUIRED)
+find_package(LibArchive REQUIRED)
 
 add_executable(abyss
     src/abyss.c
@@ -20,11 +22,13 @@ add_executable(abyss
     src/mpq_stream.c src/mpq_stream.h
     src/crypto.c src/crypto.h
     src/fileman.c src/fileman.h
+    src/implode.c src/implode.h
 )
 
 target_link_libraries(abyss
     ${SDL2_LIBRARIES}
     ZLIB::ZLIB
+    LibArchive::LibArchive
 )
 
 target_compile_options(abyss PRIVATE -gdwarf-4)

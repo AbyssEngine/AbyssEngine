@@ -17,10 +17,10 @@ typedef struct mpq_s {
     int                 hashes_count;
 } mpq_t;
 
-mpq_t*          mpq_load            (const char* mpq_path);
-void            mpq_free            (mpq_t* mpq);
-bool            mpq_file_exists     (mpq_t* mpq, const char* file_path);
-mpq_hash_t*     mpq_get_file_hash   (mpq_t* mpq, const char* file_path);
-void*           mpq_load_entire_file(mpq_t* mpq, const char* file_path);
+mpq_t*          mpq_load                (const char* mpq_path);
+void            mpq_free                (mpq_t* mpq);
+bool            mpq_file_exists         (mpq_t* mpq, const char* file_path);
+mpq_hash_t*     mpq_get_file_hash       (mpq_t* mpq, const char* file_path);
+void*           mpq_load_entire_file    (mpq_t* mpq, const char* file_path);
 
 #endif // ABYSS_MPQ_H

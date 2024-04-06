@@ -1,6 +1,7 @@
 #include "mpq_stream.h"
 
 #include "log.h"
+#include "implode.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -19,6 +20,40 @@
 
 int min(int a, int b) {
     return (a < b) ? a : b;
+}
+
+
+typedef struct pk_info_s {
+    void* buff_in;
+    void* buff_out;
+    uint32_t out_pos;
+    uint32_t in_pos;
+    uint32_t to_read;
+    uint32_t to_write;
+} pk_info_t;
+
+unsigned int explode_read(char *buf, unsigned int *size, void *param) {
+    pk_info_t* pk_info = (pk_info_t*)param;
+    uint32_t to_read = min(*size, pk_info->to_read);
+    LOG_DEBUG("[%x->%x]size: %u, InPos: %u, OutPos: %u, ToRead: %u", buf, pk_info->buff_out, *size, pk_info->in_pos, pk_info->out_pos, to_read);
+    memcpy(buf, pk_info->buff_in+pk_info->in_pos, to_read);
+    pk_info->in_pos += to_read;
+    pk_info->to_read -= to_read;
+    
+    *size = to_read;
+    return *size;
+}
+
+void explode_write(char *buf, unsigned int *size, void *param) {
+    pk_info_t* pk_info = (pk_info_t*)param;
+    
+    if (*size > pk_info->to_write) {
+        LOG_ERROR("Attempted to write past end of stread for PkWare Explode decompression.");
+    }
+    
+    memcpy(pk_info->buff_out+pk_info->out_pos, buf, *size);
+    pk_info->out_pos += *size;
+    pk_info->to_write -= *size;
 }
 
 mpq_stream_t* mpq_stream_create(mpq_t* mpq, const char* file_name) {
@@ -214,6 +249,26 @@ void* mpq_stream_decompress_multi(mpq_stream_t* mpq_stream, void* buffer, uint32
                     LOG_FATAL("ZLIB Deflate Error: %s", inflate_stream.msg);
                 }
                 
+                free(buffer);
+                return out_buffer;
+            } break;
+        case COMPRESSION_TYPE_PKLIB_IMPLODE:
+            {
+                void* out_buffer = malloc(expected_length+1);
+                pk_info_t pk_info;
+                memset(&pk_info, 0, sizeof(pk_info_t));
+                pk_info.buff_out = out_buffer;
+                pk_info.buff_in  = (char*)buffer+1;
+                pk_info.to_read  = to_read;
+                pk_info.to_write = expected_length;
+                char* work_buff = malloc(15000);
+                memset(work_buff, 0, 15000);
+                memset(out_buffer, 0, expected_length+1);
+                int pk_result = explode(explode_read, explode_write, work_buff, &pk_info);
+                if (pk_result != CMP_NO_ERROR) {
+                    LOG_FATAL("Failed to decompress using PkWare Explode: %d.", pk_result);
+                }
+                free(work_buff);
                 free(buffer);
                 return out_buffer;
             } break;
