@@ -1,10 +1,14 @@
 #include "globals.h"
 #include "log.h"
 #include "config.h"
+#include "mpq.h"
+#include "crypto.h"
 
 int main(int argc, char** argv) {
     log_set_level(LOG_LEVEL_EVERYTHING);
     LOG_INFO("Abyss Engine");
+    
+    crypto_init();
     
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         FATAL(SDL_GetError());
@@ -30,6 +34,9 @@ int main(int argc, char** argv) {
     }
 
     SDL_RenderSetLogicalSize(sdl_renderer, 800, 600);
+    
+    mpq_t* mpq = mpq_load(config->mpqs[5]);
+    mpq_free(mpq);
 
     SDL_Event sdl_event;
     running = true;

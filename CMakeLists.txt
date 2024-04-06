@@ -12,6 +12,10 @@ add_executable(abyss
     src/globals.c src/globals.h
     src/log.c src/log.h
     src/config.c src/config.h
+    src/mpq.c src/mpq.h
+    src/mpq_hash.c src/mpq_hash.h
+    src/mpq_header.c src/mpq_header.h
+    src/crypto.c src/crypto.h
 )
 
 target_link_libraries(abyss
