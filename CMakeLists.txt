@@ -7,7 +7,10 @@ option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
 set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_C_STANDARD 99)
 
+#add_compile_options(-fsanitize=address -g)
+#add_link_options(-fsanitize=address)
 
 # Ensures that we do an out of source build
 MACRO(MACRO_ENSURE_OUT_OF_SOURCE_BUILD MSG)
@@ -60,11 +63,6 @@ target_link_libraries(${PROJECT_NAME}
         archive
 )
 
-set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 99)
-
-#target_compile_options(abyss PRIVATE -gdwarf-4)
-
-
 if (APPLE)
     set_target_properties(${PROJECT_NAME} PROPERTIES
             MACOSX_BUNDLE_BUNDLE_NAME "Abyss Engine" ,
@@ -75,18 +73,18 @@ if (APPLE)
     find_library(OSX_VIDEOTOOLBOX VideoToolbox)
     find_library(OSX_COREMEDIA CoreMedia)
     find_library(OSX_SECURITY Security)
-    file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/content/" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/AbyssEngine.app/Contents/Resources")
+    file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/extra/macos/" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/AbyssEngine.app/Contents/Resources")
     set_target_properties(${PROJECT_NAME} PROPERTIES
             MACOSX_BUNDLE TRUE
             MACOSX_BUNDLE_BUNDLE_NAME "Abyss Engine"
             MACOSX_BUNDLE_BUNDLE_VERSION "0.1"
             MACOSX_BUNDLE_GUI_IDENTIFIER "com.abyssengine"
             MACOSX_BUNDLE_ICON_FILE "icon.icns"
-            MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/MacOSXBundleInfo.plist.in"
+            MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/extra/macos/MacOSXBundleInfo.plist.in"
             MACOSX_BUNDLE_COPYRIGHT "(c) 2023 Timothy Sarbin"
     )
 
-    set_source_files_properties("content/icon.icns" PROPERTIES
+    set_source_files_properties("extra/macos/icon.icns" PROPERTIES
             MACOSX_PACKAGE_LOCATION "Resources"
     )
 

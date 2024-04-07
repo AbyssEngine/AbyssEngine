@@ -11,6 +11,7 @@
 int main(int argc, char **argv) {
     log_set_level(LOG_LEVEL_EVERYTHING);
     LOG_INFO("Abyss Engine");
+    char *x = malloc(4096);
 
     LOG_DEBUG("Initializing SDL...");
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -24,11 +25,11 @@ int main(int argc, char **argv) {
     char *config_path = malloc(4096);
     memset(config_path, 0, 4096);
 #ifdef _WIN32
-    sprintf(config_path, "%s\\abyss.ini", getenv("APPDATA"));
+    snprintf(config_path, 4096, "%s\\abyss.ini", getenv("APPDATA"));
 #elif __linux__
-    sprintf(config_path, "%s/.config/abyss/abyss.ini", getenv("HOME"));
+    snprintf(config_path, 4096, "%s/.config/abyss/abyss.ini", getenv("HOME"));
 #elif __APPLE__
-    sprintf(config_path, "%s/Library/Application Support/abyss/abyss.ini", getenv("HOME"));
+    snprintf(config_path, 4096, "%s/Library/Application Support/abyss/abyss.ini", getenv("HOME"));
 #else
     sprintf(config_path, "abyss.ini");
 #endif

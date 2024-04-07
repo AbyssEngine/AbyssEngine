@@ -34,7 +34,7 @@ palette_t *palette_get(const char *palette_name) {
 
     char *path_buff = malloc(4096);
     memset(path_buff, 0, 4096);
-    sprintf(path_buff, PALETTE_PATH, palette_name);
+    snprintf(path_buff, 4096, PALETTE_PATH, palette_name);
     mpq_stream_t *stream = fileman_load(path_buff);
     free(path_buff);
 
