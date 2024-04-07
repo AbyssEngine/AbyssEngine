@@ -17,7 +17,7 @@ config_t *config = NULL;
     memset(X, 0, sizeof(char) * (strlen(Y) + 1));                                                                      \
     strcat(X, Y);
 
-static const char *valid_categories[] = {"general", "mpqs", "graphics", NULL};
+static const char *valid_categories[] = {"general", "mpqs", "graphics", "audio", NULL};
 
 char *trim_str(char *str) {
     size_t len   = strlen(str);
@@ -122,6 +122,43 @@ void config_set(char *category, char *key, char *value) {
                 LOG_FATAL("Invalid value '%s' for key '%s' in the configuration file!", value, key);
             }
             LOG_DEBUG("Setting initial scale to '%f'", config->graphics.initial_scale);
+        } else if (IS_STR_EQUAL(key, "fullscreen")) {
+            if (IS_STR_EQUAL(value, "true")) {
+                config->graphics.fullscreen = true;
+            } else if (IS_STR_EQUAL(value, "false")) {
+                config->graphics.fullscreen = false;
+            } else {
+                LOG_FATAL("Invalid value '%s' for key '%s' in the configuration file!", value, key);
+            }
+            LOG_DEBUG("Setting fullscreen to '%s'", config->graphics.fullscreen ? "true" : "false");
+        } else {
+            LOG_FATAL("Invalid key '%s' in the configuration file!", key);
+        }
+    } else if (IS_STR_EQUAL(category, "audio")) {
+        if (IS_STR_EQUAL(key, "mastervolume")) {
+            config->audio.master_volume = strtof(value, NULL);
+            if (config->audio.master_volume < 0.0f || config->audio.master_volume > 1.0f) {
+                LOG_FATAL("Invalid value '%s' for key '%s' in the configuration file!", value, key);
+            }
+            LOG_DEBUG("Setting master volume to '%f'", config->audio.master_volume);
+        } else if (IS_STR_EQUAL(key, "musicvolume")) {
+            config->audio.music_volume = strtof(value, NULL);
+            if (config->audio.music_volume < 0.0f || config->audio.music_volume > 1.0f) {
+                LOG_FATAL("Invalid value '%s' for key '%s' in the configuration file!", value, key);
+            }
+            LOG_DEBUG("Setting music volume to '%f'", config->audio.music_volume);
+        } else if (IS_STR_EQUAL(key, "sfxvolume")) {
+            config->audio.sfx_volume = strtof(value, NULL);
+            if (config->audio.sfx_volume < 0.0f || config->audio.sfx_volume > 1.0f) {
+                LOG_FATAL("Invalid value '%s' for key '%s' in the configuration file!", value, key);
+            }
+            LOG_DEBUG("Setting sfx volume to '%f'", config->audio.sfx_volume);
+        } else if (IS_STR_EQUAL(key, "uivolume")) {
+            config->audio.ui_volume = strtof(value, NULL);
+            if (config->audio.ui_volume < 0.0f || config->audio.ui_volume > 1.0f) {
+                LOG_FATAL("Invalid value '%s' for key '%s' in the configuration file!", value, key);
+            }
+            LOG_DEBUG("Setting ui volume to '%f'", config->audio.ui_volume);
         } else {
             LOG_FATAL("Invalid key '%s' in the configuration file!", key);
         }

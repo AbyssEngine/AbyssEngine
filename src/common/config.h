@@ -1,6 +1,7 @@
 #ifndef ABYSS_CONFIG_H
 #define ABYSS_CONFIG_H
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -12,8 +13,14 @@ typedef struct config_s {
     struct {
         char *scale_quality;
         float initial_scale;
+        bool  fullscreen;
     } graphics;
-
+    struct {
+        float master_volume;
+        float music_volume;
+        float sfx_volume;
+        float ui_volume;
+    } audio;
 } config_t;
 
 void config_load(const char *file_path);

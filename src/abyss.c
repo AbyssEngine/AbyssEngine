@@ -58,6 +58,10 @@ int main(int argc, char **argv) {
     SDL_ShowCursor(false);
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, config->graphics.scale_quality);
 
+    if (config->graphics.fullscreen) {
+        SDL_SetWindowFullscreen(sdl_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+    }
+
     palette_initialize();
 
     cursor_initialize();
