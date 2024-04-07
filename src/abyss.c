@@ -25,12 +25,10 @@ int main(int argc, char **argv) {
     memset(config_path, 0, 4096);
 #ifdef _WIN32
     snprintf(config_path, 4096, "%s\\abyss\\abyss.ini", getenv("APPDATA"));
-#elif __linux__
-    snprintf(config_path, 4096, "%s/.config/abyss/abyss.ini", getenv("HOME"));
 #elif __APPLE__
     snprintf(config_path, 4096, "%s/Library/Application Support/abyss/abyss.ini", getenv("HOME"));
 #else
-    sprintf(config_path, "abyss.ini");
+    snprintf(config_path, 4096, "%s/.config/abyss/abyss.ini", getenv("HOME"));
 #endif
     config_load(config_path);
     free(config_path);
@@ -39,9 +37,10 @@ int main(int argc, char **argv) {
     fileman_init();
 
     LOG_DEBUG("Creating window...");
-    sdl_window = SDL_CreateWindow("Abyss Engine", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                                  800 * config->graphics.initial_scale, 600 * config->graphics.initial_scale,
-                                  SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+    sdl_window =
+        SDL_CreateWindow("Abyss Engine", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                         (int)((float)800 * config->graphics.initial_scale),
+                         (int)((float)600 * config->graphics.initial_scale), SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 
     if (sdl_window == NULL) {
         FATAL(SDL_GetError());

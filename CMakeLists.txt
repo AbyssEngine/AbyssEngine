@@ -55,6 +55,7 @@ add_executable(AbyssEngine WIN32 MACOSX_BUNDLE
         src/types/font.c src/types/font.h
         src/scenes/scene.c src/scenes/scene.h
         src/scenes/scene_mainmenu.c src/scenes/scene_mainmenu.h
+        src/types/font.c src/types/font.h
 )
 # if WIN32 then SDL2::SDL2main needs to be linked
 if (WIN32)
