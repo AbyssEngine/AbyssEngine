@@ -17,7 +17,7 @@ char *fix_path(const char *path) {
     }
 
     if (result[0] == '\\') {
-        int len = strlen(result);
+        const int len = strlen(result);
         for (int i = 0; i < len - 1; i++) {
             result[i] = result[i + 1];
         }
@@ -57,7 +57,7 @@ void fileman_add_mpq(const char *mpq_path) {
 mpq_stream_t *fileman_load(const char *file_path) {
 
     char                 *path_fixed = fix_path(file_path);
-    uint64_t              file_hash  = crypto_hash_file_name(path_fixed);
+    const uint64_t              file_hash  = crypto_hash_file_name(path_fixed);
     fileman_file_entry_t *file_entry = NULL;
 
     for (int i = 0; i < fileman->file_count; i++) {

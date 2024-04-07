@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
     char *config_path = malloc(4096);
     memset(config_path, 0, 4096);
 #ifdef _WIN32
-    snprintf(config_path, 4096, "%s\\abyss.ini", getenv("APPDATA"));
+    snprintf(config_path, 4096, "%s\\abyss\\abyss.ini", getenv("APPDATA"));
 #elif __linux__
     snprintf(config_path, 4096, "%s/.config/abyss/abyss.ini", getenv("HOME"));
 #elif __APPLE__

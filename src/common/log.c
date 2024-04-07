@@ -17,8 +17,11 @@ void log_message(log_level_t level, const char *file, int line, const char *form
         return;
     }
 
+#ifdef _WIN32
+    printf("[%s] %s:%i - ", log_level_strings[level], strrchr(file, '\\') + 1, line);
+#else
     printf("[%s] %s:%i - ", log_level_strings[level], strrchr(file, '/') + 1, line);
-
+#endif
     va_start(args, format);
     vprintf(format, args);
     va_end(args);

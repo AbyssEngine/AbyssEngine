@@ -3,6 +3,7 @@
 #include "../common/globals.h"
 #include "../common/log.h"
 #include <string.h>
+#include <stdlib.h>
 
 palette_t **palettes;
 int         palette_count;
@@ -30,6 +31,11 @@ palette_t *palette_get(const char *palette_name) {
     }
 
     palette_t *result = malloc(sizeof(palette_t));
+
+    if (result == NULL) {
+        LOG_ERROR("Failed to allocate memory for palette.");
+    }
+
     result->name      = strdup(palette_name);
     char *path_buff   = malloc(4096);
 

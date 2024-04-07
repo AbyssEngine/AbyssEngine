@@ -1,7 +1,7 @@
 #ifndef ABYSS_SPRITE_H
 #define ABYSS_SPRITE_H
 
-#include "SDL2/SDL.h"
+#include <SDL2/SDL.h>
 #include <stdbool.h>
 #include <stdint.h>
 

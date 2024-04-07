@@ -16,9 +16,9 @@
 #define COMPRESSION_TYPE_SPARSE_THEN_BZIP2       0x30
 #define COMPRESSION_TYPE_IMA_ADPCM_MONO          0x40
 #define COMPRESSION_TYPE_HUFFMAN_THEN_ADPCM_MONO 0x41
-#define COMPRESSION_TYPE_IMA_ADPCM_STERIO        0x80
+#define COMPRESSION_TYPE_IMA_ADPCM_STERIO        0x80s
 
-int min(int a, int b) { return (a < b) ? a : b; }
+static int mmin(int a, int b) { return (a < b) ? a : b; }
 
 typedef struct pk_info_s {
     void    *buff_in;
@@ -31,8 +31,8 @@ typedef struct pk_info_s {
 
 unsigned int explode_read(char *buf, unsigned int *size, void *param) {
     pk_info_t *pk_info = (pk_info_t *)param;
-    uint32_t   to_read = min(*size, pk_info->to_read);
-    memcpy(buf, pk_info->buff_in + pk_info->in_pos, to_read);
+    const uint32_t   to_read = mmin(*size, pk_info->to_read);
+    memcpy(buf, (char*)pk_info->buff_in + pk_info->in_pos, to_read);
     pk_info->in_pos  += to_read;
     pk_info->to_read -= to_read;
 
@@ -47,7 +47,7 @@ void explode_write(char *buf, unsigned int *size, void *param) {
         LOG_ERROR("Attempted to write past end of stread for PkWare Explode decompression.");
     }
 
-    memcpy(pk_info->buff_out + pk_info->out_pos, buf, *size);
+    memcpy((char*)pk_info->buff_out + pk_info->out_pos, buf, *size);
     pk_info->out_pos  += *size;
     pk_info->to_write -= *size;
 }
@@ -65,7 +65,7 @@ mpq_stream_t *mpq_stream_create(mpq_t *mpq, const char *file_name) {
     if (result->hash == NULL) {
         LOG_FATAL("Failed to load '%s'!", file_name);
     }
-    uint32_t block_index = result->hash->block_index;
+    const uint32_t block_index = result->hash->block_index;
 
     if (block_index >= mpq->header.hash_table_entries) {
         LOG_FATAL("Invalid block index for '%s'!", file_name);
@@ -97,7 +97,7 @@ void mpq_stream_load_block_offset(mpq_stream_t *mpq_stream) {
     mpq_stream->block_offset_count =
         ((mpq_stream->block->size_uncompressed + mpq_stream->size - 1) / mpq_stream->size) + 1;
 
-    uint32_t offset_file_load_size = sizeof(uint32_t) * mpq_stream->block_offset_count;
+    const uint32_t offset_file_load_size = sizeof(uint32_t) * mpq_stream->block_offset_count;
 
     mpq_stream->block_offsets = malloc(offset_file_load_size);
     memset(mpq_stream->block_offsets, 0, offset_file_load_size);
@@ -120,7 +120,7 @@ uint32_t mpq_stream_read(mpq_stream_t *mpq_stream, void *buffer, uint32_t offset
     uint32_t read_total = 0;
 
     while (to_read > 0) {
-        uint32_t read = mpq_stream_read_internal(mpq_stream, buffer, offset, to_read);
+        const uint32_t read = mpq_stream_read_internal(mpq_stream, buffer, offset, to_read);
         if (read == 0) {
             break;
         }
@@ -135,12 +135,12 @@ uint32_t mpq_stream_read(mpq_stream_t *mpq_stream, void *buffer, uint32_t offset
 
 uint32_t mpq_stream_read_internal(mpq_stream_t *mpq_stream, void *buffer, uint32_t offset, uint32_t to_read) {
     mpq_stream_buffer_data(mpq_stream);
-    uint32_t local_position = mpq_stream->position % mpq_stream->size;
+    const uint32_t local_position = mpq_stream->position % mpq_stream->size;
     return mpq_stream_copy(mpq_stream, buffer, offset, local_position, to_read);
 }
 
 void mpq_stream_buffer_data(mpq_stream_t *mpq_stream) {
-    uint32_t block_index = mpq_stream->position / mpq_stream->size;
+    const uint32_t block_index = mpq_stream->position / mpq_stream->size;
 
     if (block_index == mpq_stream->block_index) {
         return;
@@ -150,8 +150,8 @@ void mpq_stream_buffer_data(mpq_stream_t *mpq_stream) {
         free(mpq_stream->data_buffer);
     }
 
-    uint32_t expected_length =
-        min(mpq_stream->block->size_uncompressed - (block_index * mpq_stream->size), mpq_stream->size);
+    const uint32_t expected_length =
+        mmin(mpq_stream->block->size_uncompressed - (block_index * mpq_stream->size), mpq_stream->size);
     mpq_stream->data_buffer      = mpq_stream_load_block(mpq_stream, block_index, expected_length);
     mpq_stream->data_buffer_size = expected_length;
     mpq_stream->block_index      = block_index;
@@ -169,12 +169,12 @@ void mpq_stream_free(mpq_stream_t *mpq_stream) {
 }
 
 uint32_t mpq_stream_copy(mpq_stream_t *mpq_stream, void *buffer, uint32_t offset, uint32_t position, uint32_t count) {
-    uint32_t bytes_to_copy = min(mpq_stream->data_buffer_size - position, count);
+    const uint32_t bytes_to_copy = mmin(mpq_stream->data_buffer_size - position, count);
     if (bytes_to_copy <= 0) {
         LOG_FATAL("Tried reading past end of stream!");
     }
 
-    memcpy(buffer + offset, mpq_stream->data_buffer + position, bytes_to_copy);
+    memcpy((char*)buffer + offset, (char*)mpq_stream->data_buffer + position, bytes_to_copy);
     mpq_stream->position += bytes_to_copy;
 
     return bytes_to_copy;
@@ -202,7 +202,7 @@ void *mpq_stream_load_block(mpq_stream_t *mpq_stream, uint32_t block_index, uint
 
     if ((mpq_stream->block->flags & FILE_FLAG_ENCRYPTED) && mpq_stream->block->size_uncompressed > 3) {
         if (mpq_stream->block->encryption_seed == 0) {
-            LOG_FATAL("Unable to determine encryption key for file block load.");
+            LOG_FATAL("Unable to determmine encryption key for file block load.");
         }
 
         LOG_FATAL("TODO: Decrypt bytes");
@@ -224,11 +224,16 @@ void *mpq_stream_load_block(mpq_stream_t *mpq_stream, uint32_t block_index, uint
 }
 
 void *mpq_stream_decompress_multi(mpq_stream_t *mpq_stream, void *buffer, uint32_t to_read, uint32_t expected_length) {
-    uint8_t compression_type = ((uint8_t *)buffer)[0];
+    const uint8_t compression_type = ((uint8_t *)buffer)[0];
 
     switch (compression_type) {
     case COMPRESSION_TYPE_ZLIB_DEFLATE: {
         void *out_buffer = malloc(expected_length + 1);
+
+        if (out_buffer == NULL) {
+            LOG_FATAL("Failed to allocate memory for ZLIB decompression.");
+        }
+
         memset(out_buffer, 0, expected_length + 1);
         z_stream inflate_stream;
         inflate_stream.zalloc    = Z_NULL;
@@ -260,7 +265,7 @@ void *mpq_stream_decompress_multi(mpq_stream_t *mpq_stream, void *buffer, uint32
         char *work_buff  = malloc(15000);
         memset(work_buff, 0, 15000);
         memset(out_buffer, 0, expected_length + 1);
-        int pk_result = explode(explode_read, explode_write, work_buff, &pk_info);
+        const int pk_result = explode(explode_read, explode_write, work_buff, &pk_info);
         if (pk_result != CMP_NO_ERROR) {
             LOG_FATAL("Failed to decompress using PkWare Explode: %d.", pk_result);
         }

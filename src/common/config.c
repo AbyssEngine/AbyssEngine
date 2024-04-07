@@ -1,9 +1,14 @@
 #include "config.h"
 #include "log.h"
 #include <ctype.h>
-#include <libc.h>
 #include <stdbool.h>
 #include <stdio.h>
+
+#ifdef _WIN32
+#include <direct.h>
+#else
+#include <libc.h>
+#endif
 
 config_t *config    = NULL;
 bool      added_mpq = false;
@@ -25,8 +30,8 @@ static const char *default_mpqs[] = {"d2exp.mpq",  "d2xmusic.mpq", "d2xtalk.mpq"
 static const char *valid_categories[] = {"general", "mpqs", "graphics", "audio", NULL};
 
 char *trim_str(char *str) {
-    size_t len   = strlen(str);
-    size_t index = strcspn(str, "\r\n");
+    size_t       len   = strlen(str);
+    const size_t index = strcspn(str, "\r\n");
 
     if (index < len) {
         str[index] = '\0';
@@ -49,7 +54,7 @@ char *trim_str(char *str) {
 }
 
 bool is_category(char *str) {
-    size_t str_len = strlen(str);
+    const size_t str_len = strlen(str);
     return (str_len >= 3) && (str[0] == '[') && (str[str_len - 1] == ']');
 }
 
@@ -83,7 +88,7 @@ void extract_key_value(char *str, char *key, char *value) {
     *equal_ptr = '\0';
     strcat(key, str);
 
-    char *val_start = str + strlen(key) + 1;
+    const char *val_start = str + strlen(key) + 1;
     while (isspace(*val_start) || *val_start == '\t') {
         val_start++;
     }
@@ -97,8 +102,8 @@ void extract_key_value(char *str, char *key, char *value) {
         *ch = (char)tolower((unsigned char)*ch);
     }
 
-    size_t len = strlen(value);
-    char  *end = value + len;
+    const size_t len = strlen(value);
+    char        *end = value + len;
     while (end >= value && (isspace(*end) || *end == '\t')) {
         end--;
     }
@@ -281,7 +286,12 @@ void config_free() {
 
 void config_add_mpq(const char *mpq_file) {
     config->num_mpqs++;
-    config->mpqs                       = realloc(config->mpqs, config->num_mpqs * sizeof(char *));
+    config->mpqs = realloc(config->mpqs, config->num_mpqs * sizeof(char *));
+
+    if (config->mpqs == NULL) {
+        LOG_FATAL("Could not allocate memory for MPQs!");
+    }
+
     config->mpqs[config->num_mpqs - 1] = malloc(sizeof(char) * MAX_LINE_LEN);
     memset(config->mpqs[config->num_mpqs - 1], 0, sizeof(char) * MAX_LINE_LEN);
     strcat(config->mpqs[config->num_mpqs - 1], config->base_path);

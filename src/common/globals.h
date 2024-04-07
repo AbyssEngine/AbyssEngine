@@ -1,7 +1,7 @@
 #ifndef ABYSS_GLOBALS_H
 #define ABYSS_GLOBALS_H
 
-#include "SDL2/SDL.h"
+#include <SDL2/SDL.h>
 #include "resource_paths.h"
 #include <stdbool.h>
 

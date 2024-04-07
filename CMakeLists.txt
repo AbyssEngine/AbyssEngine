@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 project(AbyssEngine C)
 
-option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
+option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 
 set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
@@ -34,7 +34,7 @@ endif ()
 
 add_subdirectory(3rdparty EXCLUDE_FROM_ALL)
 
-add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE
+add_executable(AbyssEngine WIN32 MACOSX_BUNDLE
         src/abyss.c
         src/common/resource_paths.h
         src/common/globals.c src/common/globals.h
@@ -56,15 +56,20 @@ add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE
         src/scenes/scene.c src/scenes/scene.h
         src/scenes/scene_mainmenu.c src/scenes/scene_mainmenu.h
 )
+# if WIN32 then SDL2::SDL2main needs to be linked
+if (WIN32)
+	set (ADDITIONAL_LIBRARIES SDL2::SDL2 SDL2::SDL2main)
+endif ()
 
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(AbyssEngine
         SDL2::SDL2
-        zlib
-        archive
+        zlibstatic
+        archive_static
+        ${ADDITIONAL_LIBRARIES}
 )
 
 if (APPLE)
-    set_target_properties(${PROJECT_NAME} PROPERTIES
+    set_target_properties(AbyssEngine PROPERTIES
             MACOSX_BUNDLE_BUNDLE_NAME "Abyss Engine" ,
             MACOSX_BUNDLE_GUI_IDENTIFIER "com.abyss" ,
             MACOSX_BUNDLE_ICON_FILE "icon.icns"
@@ -74,7 +79,7 @@ if (APPLE)
     find_library(OSX_COREMEDIA CoreMedia)
     find_library(OSX_SECURITY Security)
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/extra/macos/" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/AbyssEngine.app/Contents/Resources")
-    set_target_properties(${PROJECT_NAME} PROPERTIES
+    set_target_properties(AbyssEngine PROPERTIES
             MACOSX_BUNDLE TRUE
             MACOSX_BUNDLE_BUNDLE_NAME "Abyss Engine"
             MACOSX_BUNDLE_BUNDLE_VERSION "0.1"
@@ -90,7 +95,7 @@ if (APPLE)
 
     set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install" CACHE PATH "Install path prefix, prepended onto install directories" FORCE)
 else ()
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    add_custom_command(TARGET AbyssEngine POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_directory
-            ${CMAKE_SOURCE_DIR}/content $<TARGET_FILE_DIR:abyss>)
+            ${CMAKE_SOURCE_DIR}/content $<TARGET_FILE_DIR:AbyssEngine>)
 endif ()
