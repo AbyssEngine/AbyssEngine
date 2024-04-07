@@ -18,6 +18,7 @@ typedef struct dc6_frame_s {
     dc6_frame_header_t  header;
     char*               frame_data;
     char                terminator[3];
+    uint8_t*            indexed_pixel_data;
 } dc6_frame_t;
 
 typedef struct dc6_header_s {
@@ -35,7 +36,9 @@ typedef struct dc6_s {
     dc6_frame_t*    frames;
 } dc6_t;
 
-dc6_t*  dc6_load    (const char* path, const char* palette_name);
-void    dc6_free    (dc6_t* dc6);
+dc6_t*  dc6_load            (const char* path);
+void    dc6_free            (dc6_t* dc6);
+
+void    dc6_decode_frame    (dc6_t* dc6, uint32_t frame_index);
 
 #endif // ABYSS_DC6_H

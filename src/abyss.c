@@ -5,7 +5,7 @@
 #include "crypto.h"
 #include "fileman.h"
 #include "palette.h"
-#include "dc6.h"
+#include "sprite.h"
 
 int main(int argc, char** argv) {
     log_set_level(LOG_LEVEL_EVERYTHING);
@@ -48,8 +48,7 @@ int main(int argc, char** argv) {
     
     palette_initialize();
     
-    dc6_t* test = dc6_load(LOADING_SCREEN, PALETTE_FECHAR);
-    dc6_free(test);
+    sprite_t* test = sprite_load(TRADEMARK_SCREEN, PALETTE_SKY);
 
     SDL_Event sdl_event;
     running = true;
@@ -63,8 +62,11 @@ int main(int argc, char** argv) {
         }
 
         SDL_RenderClear(sdl_renderer);
+        sprite_draw_multi(test, 0, 0, 0, 4, 3);
         SDL_RenderPresent(sdl_renderer);
     }
+       
+    sprite_free(test);
     
     palette_finalize();
     config_free();

@@ -236,7 +236,7 @@ void* mpq_stream_decompress_multi(mpq_stream_t* mpq_stream, void* buffer, uint32
                 inflate_stream.zalloc       = Z_NULL;
                 inflate_stream.zfree        = Z_NULL;
                 inflate_stream.opaque       = Z_NULL;
-                inflate_stream.avail_in     = to_read;
+                inflate_stream.avail_in     = to_read-1;
                 inflate_stream.next_in      = (Bytef *)buffer+1;
                 inflate_stream.avail_out    = expected_length;
                 inflate_stream.next_out     = (Bytef *)out_buffer;
@@ -258,7 +258,7 @@ void* mpq_stream_decompress_multi(mpq_stream_t* mpq_stream, void* buffer, uint32
                 memset(&pk_info, 0, sizeof(pk_info_t));
                 pk_info.buff_out = out_buffer;
                 pk_info.buff_in  = (char*)buffer+1;
-                pk_info.to_read  = to_read;
+                pk_info.to_read  = to_read-1;
                 pk_info.to_write = expected_length;
                 char* work_buff = malloc(15000);
                 memset(work_buff, 0, 15000);
