@@ -1,12 +1,12 @@
 #include "globals.h"
 #include "log.h"
 #include "config.h"
-#include "mpq.h"
 #include "crypto.h"
 #include "fileman.h"
 #include "palette.h"
-#include "sprite.h"
 #include "cursor.h"
+#include "scene.h"
+#include "scene_mainmenu.h"
 
 int main(int argc, char** argv) {
     log_set_level(LOG_LEVEL_EVERYTHING);
@@ -52,13 +52,13 @@ int main(int argc, char** argv) {
     palette_initialize();
     
     cursor_initialize();
+    scene_initialize();
     cursor_set_type(CURSOR_STANDARD);
-    
-
-    sprite_t* test = sprite_load(TRADEMARK_SCREEN, PALETTE_SKY);
+    scene_set(&scene_mainmenu);
 
     SDL_Event sdl_event;
     running = true;
+    uint32_t last_ticks = SDL_GetTicks();
     while(running) {
         while(SDL_PollEvent(&sdl_event)) {
             switch(sdl_event.type) {
@@ -71,15 +71,26 @@ int main(int argc, char** argv) {
                     break;
             }
         }
+        
+        uint32_t current_ticks = SDL_GetTicks();
+        uint32_t tick_delta = current_ticks - last_ticks;
+        
+        if (tick_delta == 0) {
+            SDL_Delay(1);
+            continue;
+        }
+        
+        last_ticks = current_ticks;
+        
+        scene_update(tick_delta);
 
         SDL_RenderClear(sdl_renderer);
-        sprite_draw_multi(test, 0, 0, 0, 4, 3);
-        
+        scene_render();
         cursor_draw();
         SDL_RenderPresent(sdl_renderer);
     }
-       
-    sprite_free(test);
+    
+    scene_finalize();
     cursor_finalize();
     palette_finalize();
     config_free();
