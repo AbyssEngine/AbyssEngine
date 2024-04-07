@@ -58,7 +58,7 @@ add_executable(AbyssEngine WIN32 MACOSX_BUNDLE
 )
 # if WIN32 then SDL2::SDL2main needs to be linked
 if (WIN32)
-	set (ADDITIONAL_LIBRARIES SDL2::SDL2 SDL2::SDL2main)
+    set(ADDITIONAL_LIBRARIES SDL2::SDL2 SDL2::SDL2main)
 endif ()
 
 target_link_libraries(AbyssEngine
@@ -85,7 +85,7 @@ if (APPLE)
             MACOSX_BUNDLE_BUNDLE_VERSION "0.1"
             MACOSX_BUNDLE_GUI_IDENTIFIER "com.abyssengine"
             MACOSX_BUNDLE_ICON_FILE "icon.icns"
-            MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/extra/macos/MacOSXBundleInfo.plist.in"
+            #MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/extra/macos/MacOSXBundleInfo.plist.in"
             MACOSX_BUNDLE_COPYRIGHT "(c) 2023 Timothy Sarbin"
     )
 

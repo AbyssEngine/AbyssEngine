@@ -27,6 +27,16 @@ On **Linux** and **Windows**, you can run the engine by executing the `abyss` ex
 
 For **macOS**, you can run the engine by executing the `Abyss Engine.app` bundle in the build directory.
 
+### Output Logs
+
+If you run AbyssEngine from the command line, it will output logs to the console.
+On **macOS**, you will need to run the binary directly by executing the binary inside
+of the app bundle on the command line:
+
+```bash
+./AbyssEngine.app/Contents/MacOS/AbyssEngine
+```
+
 ## Configuration
 
 In order for Abyss Engine to run, it needs to load abyss.ini. A template of this file is located at
