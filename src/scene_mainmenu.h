@@ -8,6 +8,10 @@ extern scene_t scene_mainmenu;
 
 typedef struct mainmenu_s {
     sprite_t* background_sprite;
+    sprite_t* d2logo_black_left_sprite;
+    sprite_t* d2logo_black_right_sprite;
+    sprite_t* d2logo_fire_left_sprite;
+    sprite_t* d2logo_fire_right_sprite;
 } mainmenu_t;
 
 void*   scene_mainmenu_create   ();

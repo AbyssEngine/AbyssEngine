@@ -14,9 +14,17 @@
 
 #define CURSOR_DEFAULT                  "/data/global/ui/CURSOR/ohand.DC6"
 
-#define LOADING_SCREEN                  "/data/global/ui/loading/loadingscreen.dc6"
+// -- Main Menu
 #define TRADEMARK_SCREEN                "/data/global/ui/FrontEnd/trademarkscreenEXP.dc6"
 #define GAME_SELECT_SCREEN              "/data/global/ui/FrontEnd/gameselectscreenEXP.dc6"
+#define D2LOGO_BLACK_LEFT               "/data/global/ui/FrontEnd/D2logoBlackLeft.DC6"
+#define D2LOGO_BLACK_RIGHT              "/data/global/ui/FrontEnd/D2logoBlackRight.DC6"
+#define D2LOGO_FIRE_LEFT                "/data/global/ui/FrontEnd/D2logoFireLeft.DC6"
+#define D2LOGO_FIRE_RIGHT               "/data/global/ui/FrontEnd/D2logoFireRight.DC6"
+
+// --
+
+#define LOADING_SCREEN                  "/data/global/ui/loading/loadingscreen.dc6"
 
 #define PALETTE_PATH                    "/data/global/palette/%s/pal.dat"
 

@@ -26,7 +26,7 @@ void cursor_draw() {
     if (!cursor_visible) {
         return;
     }
-    sprite_draw(cursor_sprite, cursor_sprite_type, mouse_x, mouse_y+24);
+    sprite_draw(cursor_sprite, cursor_sprite_type, mouse_x, mouse_y+2);
 }
 
 void cursor_set_type(cursor_type_t cursor_type) {
