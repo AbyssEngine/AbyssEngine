@@ -1,49 +1,98 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(abyss)
+project(AbyssEngine C)
 
+option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
+
+set(CMAKE_DISABLE_SOURCE_CHANGES ON)
+set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set(CMAKE_BUILD_TYPE Debug)
 
-find_package(SDL2 REQUIRED)
-include_directories(${SDL2_INCLUDE_DIRS})
 
-find_package(ZLIB REQUIRED)
-find_package(LibArchive REQUIRED)
-
-add_executable(abyss
-    src/abyss.c
-    src/resource_paths.h
-    src/globals.c src/globals.h
-    src/log.c src/log.h
-    src/config.c src/config.h
-    src/mpq.c src/mpq.h
-    src/mpq_hash.c src/mpq_hash.h
-    src/mpq_header.c src/mpq_header.h
-    src/mpq_block.c src/mpq_block.h
-    src/mpq_stream.c src/mpq_stream.h
-    src/crypto.c src/crypto.h
-    src/fileman.c src/fileman.h
-    src/implode.c src/implode.h
-    src/palette.c src/palette.h
-    src/dc6.c src/dc6.h
-    src/sprite.c src/sprite.h
-    src/cursor.c src/cursor.h
-    src/font.c src/font.h
-    src/scene.c src/scene.h
-    src/scene_mainmenu.c src/scene_mainmenu.h
+# Ensures that we do an out of source build
+MACRO(MACRO_ENSURE_OUT_OF_SOURCE_BUILD MSG)
+    STRING(COMPARE EQUAL "${CMAKE_SOURCE_DIR}"
+            "${CMAKE_BINARY_DIR}" insource)
+    GET_FILENAME_COMPONENT(PARENTDIR ${CMAKE_SOURCE_DIR} PATH)
+    STRING(COMPARE EQUAL "${CMAKE_SOURCE_DIR}"
+            "${PARENTDIR}" insourcesubdir)
+    IF (insource OR insourcesubdir)
+        MESSAGE(FATAL_ERROR "${MSG}")
+    ENDIF (insource OR insourcesubdir)
+ENDMACRO(MACRO_ENSURE_OUT_OF_SOURCE_BUILD)
+MACRO_ENSURE_OUT_OF_SOURCE_BUILD(
+        "${CMAKE_PROJECT_NAME} requires an out of source build."
 )
 
-target_link_libraries(abyss
-    ${SDL2_LIBRARIES}
-    ZLIB::ZLIB
-    LibArchive::LibArchive
+if (NOT CMAKE_BUILD_TYPE)
+    message(STATUS "No build type selected, defaulting to Release")
+    set(CMAKE_BUILD_TYPE Release)
+endif ()
+
+add_subdirectory(3rdparty EXCLUDE_FROM_ALL)
+
+add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE
+        src/abyss.c
+        src/common/resource_paths.h
+        src/common/globals.c src/common/globals.h
+        src/common/log.c src/common/log.h
+        src/common/config.c src/common/config.h
+        src/types/mpq.c src/types/mpq.h
+        src/types/mpq_hash.c src/types/mpq_hash.h
+        src/types/mpq_header.c src/types/mpq_header.h
+        src/types/mpq_block.c src/types/mpq_block.h
+        src/common/mpq_stream.c src/common/mpq_stream.h
+        src/util/crypto.c src/util/crypto.h
+        src/common/fileman.c src/common/fileman.h
+        src/util/implode.c src/util/implode.h
+        src/types/palette.c src/types/palette.h
+        src/types/dc6.c src/types/dc6.h
+        src/drawing/sprite.c src/drawing/sprite.h
+        src/drawing/cursor.c src/drawing/cursor.h
+        src/types/font.c src/types/font.h
+        src/scenes/scene.c src/scenes/scene.h
+        src/scenes/scene_mainmenu.c src/scenes/scene_mainmenu.h
 )
 
-target_compile_options(abyss PRIVATE -gdwarf-4)
+target_link_libraries(${PROJECT_NAME}
+        SDL2::SDL2
+        zlib
+        archive
+)
 
-file(GLOB files_to_copy ${CMAKE_SOURCE_DIR}/content/*)
+set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 99)
 
-foreach(file ${files_to_copy})
-    get_filename_component(filename ${file} NAME)
-    configure_file(${file} ${CMAKE_BINARY_DIR}/${filename} COPYONLY)
-endforeach()
+#target_compile_options(abyss PRIVATE -gdwarf-4)
+
+
+if (APPLE)
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+            MACOSX_BUNDLE_BUNDLE_NAME "Abyss Engine" ,
+            MACOSX_BUNDLE_GUI_IDENTIFIER "com.abyss" ,
+            MACOSX_BUNDLE_ICON_FILE "icon.icns"
+    )
+
+    find_library(OSX_VIDEOTOOLBOX VideoToolbox)
+    find_library(OSX_COREMEDIA CoreMedia)
+    find_library(OSX_SECURITY Security)
+    file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/content/" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/AbyssEngine.app/Contents/Resources")
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+            MACOSX_BUNDLE TRUE
+            MACOSX_BUNDLE_BUNDLE_NAME "Abyss Engine"
+            MACOSX_BUNDLE_BUNDLE_VERSION "0.1"
+            MACOSX_BUNDLE_GUI_IDENTIFIER "com.abyssengine"
+            MACOSX_BUNDLE_ICON_FILE "icon.icns"
+            MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/MacOSXBundleInfo.plist.in"
+            MACOSX_BUNDLE_COPYRIGHT "(c) 2023 Timothy Sarbin"
+    )
+
+    set_source_files_properties("content/icon.icns" PROPERTIES
+            MACOSX_PACKAGE_LOCATION "Resources"
+    )
+
+    set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install" CACHE PATH "Install path prefix, prepended onto install directories" FORCE)
+else ()
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_SOURCE_DIR}/content $<TARGET_FILE_DIR:abyss>)
+endif ()
