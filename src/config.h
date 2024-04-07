@@ -6,6 +6,7 @@
 
 typedef struct config_s {
     char*   base_path;
+    char*   locale;
     char**  mpqs;
     int     num_mpqs;
 } config_t;

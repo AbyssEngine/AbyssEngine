@@ -95,6 +95,9 @@ void config_set(config_t* config, char* category, char* key, char* value) {
         if (IS_STR_EQUAL(key, "basepath")) {
             SET_PARAM_STR(config->base_path, value);
             LOG_DEBUG("Setting base path to '%s'", config->base_path);
+        } else if (IS_STR_EQUAL(key, "locale")) {
+            SET_PARAM_STR(config->locale, value);
+            LOG_DEBUG("Setting locale to '%s'", config->locale);
         } else {
             LOG_FATAL("Invalid key '%s' in the configuration file!", key);
         }
@@ -170,6 +173,7 @@ void config_load(const char* file_path) {
 
 void config_free() {
     free(config->base_path);
+    free(config->locale);
     
     for (int i=0; i<config->num_mpqs; i++) {
         free(config->mpqs[i]);
