@@ -7,9 +7,13 @@
 typedef struct config_s {
     char  *base_path;
     char  *locale;
-    char  *scale_quality;
     char **mpqs;
     int    num_mpqs;
+    struct {
+        char *scale_quality;
+        float initial_scale;
+    } graphics;
+
 } config_t;
 
 void config_load(const char *file_path);

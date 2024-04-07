@@ -17,7 +17,7 @@ config_t *config = NULL;
     memset(X, 0, sizeof(char) * (strlen(Y) + 1));                                                                      \
     strcat(X, Y);
 
-static const char *valid_categories[] = {"general", "mpqs", NULL};
+static const char *valid_categories[] = {"general", "mpqs", "graphics", NULL};
 
 char *trim_str(char *str) {
     size_t len   = strlen(str);
@@ -109,9 +109,19 @@ void config_set(char *category, char *key, char *value) {
         } else if (IS_STR_EQUAL(key, "locale")) {
             SET_PARAM_STR(config->locale, value);
             LOG_DEBUG("Setting locale to '%s'", config->locale);
-        } else if (IS_STR_EQUAL(key, "scalequality")) {
-            SET_PARAM_STR(config->scale_quality, value);
-            LOG_DEBUG("Setting scale quality to '%s'", config->scale_quality);
+        } else {
+            LOG_FATAL("Invalid key '%s' in the configuration file!", key);
+        }
+    } else if (IS_STR_EQUAL(category, "graphics")) {
+        if (IS_STR_EQUAL(key, "scalequality")) {
+            SET_PARAM_STR(config->graphics.scale_quality, value);
+            LOG_DEBUG("Setting scale quality to '%s'", config->graphics.scale_quality);
+        } else if (IS_STR_EQUAL(key, "initialscale")) {
+            config->graphics.initial_scale = strtof(value, NULL);
+            if (config->graphics.initial_scale <= 0.0f) {
+                LOG_FATAL("Invalid value '%s' for key '%s' in the configuration file!", value, key);
+            }
+            LOG_DEBUG("Setting initial scale to '%f'", config->graphics.initial_scale);
         } else {
             LOG_FATAL("Invalid key '%s' in the configuration file!", key);
         }
@@ -158,7 +168,7 @@ void config_load(const char *file_path) {
         if (comment_ptr != NULL) {
             *comment_ptr = '\0';
         }
-        
+
         char *trimmed_line = trim_str(line);
 
         if (strlen(trimmed_line) == 0) {
@@ -195,7 +205,7 @@ void config_load(const char *file_path) {
 void config_free() {
     free(config->base_path);
     free(config->locale);
-    free(config->scale_quality);
+    free(config->graphics.scale_quality);
 
     for (int i = 0; i < config->num_mpqs; i++) {
         free(config->mpqs[i]);

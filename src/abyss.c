@@ -39,7 +39,8 @@ int main(int argc, char **argv) {
     fileman_init();
 
     LOG_DEBUG("Creating window...");
-    sdl_window = SDL_CreateWindow("Abyss Engine", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600,
+    sdl_window = SDL_CreateWindow("Abyss Engine", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                                  800 * config->graphics.initial_scale, 600 * config->graphics.initial_scale,
                                   SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 
     if (sdl_window == NULL) {
@@ -55,7 +56,7 @@ int main(int argc, char **argv) {
 
     SDL_RenderSetLogicalSize(sdl_renderer, 800, 600);
     SDL_ShowCursor(false);
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, config->scale_quality);
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, config->graphics.scale_quality);
 
     palette_initialize();
 

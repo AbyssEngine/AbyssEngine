@@ -3,6 +3,6 @@
 
 typedef struct font_s {
 
-} font_s;
+} font_t;
 
 #endif // ABYSS_FONT_H
