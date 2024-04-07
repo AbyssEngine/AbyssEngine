@@ -24,6 +24,7 @@ typedef struct config_s {
 } config_t;
 
 void config_load(const char *file_path);
+void config_set_sane_defaults();
 void config_free();
 void config_add_mpq(const char *mpq_file);
 void config_set(char *category, char *key, char *value);

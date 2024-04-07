@@ -1,10 +1,15 @@
 #include "config.h"
 #include "log.h"
 #include <ctype.h>
+#include <libc.h>
 #include <stdbool.h>
 #include <stdio.h>
 
-config_t *config = NULL;
+config_t *config    = NULL;
+bool      added_mpq = false;
+
+static const char *default_mpqs[] = {"d2exp.mpq",  "d2xmusic.mpq", "d2xtalk.mpq", "d2xvideo.mpq", "d2data.mpq",
+                                     "d2char.mpq", "d2music.mpq",  "d2sfx.mpq",   "d2video.mpq",  "d2speech.mpq"};
 
 #define MAX_LINE_LEN       4096
 #define IS_STR_EQUAL(X, Y) (strcmp(X, Y) == 0)
@@ -101,12 +106,17 @@ void extract_key_value(char *str, char *key, char *value) {
 }
 
 void config_set(char *category, char *key, char *value) {
-
     if (IS_STR_EQUAL(category, "general")) {
         if (IS_STR_EQUAL(key, "basepath")) {
+            if (strlen(config->base_path) != 0) {
+                memset(config->base_path, 0, sizeof(char) * strlen(config->base_path));
+            }
             SET_PARAM_STR(config->base_path, value);
             LOG_DEBUG("Setting base path to '%s'", config->base_path);
         } else if (IS_STR_EQUAL(key, "locale")) {
+            if (strlen(config->locale) != 0) {
+                memset(config->locale, 0, sizeof(char) * strlen(config->locale));
+            }
             SET_PARAM_STR(config->locale, value);
             LOG_DEBUG("Setting locale to '%s'", config->locale);
         } else {
@@ -114,6 +124,9 @@ void config_set(char *category, char *key, char *value) {
         }
     } else if (IS_STR_EQUAL(category, "graphics")) {
         if (IS_STR_EQUAL(key, "scalequality")) {
+            if (strlen(config->graphics.scale_quality) != 0) {
+                memset(config->graphics.scale_quality, 0, sizeof(char) * strlen(config->graphics.scale_quality));
+            }
             SET_PARAM_STR(config->graphics.scale_quality, value);
             LOG_DEBUG("Setting scale quality to '%s'", config->graphics.scale_quality);
         } else if (IS_STR_EQUAL(key, "initialscale")) {
@@ -168,6 +181,17 @@ void config_set(char *category, char *key, char *value) {
                       "category in the configuration file!",
                       key);
         }
+
+        if (!added_mpq) {
+            added_mpq = true;
+            for (int i = 0; i < config->num_mpqs; i++) {
+                free(config->mpqs[i]);
+            }
+            free(config->mpqs);
+            config->num_mpqs = 0;
+            config->mpqs     = calloc(0, sizeof(char *));
+        }
+
         config_add_mpq(value);
     } else if (strlen(category) == 0) {
         LOG_FATAL("Invalid key '%s' outside of a category in the configuration file!", key);
@@ -179,7 +203,10 @@ void config_set(char *category, char *key, char *value) {
 void config_load(const char *file_path) {
     config = malloc(sizeof(config_t));
     memset(config, 0, sizeof(config_t));
-    config->mpqs = calloc(0, sizeof(char *));
+    config->mpqs     = calloc(0, sizeof(char *));
+    config->num_mpqs = 0;
+
+    config_set_sane_defaults();
 
     char *category = malloc(sizeof(char) * MAX_LINE_LEN);
     char *key      = malloc(sizeof(char) * MAX_LINE_LEN);
@@ -259,4 +286,28 @@ void config_add_mpq(const char *mpq_file) {
     memset(config->mpqs[config->num_mpqs - 1], 0, sizeof(char) * MAX_LINE_LEN);
     strcat(config->mpqs[config->num_mpqs - 1], config->base_path);
     strcat(config->mpqs[config->num_mpqs - 1], mpq_file);
+}
+
+void config_set_sane_defaults() {
+    char *base_path = malloc(sizeof(char) * 4096);
+    memset(base_path, 0, sizeof(char) * 4096);
+    getcwd(base_path, 4096);
+    SET_PARAM_STR(config->base_path, base_path);
+    free(base_path);
+
+    added_mpq = false;
+    for (int i = 0; i < 10; i++) {
+        config_add_mpq(default_mpqs[i]);
+    }
+
+    SET_PARAM_STR(config->graphics.scale_quality, "nearest");
+    config->graphics.initial_scale = 1.0f;
+    config->graphics.fullscreen    = false;
+
+    config->audio.master_volume = 0.8f;
+    config->audio.music_volume  = 1.0f;
+    config->audio.sfx_volume    = 1.0f;
+    config->audio.ui_volume     = 1.0f;
+
+    SET_PARAM_STR(config->locale, "latin");
 }
