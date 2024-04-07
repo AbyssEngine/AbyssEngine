@@ -46,23 +46,16 @@ palette_t* palette_get(const char* palette_name) {
     uint8_t record[3];
     for (int i=0; i<256; i++) {
         mpq_stream_read(stream, record, 0, 3);
-        result->entries[i].b = record[0];
-        result->entries[i].g = record[1];
-        result->entries[i].r = record[2];
-        result->entries[i].a = 0xFF;
+        result->entries[i] = 
+              ((uint32_t)record[2] << 24)
+            | ((uint32_t)record[1] << 16)
+            | ((uint32_t)record[0] << 8)
+            | 0xFF;
     }
     
     mpq_stream_free(stream);
     
-    result->entries[0].a = 0x00;
-    
-    for (int i=0; i<256; i++) {
-        LOG_DEBUG("Pal[%i] $%02X%02X%02X%02X", i,
-            result->entries[i].r,
-            result->entries[i].g,
-            result->entries[i].b,
-            result->entries[i].a); 
-    }
+    result->entries[0] |= 0x000000FF;
     
     palettes = realloc(palettes, sizeof(palette_t)*++palette_count);
     palettes[palette_count-1] = result;

@@ -5,6 +5,7 @@
 #include "crypto.h"
 #include "fileman.h"
 #include "palette.h"
+#include "dc6.h"
 
 int main(int argc, char** argv) {
     log_set_level(LOG_LEVEL_EVERYTHING);
@@ -47,7 +48,8 @@ int main(int argc, char** argv) {
     
     palette_initialize();
     
-    palette_t* palette = palette_get(PALETTE_FECHAR);
+    dc6_t* test = dc6_load(LOADING_SCREEN, PALETTE_FECHAR);
+    dc6_free(test);
 
     SDL_Event sdl_event;
     running = true;

@@ -24,6 +24,7 @@ add_executable(abyss
     src/fileman.c src/fileman.h
     src/implode.c src/implode.h
     src/palette.c src/palette.h
+    src/dc6.c src/dc6.h
 )
 
 target_link_libraries(abyss

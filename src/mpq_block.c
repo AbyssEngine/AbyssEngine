@@ -11,6 +11,7 @@ mpq_block_t* mpq_block_read_table(FILE* file, const char* mpq_path, mpq_header_t
 
     uint32_t n;
     uint32_t i;
+
     for (n=0,i=0; i<mpq_header->block_table_entries; n+=4, i++) {
         mpq_block_t* entry = &result[i];
         entry->file_position        = block_data[n];   

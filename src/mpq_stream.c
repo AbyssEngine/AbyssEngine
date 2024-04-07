@@ -35,7 +35,6 @@ typedef struct pk_info_s {
 unsigned int explode_read(char *buf, unsigned int *size, void *param) {
     pk_info_t* pk_info = (pk_info_t*)param;
     uint32_t to_read = min(*size, pk_info->to_read);
-    LOG_DEBUG("[%x->%x]size: %u, InPos: %u, OutPos: %u, ToRead: %u", buf, pk_info->buff_out, *size, pk_info->in_pos, pk_info->out_pos, to_read);
     memcpy(buf, pk_info->buff_in+pk_info->in_pos, to_read);
     pk_info->in_pos += to_read;
     pk_info->to_read -= to_read;

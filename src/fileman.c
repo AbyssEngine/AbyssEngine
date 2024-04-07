@@ -55,10 +55,9 @@ void fileman_add_mpq(const char* mpq_path) {
 }
 
 mpq_stream_t* fileman_load(const char* file_path) {
-    char *path_fixed = fix_path(file_path);
-    LOG_DEBUG("Fixed Path: '%s'", path_fixed);
-
-    uint64_t file_hash = crypto_hash_file_name(path_fixed);
+    
+    char *path_fixed                 = fix_path(file_path);
+    uint64_t file_hash               = crypto_hash_file_name(path_fixed);
     fileman_file_entry_t* file_entry = NULL;
     
     for(int i=0; i<fileman->file_count; i++) {

@@ -1,10 +1,10 @@
 #ifndef ABYSS_PALETTE_H
 #define ABYSS_PALETTE_H
 
-#include <SDL2/SDL.h>
+#include <stdint.h>
 
 typedef struct palette_s {
-    SDL_Color entries[256];
+    uint32_t entries[256];
     char* name;
 } palette_t;
 
