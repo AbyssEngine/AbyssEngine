@@ -50,6 +50,7 @@ void sprite_load_dc6(sprite_t* sprite, const char* path, const char* palette_nam
        
         spr_frame->texture = SDL_CreateTexture(sdl_renderer, SDL_PIXELFORMAT_RGBA8888,
             SDL_TEXTUREACCESS_STATIC, dc6_frame->header.width, dc6_frame->header.height);
+        
         spr_frame->width    = dc6_frame->header.width;
         spr_frame->height   = dc6_frame->header.height;
         spr_frame->offset_x = dc6_frame->header.offset_x;        
@@ -104,3 +105,10 @@ void sprite_draw_multi(sprite_t* sprite, uint8_t frame_index, int x, int y, int 
         cur_y += sprite->frames[cur_frame-1].height;
     }
 }
+
+void sprite_set_blend_mode(sprite_t* sprite, SDL_BlendMode blend_mode) {
+    for (int frame_idx=0; frame_idx<sprite->frame_count; frame_idx++) {
+        SDL_SetTextureBlendMode(sprite->frames[frame_idx].texture, blend_mode);
+    }
+}
+

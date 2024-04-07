@@ -26,6 +26,7 @@ add_executable(abyss
     src/palette.c src/palette.h
     src/dc6.c src/dc6.h
     src/sprite.c src/sprite.h
+    src/cursor.c src/cursor.h
 )
 
 target_link_libraries(abyss

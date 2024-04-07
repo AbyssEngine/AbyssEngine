@@ -18,11 +18,12 @@ typedef struct sprite_s {
 } sprite_t;
 
 
-sprite_t*   sprite_load         (const char* path, const char* palette_name);
-void        sprite_free         (sprite_t* sprite);
-void        sprite_draw         (sprite_t* sprite, uint8_t frame_index, int x, int y);
-void        sprite_draw_multi   (sprite_t* sprite, uint8_t frame_index, int x, int y, int frames_x, int frames_y);
+sprite_t*   sprite_load             (const char* path, const char* palette_name);
+void        sprite_free             (sprite_t* sprite);
+void        sprite_set_blend_mode   (sprite_t* sprite, SDL_BlendMode blend_mode);
+void        sprite_draw             (sprite_t* sprite, uint8_t frame_index, int x, int y);
+void        sprite_draw_multi       (sprite_t* sprite, uint8_t frame_index, int x, int y, int frames_x, int frames_y);
 
-void        sprite_load_dc6     (sprite_t* sprite, const char* path, const char* palette_name);
+void        sprite_load_dc6         (sprite_t* sprite, const char* path, const char* palette_name);
 
 #endif // ABYSS_SPRITE_H

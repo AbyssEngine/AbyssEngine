@@ -55,7 +55,7 @@ palette_t* palette_get(const char* palette_name) {
     
     mpq_stream_free(stream);
     
-    result->entries[0] |= 0x000000FF;
+    result->entries[0] &= 0xFFFFFF00;
     
     palettes = realloc(palettes, sizeof(palette_t)*++palette_count);
     palettes[palette_count-1] = result;

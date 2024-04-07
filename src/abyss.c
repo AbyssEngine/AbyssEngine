@@ -6,6 +6,7 @@
 #include "fileman.h"
 #include "palette.h"
 #include "sprite.h"
+#include "cursor.h"
 
 int main(int argc, char** argv) {
     log_set_level(LOG_LEVEL_EVERYTHING);
@@ -45,9 +46,15 @@ int main(int argc, char** argv) {
     }
 
     SDL_RenderSetLogicalSize(sdl_renderer, 800, 600);
+    SDL_ShowCursor(false);
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
     
     palette_initialize();
     
+    cursor_initialize();
+    cursor_set_type(CURSOR_STANDARD);
+    
+
     sprite_t* test = sprite_load(TRADEMARK_SCREEN, PALETTE_SKY);
 
     SDL_Event sdl_event;
@@ -58,16 +65,22 @@ int main(int argc, char** argv) {
                 case SDL_QUIT:
                     running = false;
                     break;
+                case SDL_MOUSEMOTION:
+                    mouse_x = sdl_event.motion.x;
+                    mouse_y = sdl_event.motion.y;
+                    break;
             }
         }
 
         SDL_RenderClear(sdl_renderer);
         sprite_draw_multi(test, 0, 0, 0, 4, 3);
+        
+        cursor_draw();
         SDL_RenderPresent(sdl_renderer);
     }
        
     sprite_free(test);
-    
+    cursor_finalize();
     palette_finalize();
     config_free();
     fileman_free();

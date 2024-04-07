@@ -12,8 +12,9 @@
 #define LANGUAGE_FONT_TOKEN             "{LANG_FONT}"
 #define LAGUAGE_TOKEN_TABLE             "{LANG}"
 
-#define LOADING_SCREEN                  "/data/global/ui/loading/loadingscreen.dc6"
+#define CURSOR_DEFAULT                  "/data/global/ui/CURSOR/ohand.DC6"
 
+#define LOADING_SCREEN                  "/data/global/ui/loading/loadingscreen.dc6"
 #define TRADEMARK_SCREEN                "/data/global/ui/FrontEnd/trademarkscreenEXP.dc6"
 #define GAME_SELECT_SCREEN              "/data/global/ui/FrontEnd/gameselectscreenEXP.dc6"
 
@@ -42,5 +43,7 @@
 extern SDL_Window*      sdl_window;
 extern SDL_Renderer*    sdl_renderer;
 extern bool             running;
+extern int              mouse_x;
+extern int              mouse_y;
 
 #endif // ABYSS_GLOBALS_H
