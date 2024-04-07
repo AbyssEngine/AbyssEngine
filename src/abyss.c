@@ -55,7 +55,7 @@ int main(int argc, char **argv) {
 
     SDL_RenderSetLogicalSize(sdl_renderer, 800, 600);
     SDL_ShowCursor(false);
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, config->scale_quality);
 
     palette_initialize();
 

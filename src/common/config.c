@@ -77,7 +77,12 @@ void extract_key_value(char *str, char *key, char *value) {
 
     *equal_ptr = '\0';
     strcat(key, str);
-    strcat(value, str + strlen(str) + 1);
+
+    char *val_start = str + strlen(key) + 1;
+    while (isspace(*val_start) || *val_start == '\t') {
+        val_start++;
+    }
+    strcat(value, val_start);
 
     for (char *ch = key; *ch != '\0'; ch++) {
         if (isspace(*ch) || *ch == '\t') {
@@ -86,6 +91,13 @@ void extract_key_value(char *str, char *key, char *value) {
         }
         *ch = (char)tolower((unsigned char)*ch);
     }
+
+    size_t len = strlen(value);
+    char  *end = value + len;
+    while (end >= value && (isspace(*end) || *end == '\t')) {
+        end--;
+    }
+    *(end + 1) = '\0';
 }
 
 void config_set(char *category, char *key, char *value) {
@@ -97,6 +109,9 @@ void config_set(char *category, char *key, char *value) {
         } else if (IS_STR_EQUAL(key, "locale")) {
             SET_PARAM_STR(config->locale, value);
             LOG_DEBUG("Setting locale to '%s'", config->locale);
+        } else if (IS_STR_EQUAL(key, "scalequality")) {
+            SET_PARAM_STR(config->scale_quality, value);
+            LOG_DEBUG("Setting scale quality to '%s'", config->scale_quality);
         } else {
             LOG_FATAL("Invalid key '%s' in the configuration file!", key);
         }
@@ -138,6 +153,12 @@ void config_load(const char *file_path) {
         if (fgets(line, MAX_LINE_LEN, ini_file) == NULL) {
             break;
         }
+
+        char *comment_ptr = strchr(line, '#');
+        if (comment_ptr != NULL) {
+            *comment_ptr = '\0';
+        }
+        
         char *trimmed_line = trim_str(line);
 
         if (strlen(trimmed_line) == 0) {
@@ -174,6 +195,7 @@ void config_load(const char *file_path) {
 void config_free() {
     free(config->base_path);
     free(config->locale);
+    free(config->scale_quality);
 
     for (int i = 0; i < config->num_mpqs; i++) {
         free(config->mpqs[i]);
