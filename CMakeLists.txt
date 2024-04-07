@@ -12,6 +12,7 @@ find_package(LibArchive REQUIRED)
 
 add_executable(abyss
     src/abyss.c
+    src/resource_paths.h
     src/globals.c src/globals.h
     src/log.c src/log.h
     src/config.c src/config.h
@@ -27,6 +28,7 @@ add_executable(abyss
     src/dc6.c src/dc6.h
     src/sprite.c src/sprite.h
     src/cursor.c src/cursor.h
+    src/font.c src/font.h
     src/scene.c src/scene.h
     src/scene_mainmenu.c src/scene_mainmenu.h
 )
