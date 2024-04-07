@@ -8,26 +8,26 @@ AlignConsecutiveAssignments:
   Enabled: true
   AcrossEmptyLines: false
   AcrossComments: false
-  AlignCompound: false
+  AlignCompound: true
   PadOperators: true
 AlignConsecutiveBitFields:
-  Enabled: false
+  Enabled: true
   AcrossEmptyLines: false
   AcrossComments: false
-  AlignCompound: false
-  PadOperators: false
+  AlignCompound: true
+  PadOperators: true
 AlignConsecutiveDeclarations:
   Enabled: true
   AcrossEmptyLines: false
   AcrossComments: false
-  AlignCompound: false
-  PadOperators: false
+  AlignCompound: true
+  PadOperators: true
 AlignConsecutiveMacros:
   Enabled: true
   AcrossEmptyLines: false
   AcrossComments: false
-  AlignCompound: false
-  PadOperators: false
+  AlignCompound: true
+  PadOperators: true
 AlignConsecutiveShortCaseStatements:
   Enabled: true
   AcrossEmptyLines: false
@@ -86,7 +86,7 @@ BreakBeforeTernaryOperators: true
 BreakConstructorInitializers: BeforeColon
 BreakInheritanceList: BeforeColon
 BreakStringLiterals: true
-ColumnLimit: 80
+ColumnLimit: 120
 CommentPragmas: '^ IWYU pragma:'
 CompactNamespaces: true
 ConstructorInitializerIndentWidth: 4
@@ -127,10 +127,10 @@ IndentExternBlock: AfterExternBlock
 IndentGotoLabels: true
 IndentPPDirectives: None
 IndentRequiresClause: true
-IndentWidth: 2
+IndentWidth: 4
 IndentWrappedFunctionNames: false
 InsertBraces: false
-InsertNewlineAtEOF: false
+InsertNewlineAtEOF: true
 InsertTrailingCommas: None
 IntegerLiteralSeparator:
   Binary: 0
@@ -223,7 +223,7 @@ StatementAttributeLikeMacros:
 StatementMacros:
   - Q_UNUSED
   - QT_REQUIRE_VERSION
-TabWidth: 8
+TabWidth: 4
 UseTab: Never
 VerilogBreakBetweenInstancePorts: true
 WhitespaceSensitiveMacros:

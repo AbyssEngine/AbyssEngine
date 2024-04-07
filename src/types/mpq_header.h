@@ -1,11 +1,11 @@
 #ifndef ABYSS_MPQ_HEADER_H
 #define ABYSS_MPQ_HEADER_H
 
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
 
 typedef struct mpq_header_s {
-    uint8_t magic[4];
+    uint8_t  magic[4];
     uint32_t header_size;
     uint32_t archive_size;
     uint16_t format_version;

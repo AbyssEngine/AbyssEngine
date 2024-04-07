@@ -1,13 +1,13 @@
 #include "scene.h"
 #include "../common/log.h"
 
-void *current_scene_ptr;
+void    *current_scene_ptr;
 scene_t *current_scene;
 scene_t *next_scene;
 
 void scene_initialize() {
-    current_scene = NULL;
-    next_scene = NULL;
+    current_scene     = NULL;
+    next_scene        = NULL;
     current_scene_ptr = NULL;
 }
 
@@ -17,8 +17,8 @@ void scene_finalize() {
     }
 
     current_scene_ptr = NULL;
-    current_scene = NULL;
-    next_scene = NULL;
+    current_scene     = NULL;
+    next_scene        = NULL;
 }
 
 void scene_render() {
@@ -35,8 +35,8 @@ void scene_update(uint32_t delta) {
             current_scene->free(current_scene_ptr);
         }
 
-        current_scene = next_scene;
-        next_scene = NULL;
+        current_scene     = next_scene;
+        next_scene        = NULL;
         current_scene_ptr = current_scene->create();
     }
 

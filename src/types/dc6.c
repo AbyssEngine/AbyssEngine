@@ -9,7 +9,7 @@ dc6_t *dc6_load(const char *path) {
     mpq_stream_t *stream = fileman_load(path);
     mpq_stream_read(stream, &result->header, 0, sizeof(dc6_header_t));
 
-    uint32_t total_frames = result->header.directions * result->header.frames_per_direction;
+    uint32_t total_frames  = result->header.directions * result->header.frames_per_direction;
     result->frame_pointers = malloc(sizeof(uint32_t) * total_frames);
     mpq_stream_read(stream, result->frame_pointers, 0, sizeof(uint32_t) * total_frames);
 
@@ -35,9 +35,9 @@ void dc6_decode_frame(dc6_t *dc6, uint32_t frame_index) {
     frame->indexed_pixel_data = malloc(frame->header.width * frame->header.height);
     memset(frame->indexed_pixel_data, 0, frame->header.width * frame->header.height);
 
-    uint32_t x = 0;
-    uint32_t y = frame->header.height - 1;
-    int offset = 0;
+    uint32_t x      = 0;
+    uint32_t y      = frame->header.height - 1;
+    int      offset = 0;
 
     for (;;) {
         int b = frame->frame_data[offset++];

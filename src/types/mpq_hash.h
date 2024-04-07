@@ -1,8 +1,8 @@
 #ifndef ABYSS_MPQ_HASH_H
 #define ABYSS_MPQ_HASH_H
 
-#include <stdint.h>
 #include "mpq_header.h"
+#include <stdint.h>
 
 typedef struct mpq_hash_s {
     uint32_t a;
@@ -13,7 +13,7 @@ typedef struct mpq_hash_s {
 } mpq_hash_t;
 
 typedef struct mpq_hash_entry_s {
-    uint64_t key;
+    uint64_t   key;
     mpq_hash_t hash;
 } mpq_hash_entry_t;
 

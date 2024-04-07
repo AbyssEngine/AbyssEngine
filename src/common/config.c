@@ -1,28 +1,26 @@
 #include "config.h"
 #include "log.h"
-#include <stdio.h>
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 config_t *config = NULL;
 
-#define MAX_LINE_LEN 4096
-#define IS_STR_EQUAL(X, Y) (strcmp(X, Y)==0)
+#define MAX_LINE_LEN       4096
+#define IS_STR_EQUAL(X, Y) (strcmp(X, Y) == 0)
 
-#define SET_PARAM_STR(X, Y)                      \
-    if ((X) != NULL) { free(X); }                 \
-    (X) = malloc(sizeof(char)*(strlen(Y)+1));     \
-    memset(X, 0, sizeof(char)*(strlen(Y)+1));   \
+#define SET_PARAM_STR(X, Y)                                                                                            \
+    if ((X) != NULL) {                                                                                                 \
+        free(X);                                                                                                       \
+    }                                                                                                                  \
+    (X) = malloc(sizeof(char) * (strlen(Y) + 1));                                                                      \
+    memset(X, 0, sizeof(char) * (strlen(Y) + 1));                                                                      \
     strcat(X, Y);
 
-static const char *valid_categories[] = {
-        "general",
-        "mpqs",
-        NULL
-};
+static const char *valid_categories[] = {"general", "mpqs", NULL};
 
 char *trim_str(char *str) {
-    size_t len = strlen(str);
+    size_t len   = strlen(str);
     size_t index = strcspn(str, "\r\n");
 
     if (index < len) {
@@ -34,7 +32,7 @@ char *trim_str(char *str) {
         result++;
     }
 
-    len = strlen(result);
+    len       = strlen(result);
     char *end = result + len;
 
     while (end >= result && (isspace(*end) || *end == '\t')) {
@@ -65,7 +63,7 @@ void extract_category(char *str, char *out) {
     out[strlen(str) - 2] = '\0';
 
     for (char *ch = out; *ch != '\0'; ch++) {
-        *ch = (char) tolower((unsigned char) *ch);
+        *ch = (char)tolower((unsigned char)*ch);
     }
 }
 
@@ -86,7 +84,7 @@ void extract_key_value(char *str, char *key, char *value) {
             *ch = '\0';
             break;
         }
-        *ch = (char) tolower((unsigned char) *ch);
+        *ch = (char)tolower((unsigned char)*ch);
     }
 }
 
@@ -105,7 +103,8 @@ void config_set(char *category, char *key, char *value) {
     } else if (IS_STR_EQUAL(category, "mpqs")) {
         if (strlen(key) != 0) {
             LOG_FATAL("Key/Value pair for '%s' not allowed in the MPQ "
-                      "category in the configuration file!", key);
+                      "category in the configuration file!",
+                      key);
         }
         config_add_mpq(value);
     } else if (strlen(category) == 0) {
@@ -121,9 +120,9 @@ void config_load(const char *file_path) {
     config->mpqs = calloc(0, sizeof(char *));
 
     char *category = malloc(sizeof(char) * MAX_LINE_LEN);
-    char *key = malloc(sizeof(char) * MAX_LINE_LEN);
-    char *value = malloc(sizeof(char) * MAX_LINE_LEN);
-    char *line = malloc(sizeof(char) * MAX_LINE_LEN);
+    char *key      = malloc(sizeof(char) * MAX_LINE_LEN);
+    char *value    = malloc(sizeof(char) * MAX_LINE_LEN);
+    char *line     = malloc(sizeof(char) * MAX_LINE_LEN);
 
     memset(category, 0, sizeof(char) * MAX_LINE_LEN);
     memset(key, 0, sizeof(char) * MAX_LINE_LEN);
@@ -186,7 +185,7 @@ void config_free() {
 
 void config_add_mpq(const char *mpq_file) {
     config->num_mpqs++;
-    config->mpqs = realloc(config->mpqs, config->num_mpqs * sizeof(char *));
+    config->mpqs                       = realloc(config->mpqs, config->num_mpqs * sizeof(char *));
     config->mpqs[config->num_mpqs - 1] = malloc(sizeof(char) * MAX_LINE_LEN);
     memset(config->mpqs[config->num_mpqs - 1], 0, sizeof(char) * MAX_LINE_LEN);
     strcat(config->mpqs[config->num_mpqs - 1], config->base_path);

@@ -1,9 +1,9 @@
 #include "fileman.h"
+#include "../util/crypto.h"
 #include "config.h"
 #include "log.h"
-#include "../util/crypto.h"
-#include <stdlib.h>
 #include <ctype.h>
+#include <stdlib.h>
 
 fileman_t *fileman;
 
@@ -30,7 +30,7 @@ char *fix_path(const char *path) {
 void fileman_init() {
     fileman = malloc(sizeof(fileman_t));
     memset(fileman, 0, sizeof(fileman_t));
-    fileman->mpqs = calloc(0, sizeof(mpq_t *));
+    fileman->mpqs  = calloc(0, sizeof(mpq_t *));
     fileman->files = calloc(0, sizeof(fileman_file_entry_t));
 
     for (int mpq_idx = 0; mpq_idx < config->num_mpqs; mpq_idx++) {
@@ -50,14 +50,14 @@ void fileman_free() {
 }
 
 void fileman_add_mpq(const char *mpq_path) {
-    fileman->mpqs = realloc(fileman->mpqs, sizeof(mpq_t *) * ++fileman->mpq_count);
+    fileman->mpqs                         = realloc(fileman->mpqs, sizeof(mpq_t *) * ++fileman->mpq_count);
     fileman->mpqs[fileman->mpq_count - 1] = mpq_load(mpq_path);
 }
 
 mpq_stream_t *fileman_load(const char *file_path) {
 
-    char *path_fixed = fix_path(file_path);
-    uint64_t file_hash = crypto_hash_file_name(path_fixed);
+    char                 *path_fixed = fix_path(file_path);
+    uint64_t              file_hash  = crypto_hash_file_name(path_fixed);
     fileman_file_entry_t *file_entry = NULL;
 
     for (int i = 0; i < fileman->file_count; i++) {
@@ -75,10 +75,10 @@ mpq_stream_t *fileman_load(const char *file_path) {
             }
 
             fileman->files = realloc(fileman->files, sizeof(fileman_file_entry_t) * ++fileman->file_count);
-            file_entry = &fileman->files[fileman->file_count - 1];
+            file_entry     = &fileman->files[fileman->file_count - 1];
 
             file_entry->hash = file_hash;
-            file_entry->mpq = fileman->mpqs[mpq_idx];
+            file_entry->mpq  = fileman->mpqs[mpq_idx];
         }
 
         if (file_entry == NULL) {

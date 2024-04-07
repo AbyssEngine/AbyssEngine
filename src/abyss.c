@@ -1,17 +1,16 @@
+#include "common/config.h"
+#include "common/fileman.h"
 #include "common/globals.h"
 #include "common/log.h"
-#include "common/config.h"
-#include "util/crypto.h"
-#include "common/fileman.h"
-#include "types/palette.h"
 #include "drawing/cursor.h"
 #include "scenes/scene.h"
 #include "scenes/scene_mainmenu.h"
+#include "types/palette.h"
+#include "util/crypto.h"
 
 int main(int argc, char **argv) {
     log_set_level(LOG_LEVEL_EVERYTHING);
     LOG_INFO("Abyss Engine");
-    char *x = malloc(4096);
 
     LOG_DEBUG("Initializing SDL...");
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -40,9 +39,7 @@ int main(int argc, char **argv) {
     fileman_init();
 
     LOG_DEBUG("Creating window...");
-    sdl_window = SDL_CreateWindow("Abyss Engine",
-                                  SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                                  800, 600,
+    sdl_window = SDL_CreateWindow("Abyss Engine", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600,
                                   SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 
     if (sdl_window == NULL) {
@@ -50,9 +47,7 @@ int main(int argc, char **argv) {
     }
 
     LOG_DEBUG("Creating renderer...");
-    sdl_renderer = SDL_CreateRenderer(sdl_window, -1,
-                                      SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-
+    sdl_renderer = SDL_CreateRenderer(sdl_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
     if (sdl_renderer == NULL) {
         FATAL(SDL_GetError());
@@ -70,24 +65,24 @@ int main(int argc, char **argv) {
     scene_set(&scene_mainmenu);
 
     SDL_Event sdl_event;
-    running = true;
+    running             = true;
     uint32_t last_ticks = SDL_GetTicks();
 
     while (running) {
         while (SDL_PollEvent(&sdl_event)) {
             switch (sdl_event.type) {
-                case SDL_QUIT:
-                    running = false;
-                    break;
-                case SDL_MOUSEMOTION:
-                    mouse_x = sdl_event.motion.x;
-                    mouse_y = sdl_event.motion.y;
-                    break;
+            case SDL_QUIT:
+                running = false;
+                break;
+            case SDL_MOUSEMOTION:
+                mouse_x = sdl_event.motion.x;
+                mouse_y = sdl_event.motion.y;
+                break;
             }
         }
 
         uint32_t current_ticks = SDL_GetTicks();
-        uint32_t tick_delta = current_ticks - last_ticks;
+        uint32_t tick_delta    = current_ticks - last_ticks;
 
         if (tick_delta == 0) {
             SDL_Delay(1);

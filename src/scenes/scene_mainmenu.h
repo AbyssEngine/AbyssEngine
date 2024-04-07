@@ -1,8 +1,8 @@
 #ifndef ABYSS_SCENE_MAINMENU_H
 #define ABYSS_SCENE_MAINMENU_H
 
-#include "scene.h"
 #include "../drawing/sprite.h"
+#include "scene.h"
 
 extern scene_t scene_mainmenu;
 
@@ -15,13 +15,8 @@ typedef struct mainmenu_s {
 } mainmenu_t;
 
 void *scene_mainmenu_create();
-
-void scene_mainmenu_render(void *scene_ref);
-
-void scene_mainmenu_update(void *scene_ref, uint32_t delta);
-
-void scene_mainmenu_free(void *scene_ref);
-
+void  scene_mainmenu_render(void *scene_ref);
+void  scene_mainmenu_update(void *scene_ref, uint32_t delta);
+void  scene_mainmenu_free(void *scene_ref);
 
 #endif // ABYSS_SCENE_MAINMENU_H
-

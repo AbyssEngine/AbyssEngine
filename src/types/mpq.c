@@ -33,9 +33,7 @@ void mpq_free(mpq_t *mpq) {
     free(mpq);
 }
 
-bool mpq_file_exists(mpq_t *mpq, const char *file_path) {
-    return mpq_get_file_hash(mpq, file_path) != NULL;
-}
+bool mpq_file_exists(mpq_t *mpq, const char *file_path) { return mpq_get_file_hash(mpq, file_path) != NULL; }
 
 mpq_hash_t *mpq_get_file_hash(mpq_t *mpq, const char *file_path) {
     uint64_t file_hash = crypto_hash_file_name(file_path);
@@ -47,9 +45,5 @@ mpq_hash_t *mpq_get_file_hash(mpq_t *mpq, const char *file_path) {
 
         return &mpq->hashes[i].hash;
     }
-    return NULL;
-}
-
-void *mpq_load_entire_file(mpq_t *mpq, const char *file_path) {
     return NULL;
 }

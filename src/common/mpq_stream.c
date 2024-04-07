@@ -1,31 +1,28 @@
 #include "mpq_stream.h"
 
-#include "log.h"
 #include "../util/implode.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include "log.h"
 #include "zlib.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#define COMPRESSION_TYPE_HUFFMAN                    0x01
-#define COMPRESSION_TYPE_ZLIB_DEFLATE               0x02
-#define COMPRESSION_TYPE_PKLIB_IMPLODE              0x08
-#define COMPRESSION_TYPE_BZIP2                      0x10
-#define COMPRESSION_TYPE_LZMA                       0x12
-#define COMPRESSION_TYPE_SPARSE_THEN_ZLIB           0x22
-#define COMPRESSION_TYPE_SPARSE_THEN_BZIP2          0x30
-#define COMPRESSION_TYPE_IMA_ADPCM_MONO             0x40
-#define COMPRESSION_TYPE_HUFFMAN_THEN_ADPCM_MONO    0x41
-#define COMPRESSION_TYPE_IMA_ADPCM_STERIO           0x80
+#define COMPRESSION_TYPE_HUFFMAN                 0x01
+#define COMPRESSION_TYPE_ZLIB_DEFLATE            0x02
+#define COMPRESSION_TYPE_PKLIB_IMPLODE           0x08
+#define COMPRESSION_TYPE_BZIP2                   0x10
+#define COMPRESSION_TYPE_LZMA                    0x12
+#define COMPRESSION_TYPE_SPARSE_THEN_ZLIB        0x22
+#define COMPRESSION_TYPE_SPARSE_THEN_BZIP2       0x30
+#define COMPRESSION_TYPE_IMA_ADPCM_MONO          0x40
+#define COMPRESSION_TYPE_HUFFMAN_THEN_ADPCM_MONO 0x41
+#define COMPRESSION_TYPE_IMA_ADPCM_STERIO        0x80
 
-int min(int a, int b) {
-    return (a < b) ? a : b;
-}
-
+int min(int a, int b) { return (a < b) ? a : b; }
 
 typedef struct pk_info_s {
-    void *buff_in;
-    void *buff_out;
+    void    *buff_in;
+    void    *buff_out;
     uint32_t out_pos;
     uint32_t in_pos;
     uint32_t to_read;
@@ -33,10 +30,10 @@ typedef struct pk_info_s {
 } pk_info_t;
 
 unsigned int explode_read(char *buf, unsigned int *size, void *param) {
-    pk_info_t *pk_info = (pk_info_t *) param;
-    uint32_t to_read = min(*size, pk_info->to_read);
+    pk_info_t *pk_info = (pk_info_t *)param;
+    uint32_t   to_read = min(*size, pk_info->to_read);
     memcpy(buf, pk_info->buff_in + pk_info->in_pos, to_read);
-    pk_info->in_pos += to_read;
+    pk_info->in_pos  += to_read;
     pk_info->to_read -= to_read;
 
     *size = to_read;
@@ -44,14 +41,14 @@ unsigned int explode_read(char *buf, unsigned int *size, void *param) {
 }
 
 void explode_write(char *buf, unsigned int *size, void *param) {
-    pk_info_t *pk_info = (pk_info_t *) param;
+    pk_info_t *pk_info = (pk_info_t *)param;
 
     if (*size > pk_info->to_write) {
         LOG_ERROR("Attempted to write past end of stread for PkWare Explode decompression.");
     }
 
     memcpy(pk_info->buff_out + pk_info->out_pos, buf, *size);
-    pk_info->out_pos += *size;
+    pk_info->out_pos  += *size;
     pk_info->to_write -= *size;
 }
 
@@ -60,8 +57,8 @@ mpq_stream_t *mpq_stream_create(mpq_t *mpq, const char *file_name) {
     mpq_stream_t *result = malloc(sizeof(mpq_stream_t));
     memset(result, 0, sizeof(mpq_stream_t));
 
-    result->mpq = mpq;
-    result->file_name = strdup(file_name);
+    result->mpq         = mpq;
+    result->file_name   = strdup(file_name);
     result->block_index = 0xFFFFFFFF;
 
     result->hash = mpq_get_file_hash(mpq, file_name);
@@ -86,8 +83,8 @@ mpq_stream_t *mpq_stream_create(mpq_t *mpq, const char *file_name) {
         LOG_FATAL("TODO: Patch Files");
     }
 
-    if (((result->block->flags & FILE_FLAG_COMPRESS) || (result->block->flags & FILE_FLAG_IMPLODE))
-        && !(result->block->flags & FILE_FLAG_SINGLE_UNIT)) {
+    if (((result->block->flags & FILE_FLAG_COMPRESS) || (result->block->flags & FILE_FLAG_IMPLODE)) &&
+        !(result->block->flags & FILE_FLAG_SINGLE_UNIT)) {
         mpq_stream_load_block_offset(result);
     }
 
@@ -98,7 +95,7 @@ void mpq_stream_load_block_offset(mpq_stream_t *mpq_stream) {
     fseek(mpq_stream->mpq->file, mpq_stream->block->file_position, SEEK_SET);
 
     mpq_stream->block_offset_count =
-            ((mpq_stream->block->size_uncompressed + mpq_stream->size - 1) / mpq_stream->size) + 1;
+        ((mpq_stream->block->size_uncompressed + mpq_stream->size - 1) / mpq_stream->size) + 1;
 
     uint32_t offset_file_load_size = sizeof(uint32_t) * mpq_stream->block_offset_count;
 
@@ -118,8 +115,8 @@ uint32_t mpq_stream_read(mpq_stream_t *mpq_stream, void *buffer, uint32_t offset
     if (mpq_stream->block->flags & FILE_FLAG_SINGLE_UNIT) {
         LOG_FATAL("TODO: Single unit loads");
     }
-    uint32_t read = 0;
-    uint32_t to_read = size;
+    uint32_t read       = 0;
+    uint32_t to_read    = size;
     uint32_t read_total = 0;
 
     while (to_read > 0) {
@@ -129,8 +126,8 @@ uint32_t mpq_stream_read(mpq_stream_t *mpq_stream, void *buffer, uint32_t offset
         }
 
         read_total += read;
-        offset += read;
-        to_read -= read;
+        offset     += read;
+        to_read    -= read;
     }
 
     return read_total;
@@ -153,13 +150,12 @@ void mpq_stream_buffer_data(mpq_stream_t *mpq_stream) {
         free(mpq_stream->data_buffer);
     }
 
-    uint32_t expected_length = min(mpq_stream->block->size_uncompressed - (block_index * mpq_stream->size),
-                                   mpq_stream->size);
-    mpq_stream->data_buffer = mpq_stream_load_block(mpq_stream, block_index, expected_length);
+    uint32_t expected_length =
+        min(mpq_stream->block->size_uncompressed - (block_index * mpq_stream->size), mpq_stream->size);
+    mpq_stream->data_buffer      = mpq_stream_load_block(mpq_stream, block_index, expected_length);
     mpq_stream->data_buffer_size = expected_length;
-    mpq_stream->block_index = block_index;
+    mpq_stream->block_index      = block_index;
 }
-
 
 void mpq_stream_free(mpq_stream_t *mpq_stream) {
     if (mpq_stream->block_offsets != NULL) {
@@ -189,15 +185,15 @@ void *mpq_stream_load_block(mpq_stream_t *mpq_stream, uint32_t block_index, uint
     uint32_t to_read;
 
     if ((mpq_stream->block->flags & FILE_FLAG_COMPRESS) || (mpq_stream->block->flags & FILE_FLAG_IMPLODE)) {
-        offset = mpq_stream->block_offsets[block_index];
+        offset  = mpq_stream->block_offsets[block_index];
         to_read = mpq_stream->block_offsets[block_index + 1] - offset;
     } else {
-        offset = block_index * mpq_stream->size;
+        offset  = block_index * mpq_stream->size;
         to_read = expected_length;
     }
 
-    offset += mpq_stream->block->file_position;
-    void *data = malloc(to_read);
+    offset     += mpq_stream->block->file_position;
+    void *data  = malloc(to_read);
 
     fseek(mpq_stream->mpq->file, offset, SEEK_SET);
     if (fread(data, to_read, 1, mpq_stream->mpq->file) != 1) {
@@ -228,60 +224,55 @@ void *mpq_stream_load_block(mpq_stream_t *mpq_stream, uint32_t block_index, uint
 }
 
 void *mpq_stream_decompress_multi(mpq_stream_t *mpq_stream, void *buffer, uint32_t to_read, uint32_t expected_length) {
-    uint8_t compression_type = ((uint8_t *) buffer)[0];
+    uint8_t compression_type = ((uint8_t *)buffer)[0];
 
     switch (compression_type) {
-        case COMPRESSION_TYPE_ZLIB_DEFLATE: {
-            void *out_buffer = malloc(expected_length + 1);
-            memset(out_buffer, 0, expected_length + 1);
-            z_stream inflate_stream;
-            inflate_stream.zalloc = Z_NULL;
-            inflate_stream.zfree = Z_NULL;
-            inflate_stream.opaque = Z_NULL;
-            inflate_stream.avail_in = to_read - 1;
-            inflate_stream.next_in = (Bytef *) buffer + 1;
-            inflate_stream.avail_out = expected_length;
-            inflate_stream.next_out = (Bytef *) out_buffer;
-            inflateInit(&inflate_stream);
-            inflate(&inflate_stream, Z_NO_FLUSH);
-            inflateEnd(&inflate_stream);
+    case COMPRESSION_TYPE_ZLIB_DEFLATE: {
+        void *out_buffer = malloc(expected_length + 1);
+        memset(out_buffer, 0, expected_length + 1);
+        z_stream inflate_stream;
+        inflate_stream.zalloc    = Z_NULL;
+        inflate_stream.zfree     = Z_NULL;
+        inflate_stream.opaque    = Z_NULL;
+        inflate_stream.avail_in  = to_read - 1;
+        inflate_stream.next_in   = (Bytef *)buffer + 1;
+        inflate_stream.avail_out = expected_length;
+        inflate_stream.next_out  = (Bytef *)out_buffer;
+        inflateInit(&inflate_stream);
+        inflate(&inflate_stream, Z_NO_FLUSH);
+        inflateEnd(&inflate_stream);
 
-            if (inflate_stream.msg != NULL) {
-                LOG_FATAL("ZLIB Deflate Error: %s", inflate_stream.msg);
-            }
+        if (inflate_stream.msg != NULL) {
+            LOG_FATAL("ZLIB Deflate Error: %s", inflate_stream.msg);
+        }
 
-            free(buffer);
-            return out_buffer;
+        free(buffer);
+        return out_buffer;
+    } break;
+    case COMPRESSION_TYPE_PKLIB_IMPLODE: {
+        void     *out_buffer = malloc(expected_length + 1);
+        pk_info_t pk_info;
+        memset(&pk_info, 0, sizeof(pk_info_t));
+        pk_info.buff_out = out_buffer;
+        pk_info.buff_in  = (char *)buffer + 1;
+        pk_info.to_read  = to_read - 1;
+        pk_info.to_write = expected_length;
+        char *work_buff  = malloc(15000);
+        memset(work_buff, 0, 15000);
+        memset(out_buffer, 0, expected_length + 1);
+        int pk_result = explode(explode_read, explode_write, work_buff, &pk_info);
+        if (pk_result != CMP_NO_ERROR) {
+            LOG_FATAL("Failed to decompress using PkWare Explode: %d.", pk_result);
         }
-            break;
-        case COMPRESSION_TYPE_PKLIB_IMPLODE: {
-            void *out_buffer = malloc(expected_length + 1);
-            pk_info_t pk_info;
-            memset(&pk_info, 0, sizeof(pk_info_t));
-            pk_info.buff_out = out_buffer;
-            pk_info.buff_in = (char *) buffer + 1;
-            pk_info.to_read = to_read - 1;
-            pk_info.to_write = expected_length;
-            char *work_buff = malloc(15000);
-            memset(work_buff, 0, 15000);
-            memset(out_buffer, 0, expected_length + 1);
-            int pk_result = explode(explode_read, explode_write, work_buff, &pk_info);
-            if (pk_result != CMP_NO_ERROR) {
-                LOG_FATAL("Failed to decompress using PkWare Explode: %d.", pk_result);
-            }
-            free(work_buff);
-            free(buffer);
-            return out_buffer;
-        }
-            break;
-        default:
-            LOG_FATAL("Compression Type $%02X not supported!", compression_type);
+        free(work_buff);
+        free(buffer);
+        return out_buffer;
+    } break;
+    default:
+        LOG_FATAL("Compression Type $%02X not supported!", compression_type);
     }
 
     return NULL;
 }
 
-uint32_t mpq_stream_get_size(mpq_stream_t *mpq_stream) {
-    return mpq_stream->block->size_uncompressed;
-}
-
+uint32_t mpq_stream_get_size(mpq_stream_t *mpq_stream) { return mpq_stream->block->size_uncompressed; }
