@@ -2,10 +2,6 @@
 	path = 3rdparty/libarchive
 	url = https://github.com/libarchive/libarchive.git
 	branch = release
-[submodule "3rdparty/zlib"]
-	path = 3rdparty/zlib
-	url = https://github.com/madler/zlib.git
-	branch = master
 [submodule "3rdparty/sdl"]
 	path = 3rdparty/sdl
 	url = https://github.com/libsdl-org/SDL.git
