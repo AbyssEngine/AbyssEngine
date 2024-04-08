@@ -63,6 +63,7 @@ jobs:
                     brew install cmake ninja
 
             -   name: Configure CMake (Windows)
+                if: runner.os == 'Windows'
                 run: >
                     cmake
                     -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
@@ -75,6 +76,7 @@ jobs:
 
 
             -   name: Configure CMake (Links/macOS)
+                if: runner.os != 'Windows'
                 run: >
                     cmake
                     -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
