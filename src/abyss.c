@@ -22,6 +22,8 @@ int main(int argc, char **argv) {
 
     LOG_DEBUG("Loading configuration...");
     char *config_path = malloc(4096);
+    FAIL_IF_NULL(config_path);
+
     memset(config_path, 0, 4096);
 #ifdef _WIN32
     snprintf(config_path, 4096, "%s\\abyss\\abyss.ini", getenv("APPDATA"));
@@ -37,10 +39,10 @@ int main(int argc, char **argv) {
     fileman_init();
 
     LOG_DEBUG("Creating window...");
-    sdl_window =
-        SDL_CreateWindow("Abyss Engine", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                         (int)((float)800 * config->graphics.initial_scale),
-                         (int)((float)600 * config->graphics.initial_scale), SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+    sdl_window = SDL_CreateWindow("Abyss Engine", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                                  (int)((float)800 * config->graphics.initial_scale),
+                                  (int)((float)600 * config->graphics.initial_scale),
+                                  SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
 
     if (sdl_window == NULL) {
         FATAL(SDL_GetError());
@@ -77,11 +79,36 @@ int main(int argc, char **argv) {
             switch (sdl_event.type) {
             case SDL_QUIT:
                 running = false;
-                break;
+                continue;
             case SDL_MOUSEMOTION:
                 mouse_x = sdl_event.motion.x;
                 mouse_y = sdl_event.motion.y;
-                break;
+                continue;
+            case SDL_KEYDOWN:
+                if (sdl_event.key.keysym.sym == SDLK_F4 && sdl_event.key.keysym.mod == KMOD_LALT) {
+                    running = false;
+                }
+                if (sdl_event.key.keysym.sym == SDLK_RETURN &&
+                    (sdl_event.key.keysym.mod == KMOD_LALT || sdl_event.key.keysym.mod == KMOD_RALT)) {
+                    SDL_SetWindowFullscreen(sdl_window,
+                                            config->graphics.fullscreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
+                    config->graphics.fullscreen = !config->graphics.fullscreen;
+                }
+                // if in text input, handle backspace
+                if (strlen(text_input) > 0 && sdl_event.key.keysym.sym == SDLK_BACKSPACE) {
+                    text_input[strlen(text_input) - 1] = '\0';
+                }
+                key_pressed[sdl_event.key.keysym.scancode] = true;
+
+                continue;
+            case SDL_KEYUP:
+                key_pressed[sdl_event.key.keysym.scancode] = false;
+                continue;
+            case SDL_TEXTINPUT:
+                if (strlen(text_input) + strlen(sdl_event.text.text) < MAX_TEXT_INPUT_LENGTH) {
+                    strcat(text_input, sdl_event.text.text);
+                }
+                continue;
             }
         }
 

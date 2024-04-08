@@ -54,7 +54,10 @@ void explode_write(char *buf, unsigned int *size, void *param) {
 
 mpq_stream_t *mpq_stream_create(mpq_t *mpq, const char *file_name) {
     LOG_DEBUG("Loading '%s'", file_name);
+
     mpq_stream_t *result = malloc(sizeof(mpq_stream_t));
+    FAIL_IF_NULL(result);
+
     memset(result, 0, sizeof(mpq_stream_t));
 
     result->mpq         = mpq;
@@ -100,7 +103,10 @@ void mpq_stream_load_block_offset(mpq_stream_t *mpq_stream) {
     const uint32_t offset_file_load_size = sizeof(uint32_t) * mpq_stream->block_offset_count;
 
     mpq_stream->block_offsets = malloc(offset_file_load_size);
+    FAIL_IF_NULL(mpq_stream->block_offsets);
+
     memset(mpq_stream->block_offsets, 0, offset_file_load_size);
+
     if (fread(mpq_stream->block_offsets, sizeof(uint32_t), mpq_stream->block_offset_count, mpq_stream->mpq->file) !=
         mpq_stream->block_offset_count) {
         LOG_FATAL("Failed to load block offsets for '%s'", mpq_stream->file_name);
@@ -194,8 +200,10 @@ void *mpq_stream_load_block(mpq_stream_t *mpq_stream, const uint32_t block_index
         to_read = expected_length;
     }
 
-    offset     += mpq_stream->block->file_position;
-    void *data  = malloc(to_read);
+    offset += mpq_stream->block->file_position;
+
+    void *data = malloc(to_read);
+    FAIL_IF_NULL(data);
 
     fseek(mpq_stream->mpq->file, offset, SEEK_SET);
     if (fread(data, to_read, 1, mpq_stream->mpq->file) != 1) {
@@ -232,6 +240,7 @@ void *mpq_stream_decompress_multi(mpq_stream_t *mpq_stream, void *buffer, const 
     switch (compression_type) {
     case COMPRESSION_TYPE_ZLIB_DEFLATE: {
         void *out_buffer = malloc(expected_length + 1);
+        FAIL_IF_NULL(out_buffer);
 
         if (out_buffer == NULL) {
             LOG_FATAL("Failed to allocate memory for ZLIB decompression.");
@@ -258,14 +267,19 @@ void *mpq_stream_decompress_multi(mpq_stream_t *mpq_stream, void *buffer, const 
         return out_buffer;
     }
     case COMPRESSION_TYPE_PKLIB_IMPLODE: {
-        void     *out_buffer = malloc(expected_length + 1);
+        void *out_buffer = malloc(expected_length + 1);
+        FAIL_IF_NULL(out_buffer);
+
         pk_info_t pk_info;
         memset(&pk_info, 0, sizeof(pk_info_t));
         pk_info.buff_out = out_buffer;
         pk_info.buff_in  = (char *)buffer + 1;
         pk_info.to_read  = to_read - 1;
         pk_info.to_write = expected_length;
-        char *work_buff  = malloc(15000);
+
+        char *work_buff = malloc(15000);
+        FAIL_IF_NULL(work_buff);
+
         memset(work_buff, 0, 15000);
         memset(out_buffer, 0, expected_length + 1);
         const int pk_result = explode(explode_read, explode_write, work_buff, &pk_info);

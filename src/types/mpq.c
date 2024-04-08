@@ -8,6 +8,7 @@ mpq_t *mpq_load(const char *mpq_path) {
     LOG_DEBUG("Loading '%s'...", mpq_path);
 
     mpq_t *result = malloc(sizeof(mpq_t));
+    FAIL_IF_NULL(result);
     memset(result, 0, sizeof(mpq_t));
 
     result->path = strdup(mpq_path);

@@ -43,6 +43,8 @@ uint32_t *crypto_decrypt_table(FILE *file, uint32_t size, const char *name) {
     uint32_t  seed  = crypto_hash_string(name, 3);
     uint32_t  seed2 = 0xEEEEEEEE;
     uint32_t *table = malloc(sizeof(uint32_t) * size);
+
+    FAIL_IF_NULL(table);
     uint8_t   buff[4];
 
     for (uint32_t i = 0; i < size; i++) {

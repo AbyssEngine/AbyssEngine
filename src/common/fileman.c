@@ -29,7 +29,10 @@ char *fix_path(const char *path) {
 
 void fileman_init() {
     fileman = malloc(sizeof(fileman_t));
+    FAIL_IF_NULL(fileman);
+
     memset(fileman, 0, sizeof(fileman_t));
+
     fileman->mpqs  = calloc(0, sizeof(mpq_t *));
     fileman->files = calloc(0, sizeof(fileman_file_entry_t));
 

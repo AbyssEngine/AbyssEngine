@@ -24,6 +24,7 @@ static const char *default_mpqs[] = {"d2exp.mpq",  "d2xmusic.mpq", "d2xtalk.mpq"
         free(X);                                                                                                       \
     }                                                                                                                  \
     (X) = malloc(sizeof(char) * (strlen(Y) + 1));                                                                      \
+    FAIL_IF_NULL(X);                                                                                                   \
     memset(X, 0, sizeof(char) * (strlen(Y) + 1));                                                                      \
     strcat(X, Y);
 
@@ -207,6 +208,8 @@ void config_set(char *category, char *key, char *value) {
 
 void config_load(const char *file_path) {
     config = malloc(sizeof(config_t));
+    FAIL_IF_NULL(config);
+
     memset(config, 0, sizeof(config_t));
     config->mpqs     = calloc(0, sizeof(char *));
     config->num_mpqs = 0;
@@ -217,6 +220,11 @@ void config_load(const char *file_path) {
     char *key      = malloc(sizeof(char) * MAX_LINE_LEN);
     char *value    = malloc(sizeof(char) * MAX_LINE_LEN);
     char *line     = malloc(sizeof(char) * MAX_LINE_LEN);
+
+    FAIL_IF_NULL(category);
+    FAIL_IF_NULL(key);
+    FAIL_IF_NULL(value);
+    FAIL_IF_NULL(line);
 
     memset(category, 0, sizeof(char) * MAX_LINE_LEN);
     memset(key, 0, sizeof(char) * MAX_LINE_LEN);
@@ -286,13 +294,13 @@ void config_free() {
 
 void config_add_mpq(const char *mpq_file) {
     config->num_mpqs++;
-    config->mpqs = realloc(config->mpqs, config->num_mpqs * sizeof(char *));
 
-    if (config->mpqs == NULL) {
-        LOG_FATAL("Could not allocate memory for MPQs!");
-    }
+    config->mpqs = realloc(config->mpqs, config->num_mpqs * sizeof(char *));
+    FAIL_IF_NULL(config->mpqs);
 
     config->mpqs[config->num_mpqs - 1] = malloc(sizeof(char) * MAX_LINE_LEN);
+    FAIL_IF_NULL(config->mpqs[config->num_mpqs - 1]);
+
     memset(config->mpqs[config->num_mpqs - 1], 0, sizeof(char) * MAX_LINE_LEN);
     strcat(config->mpqs[config->num_mpqs - 1], config->base_path);
     strcat(config->mpqs[config->num_mpqs - 1], mpq_file);
@@ -300,6 +308,8 @@ void config_add_mpq(const char *mpq_file) {
 
 void config_set_sane_defaults() {
     char *base_path = malloc(sizeof(char) * 4096);
+    FAIL_IF_NULL(base_path);
+
     memset(base_path, 0, sizeof(char) * 4096);
     getcwd(base_path, 4096);
     SET_PARAM_STR(config->base_path, base_path);

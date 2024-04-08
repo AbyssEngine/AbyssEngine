@@ -23,6 +23,8 @@ char *get_extension(const char *path) {
 
 sprite_t *sprite_load(const char *path, const char *palette_name) {
     sprite_t *result = malloc(sizeof(sprite_t));
+    FAIL_IF_NULL(result);
+
     memset(result, 0, sizeof(sprite_t));
 
     char *file_ext = get_extension(path);
@@ -38,7 +40,7 @@ sprite_t *sprite_load(const char *path, const char *palette_name) {
 }
 
 void sprite_load_dc6(sprite_t *sprite, const char *path, const char *palette_name) {
-    dc6_t     *dc6     = dc6_load(path);
+    dc6_t           *dc6     = dc6_load(path);
     const palette_t *palette = palette_get(palette_name);
 
     sprite->frame_count     = dc6->header.directions * dc6->header.frames_per_direction;
@@ -46,11 +48,13 @@ void sprite_load_dc6(sprite_t *sprite, const char *path, const char *palette_nam
     sprite->last_ticks      = SDL_GetTicks();
     sprite->animation_index = 0;
 
+    FAIL_IF_NULL(sprite->frames);
+
     sprite_set_play_length(sprite, 1.0);
 
     for (int i = 0; i < sprite->frame_count; i++) {
-        const dc6_frame_t    *dc6_frame = &dc6->frames[i];
-        sprite_frame_t *spr_frame = &sprite->frames[i];
+        const dc6_frame_t *dc6_frame = &dc6->frames[i];
+        sprite_frame_t    *spr_frame = &sprite->frames[i];
 
         spr_frame->texture = SDL_CreateTexture(sdl_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC,
                                                dc6_frame->header.width, dc6_frame->header.height);
@@ -61,6 +65,7 @@ void sprite_load_dc6(sprite_t *sprite, const char *path, const char *palette_nam
         spr_frame->offset_y = dc6_frame->header.offset_y;
 
         uint32_t *pixels = malloc(4 * spr_frame->width * spr_frame->height);
+        FAIL_IF_NULL(pixels);
         memset(pixels, 0, spr_frame->width * spr_frame->height);
 
         for (uint32_t idx = 0; idx < (spr_frame->width * spr_frame->height); idx++) {
@@ -96,7 +101,7 @@ void sprite_draw_animated(sprite_t *sprite, const int x, const int y) {
     }
 
     const uint16_t cur_ticks  = SDL_GetTicks();
-    uint16_t tick_delta = cur_ticks - sprite->last_ticks;
+    uint16_t       tick_delta = cur_ticks - sprite->last_ticks;
 
     while (tick_delta >= sprite->ticks_per_frame) {
         sprite->last_ticks += sprite->ticks_per_frame;
@@ -109,7 +114,8 @@ void sprite_draw_animated(sprite_t *sprite, const int x, const int y) {
     sprite_draw(sprite, sprite->animation_index, x, y);
 }
 
-void sprite_draw_multi(const sprite_t *sprite, const uint8_t frame_index, const int x, const int y, const int frames_x, const int frames_y) {
+void sprite_draw_multi(const sprite_t *sprite, const uint8_t frame_index, const int x, const int y, const int frames_x,
+                       const int frames_y) {
     int cur_x     = x;
     int cur_y     = y;
     int cur_frame = frame_index;
@@ -117,7 +123,7 @@ void sprite_draw_multi(const sprite_t *sprite, const uint8_t frame_index, const 
     for (int y = 0; y < frames_y; y++) {
         for (int x = 0; x < frames_x; x++) {
             const sprite_frame_t *frame = &sprite->frames[cur_frame++];
-            SDL_Rect        dest  = {cur_x, cur_y, frame->width, frame->height};
+            SDL_Rect              dest  = {cur_x, cur_y, frame->width, frame->height};
             SDL_RenderCopy(sdl_renderer, frame->texture, NULL, &dest);
 
             // sprite_draw(sprite, cur_frame++, cur_x, cur_y);

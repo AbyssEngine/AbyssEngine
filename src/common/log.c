@@ -3,7 +3,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef _WIN32
+#include <Windows.h>
+#endif // _WIN32
 
+#define MAX_LOG_LINE_LENGTH 4096
 log_level_t log_level = LOG_LEVEL_ERROR;
 
 static const char *log_level_strings[] = {"", "DEBUG", "INFO ", "WARN ", "ERROR", "FATAL"};
@@ -11,6 +15,7 @@ static const char *log_level_strings[] = {"", "DEBUG", "INFO ", "WARN ", "ERROR"
 void log_set_level(const log_level_t level) { log_level = level; }
 
 void log_message(log_level_t level, const char *file, int line, const char *format, ...) {
+    char    msg[MAX_LOG_LINE_LENGTH];
     va_list args;
 
     if (level < log_level) {
@@ -19,23 +24,30 @@ void log_message(log_level_t level, const char *file, int line, const char *form
 
 #ifdef _WIN32
     printf("[%s] %s:%i - ", log_level_strings[level], strrchr(file, '\\') + 1, line);
+    if (IsDebuggerPresent()) {
+        memset(msg, 0, sizeof(char) * MAX_LOG_LINE_LENGTH);
+        snprintf(msg, MAX_LOG_LINE_LENGTH, "%s(%i): [%s] ", file, line, log_level_strings[level]);
+        va_start(args, format);
+        const int len = strchr(msg, '\0') - msg;
+        vsnprintf(strchr(msg, '\0'), len, format, args);
+        va_end(args);
+        strcat(msg, "\n");
+        OutputDebugString(msg);
+    }
 #else
     printf("[%s] %s:%i - ", log_level_strings[level], strrchr(file, '/') + 1, line);
 #endif
     va_start(args, format);
     vprintf(format, args);
     va_end(args);
-
     printf("\n");
 
     if (level == LOG_LEVEL_FATAL) {
-        char *msg = malloc(sizeof(char) * 10000);
-        memset(msg, 0, sizeof(char) * 10000);
+        memset(msg, 0, sizeof(char) * MAX_LOG_LINE_LENGTH);
         va_start(args, format);
-        vsnprintf(msg, 10000, format, args);
+        vsnprintf(msg, MAX_LOG_LINE_LENGTH, format, args);
         va_end(args);
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", msg, sdl_window);
-        free(msg);
         exit(-1);
     }
 }

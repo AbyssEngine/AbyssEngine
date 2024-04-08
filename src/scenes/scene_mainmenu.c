@@ -1,5 +1,6 @@
 #include "scene_mainmenu.h"
 #include "../common/globals.h"
+#include "../common/log.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -7,6 +8,7 @@ scene_t scene_mainmenu = {scene_mainmenu_create, scene_mainmenu_render, scene_ma
 
 void *scene_mainmenu_create() {
     mainmenu_t *result = malloc(sizeof(mainmenu_t));
+    FAIL_IF_NULL(result);
     memset(result, 0, sizeof(mainmenu_t));
 
     result->background_sprite         = sprite_load(GAME_SELECT_SCREEN, PALETTE_SKY);

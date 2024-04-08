@@ -9,6 +9,8 @@
 #define LOG_ERROR(...) log_message(LOG_LEVEL_ERROR, __FILE__, __LINE__, __VA_ARGS__)
 #define LOG_FATAL(...) log_message(LOG_LEVEL_FATAL, __FILE__, __LINE__, __VA_ARGS__)
 
+#define FAIL_IF_NULL(ptr) if (ptr == NULL) { LOG_FATAL("Failed to allocate memory."); }
+
 typedef enum {
     LOG_LEVEL_EVERYTHING,
     LOG_LEVEL_DEBUG,
