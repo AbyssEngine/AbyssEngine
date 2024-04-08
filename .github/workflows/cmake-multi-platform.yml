@@ -60,13 +60,15 @@ jobs:
                 with:
                     vcpkgGitCommitId: 'f56238700757aa05975e41fa835739c632810f3f'
                     vcpkgJsonGlob: "**/vcpkg.json"
-                    vcpkgAdditionalArgs: "['--triplet', '${{ matrix.triplet }}']"
-                    appendedCacheKey: ${{ hashFiles( '**/vcpkg.json' ) }}
 
 
             -   name: Configure CMake
                 run: >
-                    cmake -B ${{ steps.strings.outputs.build-output-dir }}
+                    cmake
+                    -GNinja
+                    -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
+                    -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }}
+                    -B ${{ steps.strings.outputs.build-output-dir }}
                     -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
                     -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
                     -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
