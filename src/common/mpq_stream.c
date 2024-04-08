@@ -18,7 +18,7 @@
 #define COMPRESSION_TYPE_HUFFMAN_THEN_ADPCM_MONO 0x41
 #define COMPRESSION_TYPE_IMA_ADPCM_STERIO        0x80s
 
-static int mmin(int a, int b) { return (a < b) ? a : b; }
+static int mmin(const int a, const int b) { return (a < b) ? a : b; }
 
 typedef struct pk_info_s {
     void    *buff_in;
@@ -30,9 +30,9 @@ typedef struct pk_info_s {
 } pk_info_t;
 
 unsigned int explode_read(char *buf, unsigned int *size, void *param) {
-    pk_info_t *pk_info = (pk_info_t *)param;
-    const uint32_t   to_read = mmin(*size, pk_info->to_read);
-    memcpy(buf, (char*)pk_info->buff_in + pk_info->in_pos, to_read);
+    pk_info_t     *pk_info = param;
+    const uint32_t to_read = mmin(*size, pk_info->to_read);
+    memcpy(buf, (char *)pk_info->buff_in + pk_info->in_pos, to_read);
     pk_info->in_pos  += to_read;
     pk_info->to_read -= to_read;
 
@@ -41,13 +41,13 @@ unsigned int explode_read(char *buf, unsigned int *size, void *param) {
 }
 
 void explode_write(char *buf, unsigned int *size, void *param) {
-    pk_info_t *pk_info = (pk_info_t *)param;
+    pk_info_t *pk_info = param;
 
     if (*size > pk_info->to_write) {
         LOG_ERROR("Attempted to write past end of stread for PkWare Explode decompression.");
     }
 
-    memcpy((char*)pk_info->buff_out + pk_info->out_pos, buf, *size);
+    memcpy((char *)pk_info->buff_out + pk_info->out_pos, buf, *size);
     pk_info->out_pos  += *size;
     pk_info->to_write -= *size;
 }
@@ -111,11 +111,11 @@ void mpq_stream_load_block_offset(mpq_stream_t *mpq_stream) {
     }
 }
 
-uint32_t mpq_stream_read(mpq_stream_t *mpq_stream, void *buffer, uint32_t offset, uint32_t size) {
+uint32_t mpq_stream_read(mpq_stream_t *mpq_stream, void *buffer, uint32_t offset, const uint32_t size) {
     if (mpq_stream->block->flags & FILE_FLAG_SINGLE_UNIT) {
         LOG_FATAL("TODO: Single unit loads");
     }
-    uint32_t read       = 0;
+
     uint32_t to_read    = size;
     uint32_t read_total = 0;
 
@@ -133,7 +133,8 @@ uint32_t mpq_stream_read(mpq_stream_t *mpq_stream, void *buffer, uint32_t offset
     return read_total;
 }
 
-uint32_t mpq_stream_read_internal(mpq_stream_t *mpq_stream, void *buffer, uint32_t offset, uint32_t to_read) {
+uint32_t mpq_stream_read_internal(mpq_stream_t *mpq_stream, void *buffer, const uint32_t offset,
+                                  const uint32_t to_read) {
     mpq_stream_buffer_data(mpq_stream);
     const uint32_t local_position = mpq_stream->position % mpq_stream->size;
     return mpq_stream_copy(mpq_stream, buffer, offset, local_position, to_read);
@@ -168,19 +169,20 @@ void mpq_stream_free(mpq_stream_t *mpq_stream) {
     free(mpq_stream);
 }
 
-uint32_t mpq_stream_copy(mpq_stream_t *mpq_stream, void *buffer, uint32_t offset, uint32_t position, uint32_t count) {
+uint32_t mpq_stream_copy(mpq_stream_t *mpq_stream, void *buffer, const uint32_t offset, const uint32_t position,
+                         const uint32_t count) {
     const uint32_t bytes_to_copy = mmin(mpq_stream->data_buffer_size - position, count);
     if (bytes_to_copy <= 0) {
         LOG_FATAL("Tried reading past end of stream!");
     }
 
-    memcpy((char*)buffer + offset, (char*)mpq_stream->data_buffer + position, bytes_to_copy);
+    memcpy((char *)buffer + offset, (char *)mpq_stream->data_buffer + position, bytes_to_copy);
     mpq_stream->position += bytes_to_copy;
 
     return bytes_to_copy;
 }
 
-void *mpq_stream_load_block(mpq_stream_t *mpq_stream, uint32_t block_index, uint32_t expected_length) {
+void *mpq_stream_load_block(mpq_stream_t *mpq_stream, const uint32_t block_index, const uint32_t expected_length) {
     uint32_t offset;
     uint32_t to_read;
 
@@ -223,7 +225,8 @@ void *mpq_stream_load_block(mpq_stream_t *mpq_stream, uint32_t block_index, uint
     return data;
 }
 
-void *mpq_stream_decompress_multi(mpq_stream_t *mpq_stream, void *buffer, uint32_t to_read, uint32_t expected_length) {
+void *mpq_stream_decompress_multi(mpq_stream_t *mpq_stream, void *buffer, const uint32_t to_read,
+                                  const uint32_t expected_length) {
     const uint8_t compression_type = ((uint8_t *)buffer)[0];
 
     switch (compression_type) {
@@ -253,7 +256,7 @@ void *mpq_stream_decompress_multi(mpq_stream_t *mpq_stream, void *buffer, uint32
 
         free(buffer);
         return out_buffer;
-    } break;
+    }
     case COMPRESSION_TYPE_PKLIB_IMPLODE: {
         void     *out_buffer = malloc(expected_length + 1);
         pk_info_t pk_info;
@@ -272,7 +275,7 @@ void *mpq_stream_decompress_multi(mpq_stream_t *mpq_stream, void *buffer, uint32
         free(work_buff);
         free(buffer);
         return out_buffer;
-    } break;
+    }
     default:
         LOG_FATAL("Compression Type $%02X not supported!", compression_type);
     }
@@ -280,4 +283,4 @@ void *mpq_stream_decompress_multi(mpq_stream_t *mpq_stream, void *buffer, uint32
     return NULL;
 }
 
-uint32_t mpq_stream_get_size(mpq_stream_t *mpq_stream) { return mpq_stream->block->size_uncompressed; }
+uint32_t mpq_stream_get_size(const mpq_stream_t *mpq_stream) { return mpq_stream->block->size_uncompressed; }

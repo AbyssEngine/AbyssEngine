@@ -8,7 +8,7 @@ log_level_t log_level = LOG_LEVEL_ERROR;
 
 static const char *log_level_strings[] = {"", "DEBUG", "INFO ", "WARN ", "ERROR", "FATAL"};
 
-void log_set_level(log_level_t level) { log_level = level; }
+void log_set_level(const log_level_t level) { log_level = level; }
 
 void log_message(log_level_t level, const char *file, int line, const char *format, ...) {
     va_list args;

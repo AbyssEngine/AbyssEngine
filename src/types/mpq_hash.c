@@ -3,7 +3,7 @@
 #include "../util/crypto.h"
 #include <stdlib.h>
 
-mpq_hash_entry_t *mpq_hash_read_table(FILE *file, const char *mpq_path, mpq_header_t *mpq_header) {
+mpq_hash_entry_t *mpq_hash_read_table(FILE *file, const mpq_header_t *mpq_header) {
     mpq_hash_entry_t *result = calloc(sizeof(mpq_hash_entry_t), mpq_header->hash_table_entries);
     fseek(file, mpq_header->hash_table_offset, SEEK_SET);
 
@@ -20,7 +20,7 @@ mpq_hash_entry_t *mpq_hash_read_table(FILE *file, const char *mpq_path, mpq_head
         entry->platform    = (uint16_t)(hash_data[n + 2] & 0xFFFF);
         entry->block_index = hash_data[n + 3];
 
-        result[i].key = ((uint64_t)entry->a << 32) | (uint64_t)entry->b;
+        result[i].key = (uint64_t)entry->a << 32 | (uint64_t)entry->b;
     }
 
     free(hash_data);

@@ -102,7 +102,7 @@ static unsigned short ChCodeAsc[] = {
 //-----------------------------------------------------------------------------
 // Local variables
 
-static char Copyright[] = "PKWARE Data Compression Library for Win32\r\n"
+static char copyright[] = "PKWARE Data Compression Library for Win32\r\n"
                           "Copyright 1989-1995 PKWARE Inc.  All Rights Reserved\r\n"
                           "Patent No. 5,051,745\r\n"
                           "PKWARE Data Compression Library Reg. U.S. Pat. and Tm. Off.\r\n"
@@ -111,13 +111,13 @@ static char Copyright[] = "PKWARE Data Compression Library for Win32\r\n"
 //-----------------------------------------------------------------------------
 // Local functions
 
-static void GenDecodeTabs(long count, unsigned char *bits, unsigned char *pCode, unsigned char *buffer2) {
-    long i;
+static void gen_decode_tabs(const long count, const unsigned char *bits, const unsigned char *p_code,
+                            unsigned char *buffer2) {
 
-    for (i = count - 1; i >= 0; i--) // EBX - count
+    for (long i = count - 1; i >= 0; i--) // EBX - count
     {
-        unsigned long idx1 = pCode[i];
-        unsigned long idx2 = 1 << bits[i];
+        unsigned long       idx1 = p_code[i];
+        const unsigned long idx2 = 1 << bits[i];
 
         do {
             buffer2[idx1]  = (unsigned char)i;
@@ -126,56 +126,55 @@ static void GenDecodeTabs(long count, unsigned char *bits, unsigned char *pCode,
     }
 }
 
-static void GenAscTabs(TDcmpStruct *pWork) {
-    unsigned short *pChCodeAsc = &ChCodeAsc[0xFF];
+static void gen_asc_tabs(TDcmpStruct *p_work) {
+    unsigned short *p_ch_code_asc = &ChCodeAsc[0xFF];
     unsigned long   acc, add;
-    unsigned short  count;
 
-    for (count = 0x00FF; pChCodeAsc >= ChCodeAsc; pChCodeAsc--, count--) {
-        unsigned char *pChBitsAsc = pWork->ChBitsAsc + count;
-        unsigned char  bits_asc   = *pChBitsAsc;
+    for (unsigned short count = 0x00FF; p_ch_code_asc >= ChCodeAsc; p_ch_code_asc--, count--) {
+        unsigned char *p_ch_bits_asc = p_work->ChBitsAsc + count;
+        unsigned char  bits_asc      = *p_ch_bits_asc;
 
         if (bits_asc <= 8) {
             add = (1 << bits_asc);
-            acc = *pChCodeAsc;
+            acc = *p_ch_code_asc;
 
             do {
-                pWork->offs2C34[acc]  = (unsigned char)count;
-                acc                  += add;
+                p_work->offs2C34[acc]  = (unsigned char)count;
+                acc                   += add;
             } while (acc < 0x100);
-        } else if ((acc = (*pChCodeAsc & 0xFF)) != 0) {
-            pWork->offs2C34[acc] = 0xFF;
+        } else if ((acc = (*p_ch_code_asc & 0xFF)) != 0) {
+            p_work->offs2C34[acc] = 0xFF;
 
-            if (*pChCodeAsc & 0x3F) {
-                bits_asc    -= 4;
-                *pChBitsAsc  = bits_asc;
+            if (*p_ch_code_asc & 0x3F) {
+                bits_asc       -= 4;
+                *p_ch_bits_asc  = bits_asc;
 
                 add = (1 << bits_asc);
-                acc = *pChCodeAsc >> 4;
+                acc = *p_ch_code_asc >> 4;
                 do {
-                    pWork->offs2D34[acc]  = (unsigned char)count;
-                    acc                  += add;
+                    p_work->offs2D34[acc]  = (unsigned char)count;
+                    acc                   += add;
                 } while (acc < 0x100);
             } else {
-                bits_asc    -= 6;
-                *pChBitsAsc  = bits_asc;
+                bits_asc       -= 6;
+                *p_ch_bits_asc  = bits_asc;
 
                 add = (1 << bits_asc);
-                acc = *pChCodeAsc >> 6;
+                acc = *p_ch_code_asc >> 6;
                 do {
-                    pWork->offs2E34[acc]  = (unsigned char)count;
-                    acc                  += add;
+                    p_work->offs2E34[acc]  = (unsigned char)count;
+                    acc                   += add;
                 } while (acc < 0x80);
             }
         } else {
-            bits_asc    -= 8;
-            *pChBitsAsc  = bits_asc;
+            bits_asc       -= 8;
+            *p_ch_bits_asc  = bits_asc;
 
             add = (1 << bits_asc);
-            acc = *pChCodeAsc >> 8;
+            acc = *p_ch_code_asc >> 8;
             do {
-                pWork->offs2EB4[acc]  = (unsigned char)count;
-                acc                  += add;
+                p_work->offs2EB4[acc]  = (unsigned char)count;
+                acc                   += add;
             } while (acc < 0x100);
         }
     }
@@ -185,7 +184,7 @@ static void GenAscTabs(TDcmpStruct *pWork) {
 // Skips given number of bits in bit buffer. Result is stored in pWork->bit_buff
 // If no data in input buffer, returns true
 
-static int WasteBits(TDcmpStruct *pWork, unsigned long nBits) {
+static int WasteBits(TDcmpStruct *pWork, const unsigned long nBits) {
     // If number of bits required is less than number of (bits in the buffer) ?
     if (nBits <= pWork->extra_bits) {
         pWork->extra_bits  -= nBits;
@@ -233,7 +232,7 @@ static unsigned long DecodeLit(TDcmpStruct *pWork) {
             return 0x306;
 
         if ((nBits = pWork->ExLenBits[value]) != 0) {
-            unsigned long val2 = pWork->bit_buff & ((1 << nBits) - 1);
+            const unsigned long val2 = pWork->bit_buff & ((1 << nBits) - 1);
 
             if (WasteBits(pWork, nBits)) {
                 if ((value + val2) != 0x10E)
@@ -286,9 +285,9 @@ static unsigned long DecodeLit(TDcmpStruct *pWork) {
 //-----------------------------------------------------------------------------
 // Retrieves the number of bytes to move back
 
-static unsigned long DecodeDist(TDcmpStruct *pWork, unsigned long dwLength) {
-    unsigned long pos   = pWork->position1[(pWork->bit_buff & 0xFF)];
-    unsigned long nSkip = pWork->DistBits[pos]; // Number of bits to skip
+static unsigned long DecodeDist(TDcmpStruct *pWork, const unsigned long dwLength) {
+    unsigned long       pos   = pWork->position1[(pWork->bit_buff & 0xFF)];
+    const unsigned long nSkip = pWork->DistBits[pos]; // Number of bits to skip
 
     // Skip the appropriate number of bits
     if (WasteBits(pWork, nSkip) == 1)
@@ -320,23 +319,23 @@ static unsigned long Expand(TDcmpStruct *pWork) {
     while ((dwResult = oneByte = DecodeLit(pWork)) < 0x305) {
         // If one byte is greater than 0x100, means "Repeat n - 0xFE bytes"
         if (oneByte >= 0x100) {
-            unsigned char *source; // ECX
-            unsigned char *target; // EDX
-            unsigned long  copyLength = oneByte - 0xFE;
-            unsigned long  moveBack;
+            // ECX
+            // EDX
+            unsigned long copy_length = oneByte - 0xFE;
+            unsigned long move_back;
 
             // Get length of data to copy
-            if ((moveBack = DecodeDist(pWork, copyLength)) == 0) {
+            if ((move_back = DecodeDist(pWork, copy_length)) == 0) {
                 dwResult = 0x306;
                 break;
             }
 
             // Target and source pointer
-            target            = &pWork->out_buff[pWork->outputPos];
-            source            = target - moveBack;
-            pWork->outputPos += copyLength;
+            unsigned char       *target  = &pWork->out_buff[pWork->outputPos];
+            const unsigned char *source  = target - move_back;
+            pWork->outputPos            += copy_length;
 
-            while (copyLength-- > 0)
+            while (copy_length-- > 0)
                 *target++ = *source++;
         } else
             pWork->out_buff[pWork->outputPos++] = (unsigned char)oneByte;
@@ -393,26 +392,26 @@ unsigned int PKEXPORT explode(unsigned int (*read_buf)(char *buf, unsigned int *
             return CMP_INVALID_MODE;
 
         memcpy(pWork->ChBitsAsc, ChBitsAsc, sizeof(pWork->ChBitsAsc));
-        GenAscTabs(pWork);
+        gen_asc_tabs(pWork);
     }
 
     memcpy(pWork->LenBits, LenBits, sizeof(pWork->LenBits));
-    GenDecodeTabs(0x10, pWork->LenBits, LenCode, pWork->position2);
+    gen_decode_tabs(0x10, pWork->LenBits, LenCode, pWork->position2);
     memcpy(pWork->ExLenBits, ExLenBits, sizeof(pWork->ExLenBits));
     memcpy(pWork->LenBase, LenBase, sizeof(pWork->LenBase));
     memcpy(pWork->DistBits, DistBits, sizeof(pWork->DistBits));
-    GenDecodeTabs(0x40, pWork->DistBits, DistCode, pWork->position1);
+    gen_decode_tabs(0x40, pWork->DistBits, DistCode, pWork->position1);
     if (Expand(pWork) != 0x306)
         return CMP_NO_ERROR;
 
     return CMP_ABORT;
 }
 
-static char CopyRight[] = "PKWARE Data Compression Library for Win32\r\n"
-                          "Copyright 1989-1995 PKWARE Inc.  All Rights Reserved\r\n"
-                          "Patent No. 5,051,745\r\n"
-                          "PKWARE Data Compression Library Reg. U.S. Pat. and Tm. Off.\r\n"
-                          "Version 1.11\r\n";
+static char copy_right[] = "PKWARE Data Compression Library for Win32\r\n"
+                           "Copyright 1989-1995 PKWARE Inc.  All Rights Reserved\r\n"
+                           "Patent No. 5,051,745\r\n"
+                           "PKWARE Data Compression Library Reg. U.S. Pat. and Tm. Off.\r\n"
+                           "Version 1.11\r\n";
 
 static unsigned long crc_table[] = {
     0x00000000, 0x77073096, 0xEE0E612C, 0x990951BA, 0x076DC419, 0x706AF48F, 0xE963A535, 0x9E6495A3, 0x0EDB8832,
@@ -445,14 +444,13 @@ static unsigned long crc_table[] = {
     0x24B4A3A6, 0xBAD03605, 0xCDD70693, 0x54DE5729, 0x23D967BF, 0xB3667A2E, 0xC4614AB8, 0x5D681B02, 0x2A6F2B94,
     0xB40BBE37, 0xC30C8EA1, 0x5A05DF1B, 0x2D02EF8D};
 
-unsigned long PKEXPORT crc32pk(char *buffer, unsigned int *psize, unsigned long *old_crc) {
+unsigned long PKEXPORT crc32_pk(const char *buffer, const unsigned int *psize, const unsigned long *old_crc) {
     unsigned int  size      = *psize;
     unsigned long crc_value = *old_crc;
 
     while (size-- != 0) {
-        unsigned long ch;
-        ch          = *buffer++ ^ (char)crc_value;
-        crc_value >>= 8;
+        const unsigned long ch   = *buffer++ ^ (char)crc_value;
+        crc_value              >>= 8;
 
         crc_value = crc_table[ch & 0x0FF] ^ crc_value;
     }

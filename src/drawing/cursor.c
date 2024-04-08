@@ -27,6 +27,6 @@ void cursor_draw() {
     sprite_draw(cursor_sprite, cursor_sprite_type, mouse_x, mouse_y + 2);
 }
 
-void cursor_set_type(cursor_type_t cursor_type) { cursor_sprite_type = cursor_type; }
+void cursor_set_type(const cursor_type_t cursor_type) { cursor_sprite_type = cursor_type; }
 
 void cursor_set_visible(bool visible) { cursor_visible = visible; }

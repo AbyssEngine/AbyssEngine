@@ -8,7 +8,7 @@
 #include <string.h>
 
 char *get_extension(const char *path) {
-    char *ext = strrchr(path, '.') + 1;
+    const char *ext = strrchr(path, '.') + 1;
     if (strlen(path) <= (ext - path)) {
         LOG_FATAL("Invalid path extension for '%s'.", path);
     }
@@ -39,7 +39,7 @@ sprite_t *sprite_load(const char *path, const char *palette_name) {
 
 void sprite_load_dc6(sprite_t *sprite, const char *path, const char *palette_name) {
     dc6_t     *dc6     = dc6_load(path);
-    palette_t *palette = palette_get(palette_name);
+    const palette_t *palette = palette_get(palette_name);
 
     sprite->frame_count     = dc6->header.directions * dc6->header.frames_per_direction;
     sprite->frames          = malloc(sizeof(sprite_frame_t) * sprite->frame_count);
@@ -49,7 +49,7 @@ void sprite_load_dc6(sprite_t *sprite, const char *path, const char *palette_nam
     sprite_set_play_length(sprite, 1.0);
 
     for (int i = 0; i < sprite->frame_count; i++) {
-        dc6_frame_t    *dc6_frame = &dc6->frames[i];
+        const dc6_frame_t    *dc6_frame = &dc6->frames[i];
         sprite_frame_t *spr_frame = &sprite->frames[i];
 
         spr_frame->texture = SDL_CreateTexture(sdl_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC,
@@ -82,20 +82,20 @@ void sprite_free(sprite_t *sprite) {
     free(sprite);
 }
 
-void sprite_draw(sprite_t *sprite, uint8_t frame_index, int x, int y) {
-    sprite_frame_t *frame = &sprite->frames[frame_index];
+void sprite_draw(const sprite_t *sprite, const uint8_t frame_index, const int x, const int y) {
+    const sprite_frame_t *frame = &sprite->frames[frame_index];
 
-    SDL_Rect dest = {x + frame->offset_x, y - frame->height + frame->offset_y, frame->width, frame->height};
+    const SDL_Rect dest = {x + frame->offset_x, y - frame->height + frame->offset_y, frame->width, frame->height};
 
     SDL_RenderCopy(sdl_renderer, frame->texture, NULL, &dest);
 }
 
-void sprite_draw_animated(sprite_t *sprite, int x, int y) {
+void sprite_draw_animated(sprite_t *sprite, const int x, const int y) {
     if (sprite->ticks_per_frame == 0) {
         LOG_FATAL("Attempted to animate a sprite with no ticks per frame!");
     }
 
-    uint16_t cur_ticks  = SDL_GetTicks();
+    const uint16_t cur_ticks  = SDL_GetTicks();
     uint16_t tick_delta = cur_ticks - sprite->last_ticks;
 
     while (tick_delta >= sprite->ticks_per_frame) {
@@ -109,14 +109,14 @@ void sprite_draw_animated(sprite_t *sprite, int x, int y) {
     sprite_draw(sprite, sprite->animation_index, x, y);
 }
 
-void sprite_draw_multi(sprite_t *sprite, uint8_t frame_index, int x, int y, int frames_x, int frames_y) {
+void sprite_draw_multi(const sprite_t *sprite, const uint8_t frame_index, const int x, const int y, const int frames_x, const int frames_y) {
     int cur_x     = x;
     int cur_y     = y;
     int cur_frame = frame_index;
 
     for (int y = 0; y < frames_y; y++) {
         for (int x = 0; x < frames_x; x++) {
-            sprite_frame_t *frame = &sprite->frames[cur_frame++];
+            const sprite_frame_t *frame = &sprite->frames[cur_frame++];
             SDL_Rect        dest  = {cur_x, cur_y, frame->width, frame->height};
             SDL_RenderCopy(sdl_renderer, frame->texture, NULL, &dest);
 
@@ -128,13 +128,13 @@ void sprite_draw_multi(sprite_t *sprite, uint8_t frame_index, int x, int y, int 
     }
 }
 
-void sprite_set_blend_mode(sprite_t *sprite, SDL_BlendMode blend_mode) {
+void sprite_set_blend_mode(const sprite_t *sprite, const SDL_BlendMode blend_mode) {
     for (int frame_idx = 0; frame_idx < sprite->frame_count; frame_idx++) {
         SDL_SetTextureBlendMode(sprite->frames[frame_idx].texture, blend_mode);
     }
 }
 
-void sprite_set_play_length(sprite_t *sprite, float play_length) {
+void sprite_set_play_length(sprite_t *sprite, const float play_length) {
     sprite->play_length     = play_length;
     sprite->ticks_per_frame = (1000 * play_length) / sprite->frame_count;
 }

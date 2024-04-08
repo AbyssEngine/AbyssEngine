@@ -17,6 +17,6 @@ typedef struct mpq_hash_entry_s {
     mpq_hash_t hash;
 } mpq_hash_entry_t;
 
-mpq_hash_entry_t *mpq_hash_read_table(FILE *file, const char *mpq_path, mpq_header_t *mpq_header);
+mpq_hash_entry_t *mpq_hash_read_table(FILE *file, const mpq_header_t *mpq_header);
 
 #endif // ABYSS_MPQ_HASH_H

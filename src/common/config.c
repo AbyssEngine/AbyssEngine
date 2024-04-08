@@ -53,12 +53,12 @@ char *trim_str(char *str) {
     return result;
 }
 
-bool is_category(char *str) {
+bool is_category(const char *str) {
     const size_t str_len = strlen(str);
     return (str_len >= 3) && (str[0] == '[') && (str[str_len - 1] == ']');
 }
 
-bool is_valid_category(char *category) {
+bool is_valid_category(const char *category) {
     for (int idx = 0; valid_categories[idx] != NULL; idx++) {
         if (strcmp(valid_categories[idx], category) != 0) {
             continue;
@@ -68,16 +68,16 @@ bool is_valid_category(char *category) {
     return false;
 }
 
-void extract_category(char *str, char *out) {
+void extract_category(const char *str, char *out) {
     strcat(out, str + 1);
     out[strlen(str) - 2] = '\0';
 
     for (char *ch = out; *ch != '\0'; ch++) {
-        *ch = (char)tolower((unsigned char)*ch);
+        *ch = (char)tolower(*ch);
     }
 }
 
-void extract_key_value(char *str, char *key, char *value) {
+void extract_key_value(const char *str, char *key, char *value) {
     char *equal_ptr = strchr(str, '=');
 
     if (equal_ptr == NULL) {
@@ -99,7 +99,7 @@ void extract_key_value(char *str, char *key, char *value) {
             *ch = '\0';
             break;
         }
-        *ch = (char)tolower((unsigned char)*ch);
+        *ch = (char)tolower(*ch);
     }
 
     const size_t len = strlen(value);
@@ -238,7 +238,7 @@ void config_load(const char *file_path) {
             *comment_ptr = '\0';
         }
 
-        char *trimmed_line = trim_str(line);
+        const char *trimmed_line = trim_str(line);
 
         if (strlen(trimmed_line) == 0) {
             continue;

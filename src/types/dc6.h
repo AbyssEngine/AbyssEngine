@@ -38,6 +38,6 @@ typedef struct dc6_s {
 
 dc6_t *dc6_load(const char *path);
 void   dc6_free(dc6_t *dc6);
-void   dc6_decode_frame(dc6_t *dc6, uint32_t frame_index);
+void   dc6_decode_frame(const dc6_t *dc6, uint32_t frame_index);
 
 #endif // ABYSS_DC6_H

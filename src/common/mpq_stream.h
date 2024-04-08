@@ -20,7 +20,7 @@ typedef struct mpq_stream_s {
 
 mpq_stream_t *mpq_stream_create(mpq_t *mpq, const char *file_name);
 void          mpq_stream_free(mpq_stream_t *mpq_stream);
-uint32_t      mpq_stream_get_size(mpq_stream_t *mpq_stream);
+uint32_t      mpq_stream_get_size(const mpq_stream_t *mpq_stream);
 uint32_t      mpq_stream_read(mpq_stream_t *mpq_stream, void *buffer, uint32_t offset, uint32_t size);
 void          mpq_stream_load_block_offset(mpq_stream_t *mpq_stream);
 uint32_t      mpq_stream_read_internal(mpq_stream_t *mpq_stream, void *buffer, uint32_t offset, uint32_t to_read);

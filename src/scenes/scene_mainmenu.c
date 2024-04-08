@@ -24,7 +24,7 @@ void *scene_mainmenu_create() {
 }
 
 void scene_mainmenu_render(void *scene_ref) {
-    mainmenu_t *mainmenu = (mainmenu_t *)scene_ref;
+    const mainmenu_t *mainmenu = (mainmenu_t *)scene_ref;
 
     sprite_draw_multi(mainmenu->background_sprite, 0, 0, 0, 4, 3);
     sprite_draw_animated(mainmenu->d2logo_black_left_sprite, 400, 120);

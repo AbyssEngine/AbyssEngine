@@ -6,7 +6,6 @@
 #include "mpq_header.h"
 #include <stdbool.h>
 #include <stdio.h>
-#include <string.h>
 
 typedef struct mpq_s {
     char             *path;
@@ -20,6 +19,6 @@ typedef struct mpq_s {
 mpq_t      *mpq_load(const char *mpq_path);
 void        mpq_free(mpq_t *mpq);
 bool        mpq_file_exists(mpq_t *mpq, const char *file_path);
-mpq_hash_t *mpq_get_file_hash(mpq_t *mpq, const char *file_path);
+mpq_hash_t *mpq_get_file_hash(const mpq_t *mpq, const char *file_path);
 
 #endif // ABYSS_MPQ_H

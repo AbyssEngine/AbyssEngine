@@ -50,6 +50,6 @@ unsigned int PKEXPORT explode(unsigned int(PKEXPORT *read_buf)(char *buf, unsign
 
 // The original name "crc32" was changed to "crc32pk" due
 // to compatibility with zlib
-unsigned long PKEXPORT crc32pk(char *buffer, unsigned int *size, unsigned long *old_crc);
+unsigned long PKEXPORT crc32_pk(const char *buffer, const unsigned int *size, const unsigned long *old_crc);
 
 #endif // ABYSS_IMPLODE_H

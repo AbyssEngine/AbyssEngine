@@ -3,7 +3,7 @@
 #include "../util/crypto.h"
 #include <stdlib.h>
 
-mpq_block_t *mpq_block_read_table(FILE *file, const char *mpq_path, mpq_header_t *mpq_header) {
+mpq_block_t *mpq_block_read_table(FILE *file, const char *mpq_path, const mpq_header_t *mpq_header) {
     mpq_block_t *result = calloc(sizeof(mpq_block_t), mpq_header->block_table_entries);
     fseek(file, mpq_header->block_table_offset, SEEK_SET);
 

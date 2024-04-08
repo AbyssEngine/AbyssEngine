@@ -18,7 +18,7 @@ mpq_t *mpq_load(const char *mpq_path) {
     }
 
     mpq_header_read(result->file, mpq_path, &result->header);
-    result->hashes = mpq_hash_read_table(result->file, mpq_path, &result->header);
+    result->hashes = mpq_hash_read_table(result->file, &result->header);
     result->blocks = mpq_block_read_table(result->file, mpq_path, &result->header);
 
     return result;
@@ -35,8 +35,8 @@ void mpq_free(mpq_t *mpq) {
 
 bool mpq_file_exists(mpq_t *mpq, const char *file_path) { return mpq_get_file_hash(mpq, file_path) != NULL; }
 
-mpq_hash_t *mpq_get_file_hash(mpq_t *mpq, const char *file_path) {
-    uint64_t file_hash = crypto_hash_file_name(file_path);
+mpq_hash_t *mpq_get_file_hash(const mpq_t *mpq, const char *file_path) {
+    const uint64_t file_hash = crypto_hash_file_name(file_path);
 
     for (int i = 0; i < mpq->header.hash_table_entries; i++) {
         if (mpq->hashes[i].key != file_hash) {

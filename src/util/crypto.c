@@ -14,22 +14,22 @@ void crypto_init() {
         int index2 = index1;
         for (int i = 0; i < 5; i++) {
             seed                   = (seed * 125 + 3) % 0x2AAAAB;
-            uint32_t temp1         = (seed & 0xFFFF) << 0x10;
+            const uint32_t temp1         = (seed & 0xFFFF) << 0x10;
             seed                   = (seed * 125 + 3) % 0x2AAAAB;
-            uint32_t temp2         = (seed & 0xFFFF);
+            const uint32_t temp2         = (seed & 0xFFFF);
             crypto_buffer[index2]  = temp1 | temp2;
             index2                += 0x100;
         }
     }
 }
 
-uint32_t crypto_hash_string(const char *key, uint32_t hash_type) {
+uint32_t crypto_hash_string(const char *key, const uint32_t hash_type) {
     uint32_t seed1 = 0x7FED7FED;
     uint32_t seed2 = 0xEEEEEEEE;
 
-    size_t len = strlen(key);
+    const size_t len = strlen(key);
     for (size_t i = 0; i < len; i++) {
-        char ch = toupper(key[i]);
+        const char ch = toupper(key[i]);
         seed1   = crypto_buffer[(hash_type * 0x100) + (uint32_t)ch] ^ (seed1 + seed2);
         seed2   = (uint32_t)ch + seed1 + seed2 + (seed2 << 5) + 3;
     }
@@ -63,7 +63,7 @@ uint32_t *crypto_decrypt_table(FILE *file, uint32_t size, const char *name) {
 }
 
 uint64_t crypto_hash_file_name(const char *file_name) {
-    uint32_t a = crypto_hash_string(file_name, 1);
-    uint32_t b = crypto_hash_string(file_name, 2);
+    const uint32_t a = crypto_hash_string(file_name, 1);
+    const uint32_t b = crypto_hash_string(file_name, 2);
     return (((uint64_t)a) << 32) | (uint64_t)b;
 }

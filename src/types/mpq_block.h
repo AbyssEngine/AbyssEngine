@@ -24,6 +24,6 @@ typedef struct mpq_block_s {
     uint32_t  encryption_seed;
 } mpq_block_t;
 
-mpq_block_t *mpq_block_read_table(FILE *file, const char *mpq_path, mpq_header_t *mpq_header);
+mpq_block_t *mpq_block_read_table(FILE *file, const char *mpq_path, const mpq_header_t *mpq_header);
 
 #endif // ABYSS_MPQ_BLOCK_H

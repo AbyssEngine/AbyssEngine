@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         FATAL(SDL_GetError());
     }
-
+    char *zz = malloc(4096);
     LOG_DEBUG("Initializing crypto...");
     crypto_init();
 
@@ -85,8 +85,8 @@ int main(int argc, char **argv) {
             }
         }
 
-        uint32_t current_ticks = SDL_GetTicks();
-        uint32_t tick_delta    = current_ticks - last_ticks;
+        const uint32_t current_ticks = SDL_GetTicks();
+        const uint32_t tick_delta    = current_ticks - last_ticks;
 
         if (tick_delta == 0) {
             SDL_Delay(1);

@@ -50,12 +50,11 @@ palette_t *palette_get(const char *palette_name) {
         LOG_ERROR("Invalid palette file size. Expected %d but %d was returned.", 256 * 3, mpq_stream_get_size(stream));
     }
 
-    uint8_t record[3];
-
     for (int i = 0; i < 256; i++) {
+        uint8_t record[3];
         mpq_stream_read(stream, record, 0, 3);
         result->entries[i] =
-            ((uint32_t)record[2] << 24) | ((uint32_t)record[1] << 16) | ((uint32_t)record[0] << 8) | 0xFF;
+            (uint32_t)record[2] << 24 | (uint32_t)record[1] << 16 | (uint32_t)record[0] << 8 | 0xFF;
     }
 
     mpq_stream_free(stream);
