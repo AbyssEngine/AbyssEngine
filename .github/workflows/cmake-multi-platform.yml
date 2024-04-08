@@ -22,17 +22,17 @@ jobs:
                         os: windows-latest
                         c_compiler: cl
                         cpp_compiler: cl
-                        triplet: x64-windows-release
+                        triplet: x64-windows
                     -   name: Ubuntu GCC
                         os: ubuntu-latest
                         c_compiler: gcc
                         cpp_compiler: g++
-                        triplet: x64-linux-release
+                        triplet: x64-linux
                     -   name: MacOS (Clang)
                         os: macos-13
                         c_compiler: clang
                         cpp_compiler: clang++
-                        triplet: arm64-osx-release
+                        triplet: arm64-osx
 
         steps:
             -   name: Checkout
@@ -59,14 +59,13 @@ jobs:
             -   name: Configure CMake
                 run: >
                     cmake
-                    -GNinja
                     -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
                     -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }}
-                    -B ${{ steps.strings.outputs.build-output-dir }}
                     -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
                     -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
                     -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
                     -S ${{ github.workspace }}
+                    -B ${{ steps.strings.outputs.build-output-dir }}
 
             -   name: Build
                 run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
