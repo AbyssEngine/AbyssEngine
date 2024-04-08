@@ -4,7 +4,7 @@
 	branch = release
 [submodule "3rdparty/zlib"]
 	path = 3rdparty/zlib
-	url = https://github.com/madler/zlib
+	url = https://github.com/madler/zlib.git
 	branch = master
 [submodule "3rdparty/sdl"]
 	path = 3rdparty/sdl
