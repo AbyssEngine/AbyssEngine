@@ -284,3 +284,25 @@ void *mpq_stream_decompress_multi(mpq_stream_t *mpq_stream, void *buffer, const 
 }
 
 uint32_t mpq_stream_get_size(const mpq_stream_t *mpq_stream) { return mpq_stream->block->size_uncompressed; }
+
+bool mpq_stream_eof(const mpq_stream_t *mpq_stream) {
+    return mpq_stream->position >= mpq_stream->block->size_uncompressed;
+}
+
+void mpq_stream_seek(mpq_stream_t *mpq_stream, uint32_t position, int32_t origin) {
+    switch (origin) {
+    case SEEK_SET:
+        mpq_stream->position = position;
+        break;
+    case SEEK_CUR:
+        mpq_stream->position += position;
+        break;
+    case SEEK_END:
+        mpq_stream->position = mpq_stream->block->size_uncompressed + position;
+        break;
+    default:
+        LOG_FATAL("Invalid origin for seek: %d", origin);
+    }
+}
+
+uint32_t mpq_stream_tell(const mpq_stream_t *mpq_stream) { return mpq_stream->position; }

@@ -2,7 +2,6 @@
 #define ABYSS_RESOURCEPATHS_H
 
 #define LOCAL_LANGUAGE      "/data/local/use"
-#define LANGUAGE_FONT_TOKEN "{LANG_FONT}"
 #define LAGUAGE_TOKEN_TABLE "{LANG}"
 
 #define CURSOR_DEFAULT "/data/global/ui/CURSOR/ohand.DC6"
@@ -14,7 +13,7 @@
 #define D2LOGO_BLACK_RIGHT "/data/global/ui/FrontEnd/D2logoBlackRight.DC6"
 #define D2LOGO_FIRE_LEFT   "/data/global/ui/FrontEnd/D2logoFireLeft.DC6"
 #define D2LOGO_FIRE_RIGHT  "/data/global/ui/FrontEnd/D2logoFireRight.DC6"
- 
+
 // --
 
 #define LOADING_SCREEN "/data/global/ui/loading/loadingscreen.dc6"
@@ -41,18 +40,18 @@
 #define PALETTE_UNITS      "units"
 
 // -- Fonts
-#define FONTS_FONT6          "/data/local/FONT/" LANGUAGE_FONT_TOKEN "/font6"
-#define FONTS_FONT8          "/data/local/FONT/" LANGUAGE_FONT_TOKEN "/font8"
-#define FONTS_FONT16         "/data/local/FONT/" LANGUAGE_FONT_TOKEN "/font16"
-#define FONTS_FONT24         "/data/local/FONT/" LANGUAGE_FONT_TOKEN "/font24"
-#define FONTS_FONT30         "/data/local/FONT/" LANGUAGE_FONT_TOKEN "/font30"
-#define FONTS_FONT42         "/data/local/FONT/" LANGUAGE_FONT_TOKEN "/font42"
-#define FONTS_FONTFORMAL10   "/data/local/FONT/" LANGUAGE_FONT_TOKEN "/fontformal10"
-#define FONTS_FONTFORMAL11   "/data/local/FONT/" LANGUAGE_FONT_TOKEN "/fontformal11"
-#define FONTS_FONTFORMAL12   "/data/local/FONT/" LANGUAGE_FONT_TOKEN "/fontformal12"
-#define FONTS_FONTEXOCET8    "/data/local/FONT/" LANGUAGE_FONT_TOKEN "/fontexocet8"
-#define FONTS_FONTEXOCET10   "/data/local/FONT/" LANGUAGE_FONT_TOKEN "/fontexocet10"
-#define FONTS_FONTSUCKER     "/data/local/FONT/" LANGUAGE_FONT_TOKEN "/ReallyTheLastSucker"
-#define FONTS_FONTREDICULOUS "/data/local/FONT/" LANGUAGE_FONT_TOKEN "/fontridiculous"
+#define FONTS_FONT6          "/data/local/FONT/%s/font6"
+#define FONTS_FONT8          "/data/local/FONT/%s/font8"
+#define FONTS_FONT16         "/data/local/FONT/%s/font16"
+#define FONTS_FONT24         "/data/local/FONT/%s/font24"
+#define FONTS_FONT30         "/data/local/FONT/%s/font30"
+#define FONTS_FONT42         "/data/local/FONT/%s/font42"
+#define FONTS_FONTFORMAL10   "/data/local/FONT/%s/fontformal10"
+#define FONTS_FONTFORMAL11   "/data/local/FONT/%s/fontformal11"
+#define FONTS_FONTFORMAL12   "/data/local/FONT/%s/fontformal12"
+#define FONTS_FONTEXOCET8    "/data/local/FONT/%s/fontexocet8"
+#define FONTS_FONTEXOCET10   "/data/local/FONT/%s/fontexocet10"
+#define FONTS_FONTSUCKER     "/data/local/FONT/%s/ReallyTheLastSucker"
+#define FONTS_FONTREDICULOUS "/data/local/FONT/%s/fontridiculous"
 
 #endif // ABYSS_RESOURCEPATHS_H

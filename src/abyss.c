@@ -5,6 +5,7 @@
 #include "drawing/cursor.h"
 #include "scenes/scene.h"
 #include "scenes/scene_mainmenu.h"
+#include "types/font.h"
 #include "types/palette.h"
 #include "util/crypto.h"
 
@@ -67,6 +68,9 @@ int main(int argc, char **argv) {
     scene_initialize();
     cursor_set_type(CURSOR_STANDARD);
     scene_set(&scene_mainmenu);
+
+    font_t *font = font_load(FONTS_FONTFORMAL10);
+    font_free(font);
 
     SDL_Event sdl_event;
     running             = true;
