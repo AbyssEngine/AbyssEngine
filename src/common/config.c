@@ -7,7 +7,7 @@
 #ifdef _WIN32
 #include <direct.h>
 #else
-#include <libc.h>
+#include <unistd.h>
 #endif
 
 config_t *config    = NULL;
