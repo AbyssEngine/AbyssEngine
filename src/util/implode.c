@@ -7,18 +7,18 @@
 
 // Compression structure (Size 12596 bytes)
 typedef struct {
-    unsigned long offs0000;   // 0000
-    unsigned long ctype;      // 0004 - Compression type (CMP_BINARY or CMP_ASCII)
-    unsigned long outputPos;  // 0008 - Position in output buffer
-    unsigned long dsize_bits; // 000C - Dict size (4, 5, 6 for 0x400, 0x800, 0x1000)
-    unsigned long dsize_mask; // 0010 - Dict size bitmask (0x0F, 0x1F, 0x3F for 0x400, 0x800, 0x1000)
-    unsigned long bit_buff;   // 0014 - 16-bit buffer for processing input data
-    unsigned long extra_bits; // 0018 - Number of extra (above 8) bits in bit buffer
-    unsigned int  in_pos;     // 001C - Position in in_buff
-    unsigned long in_bytes;   // 0020 - Number of bytes in input buffer
-    void         *param;      // 0024 - Custom parameter
-    unsigned int(PKEXPORT *read_buf)(char *buf, unsigned int *size, void *param); // 0028
-    void(PKEXPORT *write_buf)(char *buf, unsigned int *size, void *param);        // 002C
+    unsigned long  offs0000;   // 0000
+    unsigned long  ctype;      // 0004 - Compression type (CMP_BINARY or CMP_ASCII)
+    unsigned long  outputPos;  // 0008 - Position in output buffer
+    unsigned long  dsize_bits; // 000C - Dict size (4, 5, 6 for 0x400, 0x800, 0x1000)
+    unsigned long  dsize_mask; // 0010 - Dict size bitmask (0x0F, 0x1F, 0x3F for 0x400, 0x800, 0x1000)
+    unsigned long  bit_buff;   // 0014 - 16-bit buffer for processing input data
+    unsigned long  extra_bits; // 0018 - Number of extra (above 8) bits in bit buffer
+    unsigned int   in_pos;     // 001C - Position in in_buff
+    unsigned long  in_bytes;   // 0020 - Number of bytes in input buffer
+    void          *param;      // 0024 - Custom parameter
+    unsigned int   (*read_buf)(char *buf, unsigned int *size, void *param);  // 0028
+    void           (*write_buf)(char *buf, unsigned int *size, void *param); // 002C
     unsigned char  out_buff[0x2000]; // 0030 - Output circle buffer. Starting position is 0x1000
     unsigned char  offs2030[0x204];  // 2030 - ???
     unsigned char  in_buff[0x800];   // 2234 - Buffer for data to be decompressed
@@ -361,9 +361,8 @@ static unsigned long Expand(TDcmpStruct *pWork) {
 //-----------------------------------------------------------------------------
 // Main exploding function.
 
-unsigned int PKEXPORT explode(unsigned int (*read_buf)(char *buf, unsigned int *size, void *param),
-                              void (*write_buf)(char *buf, unsigned int *size, void *param), char *work_buf,
-                              void *param) {
+unsigned int explode(unsigned int (*read_buf)(char *buf, unsigned int *size, void *param),
+                     void (*write_buf)(char *buf, unsigned int *size, void *param), char *work_buf, void *param) {
     TDcmpStruct *pWork = (TDcmpStruct *)work_buf;
 
     // Initialize work struct and load compressed data
@@ -444,7 +443,7 @@ static unsigned long crc_table[] = {
     0x24B4A3A6, 0xBAD03605, 0xCDD70693, 0x54DE5729, 0x23D967BF, 0xB3667A2E, 0xC4614AB8, 0x5D681B02, 0x2A6F2B94,
     0xB40BBE37, 0xC30C8EA1, 0x5A05DF1B, 0x2D02EF8D};
 
-unsigned long PKEXPORT crc32_pk(const char *buffer, const unsigned int *psize, const unsigned long *old_crc) {
+unsigned long crc32_pk(const char *buffer, const unsigned int *psize, const unsigned long *old_crc) {
     unsigned int  size      = *psize;
     unsigned long crc_value = *old_crc;
 
