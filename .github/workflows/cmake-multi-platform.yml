@@ -66,7 +66,7 @@ jobs:
             -   name: Setup anew (or from cache) vcpkg (and does not build any package)
                 uses: lukka/run-vcpkg@v11
                 with:
-                    vcpkgGitCommitId: '${{ matrix.vcpkgCommitId }}'
+                    vcpkgGitCommitId: 'f56238700757aa05975e41fa835739c632810f3f'
                     vcpkgAdditionalArgs: "['--triplet', '${{ matrix.triplet }}']"
 
 
