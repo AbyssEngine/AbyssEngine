@@ -22,17 +22,17 @@ jobs:
                         os: windows-latest
                         c_compiler: cl
                         cpp_compiler: cl
-                        triplet: x64-windows
+                        triplet: x64-windows-release
                     -   name: Ubuntu GCC
                         os: ubuntu-latest
                         c_compiler: gcc
                         cpp_compiler: g++
-                        triplet: x64-linux
+                        triplet: x64-linux-release
                     -   name: MacOS (Clang)
                         os: macos-13
                         c_compiler: clang
                         cpp_compiler: clang++
-                        triplet: arm64-osx
+                        triplet: arm64-osx-release
 
         steps:
             -   name: Checkout
@@ -52,7 +52,7 @@ jobs:
             -   name: Run VCPKG
                 uses: lukka/run-vcpkg@v11
                 with:
-                    vcpkgGitCommitId: 'f56238700757aa05975e41fa835739c632810f3f'
+                    vcpkgGitCommitId: 'a34c873a9717a888f58dc05268dea15592c2f0ff'
                     vcpkgJsonGlob: "**/vcpkg.json"
 
 
