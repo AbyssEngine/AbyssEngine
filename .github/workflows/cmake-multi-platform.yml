@@ -54,13 +54,13 @@ jobs:
                 if: runner.os == 'Linux'
                 run: |
                     sudo apt-get update
-                    sudo apt-get install -y build-essential cmake ninja-build
+                    sudo apt-get install -y build-essential cmake ninja-build libsdl2-dev zlib1g-dev libarchive-dev
 
             -   name: Install Dependencies (MacOS)
                 if: runner.os == 'MacOS'
                 run: |
                     brew update
-                    brew install cmake ninja
+                    brew install cmake ninja sdl2 zlib libarchive
 
             -   name: Configure CMake (Windows)
                 if: runner.os == 'Windows'
