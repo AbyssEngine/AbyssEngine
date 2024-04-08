@@ -10,6 +10,7 @@ on:
 
 jobs:
     build:
+        name: ${{ matrix.name }}
         runs-on: ${{ matrix.os }}
 
         strategy:
@@ -20,18 +21,23 @@ jobs:
                 build_type: [ Release ]
                 c_compiler: [ gcc, clang, cl ]
                 include:
-                    -   os: windows-latest
+
+                    -   name: Windows
+                        os: windows-latest
                         c_compiler: cl
                         cpp_compiler: cl
-                    -   os: ubuntu-latest
+                        triplet: x64-windows-release
+                    -   name: Ubuntu GCC
+                        os: ubuntu-latest
                         c_compiler: gcc
                         cpp_compiler: g++
-                    -   os: ubuntu-latest
+                        triplet: x64-linux-release
+                    -   name: MacOS
+                        os: macos-13
                         c_compiler: clang
                         cpp_compiler: clang++
-                    -   os: macos-latest
-                        c_compiler: clang
-                        cpp_compiler: clang++
+                        triplet: x64-osx-release
+
                 exclude:
                     -   os: windows-latest
                         c_compiler: gcc
