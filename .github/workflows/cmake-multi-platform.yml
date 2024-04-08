@@ -17,40 +17,26 @@ jobs:
             fail-fast: false
 
             matrix:
-                os: [ ubuntu-latest, windows-latest, macos-latest ]
-                build_type: [ Release ]
-                c_compiler: [ gcc, clang, cl ]
                 include:
-
-                    -   name: Windows
+                    -   name: Windows (MSVC)
                         os: windows-latest
                         c_compiler: cl
                         cpp_compiler: cl
-                        triplet: x64-windows-release
+                        triplet: x64-windows
                     -   name: Ubuntu GCC
                         os: ubuntu-latest
                         c_compiler: gcc
                         cpp_compiler: g++
-                        triplet: x64-linux-release
-                    -   name: MacOS
+                        triplet: x64-linux
+                    -   name: MacOS (Clang)
                         os: macos-13
                         c_compiler: clang
                         cpp_compiler: clang++
-                        triplet: x64-osx-release
+                        triplet: arm64-osx
 
-                exclude:
-                    -   os: windows-latest
-                        c_compiler: gcc
-                    -   os: windows-latest
-                        c_compiler: clang
-                    -   os: ubuntu-latest
-                        c_compiler: cl
-                    -   os: macos-latest
-                        c_compiler: cl
-                    -   os: macos-latest
-                        c_compiler: gcc
         steps:
-            -   uses: actions/checkout@v3
+            -   name: Checkout
+                uses: actions/checkout@v3
                 with:
                     submodules: recursive
 
@@ -60,8 +46,10 @@ jobs:
                 run: |
                     echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
-            -   uses: lukka/get-cmake@latest
-            -   name: Setup anew (or from cache) vcpkg (and does not build any package)
+            -   name: Get CMake
+                uses: lukka/get-cmake@latest
+
+            -   name: Run VCPKG
                 uses: lukka/run-vcpkg@v11
                 with:
                     vcpkgGitCommitId: 'f56238700757aa05975e41fa835739c632810f3f'
