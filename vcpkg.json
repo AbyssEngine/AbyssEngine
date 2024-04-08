@@ -5,10 +5,6 @@
     "license": "MIT",
     "builtin-baseline": "0bc3f04da6cb8ae1dbd5e2051032c596bb03cffa",
     "overrides": [
-        {
-            "name": "liblzma",
-            "version": "5.4.0"
-        }
     ],
     "dependencies": [
         "sdl2",
