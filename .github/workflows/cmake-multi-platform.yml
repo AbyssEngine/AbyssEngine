@@ -86,7 +86,7 @@ jobs:
                     -B ${{ steps.strings.outputs.build-output-dir }}
 
             -   name: Build
-                run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
+                run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config Release
 
         env:
             VCPKG_DEFAULT_TRIPLET: ${{ matrix.triplet }}
