@@ -3,8 +3,8 @@
 name: CMake on multiple platforms
 
 on:
-    push:
-        branches: [ "main" ]
+    #    push:
+    #        branches: [ "main" ]
     pull_request:
         branches: [ "main" ]
 
@@ -46,15 +46,21 @@ jobs:
                 run: |
                     echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
-            -   name: Get CMake
-                uses: lukka/get-cmake@latest
-
-            -   name: Run VCPKG
+            -   name: Install Dependencies (Windows)
+                if: runner.os == 'Windows'
                 uses: lukka/run-vcpkg@v11
-                with:
-                    vcpkgGitCommitId: '0bc3f04da6cb8ae1dbd5e2051032c596bb03cffa'
-                    vcpkgJsonGlob: "**/vcpkg.json"
 
+            -   name: Install Dependencies (Linux)
+                if: runner.os == 'Linux'
+                run: |
+                    sudo apt-get update
+                    sudo apt-get install -y build-essential cmake ninja-build
+
+            -   name: Install Dependencies (MacOS)
+                if: runner.os == 'MacOS'
+                run: |
+                    brew update
+                    brew install cmake ninja
 
             -   name: Configure CMake
                 run: >
