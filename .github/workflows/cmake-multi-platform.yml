@@ -55,13 +55,6 @@ jobs:
                 with:
                     submodules: recursive
 
-
-            -   name: Unset OPENSSL_CONF (Windows Only)
-                if: matrix.os == 'windows-latest'
-                shell: powershell
-                run: |
-                    Remove-Item Env:\OPENSSL_CONF -ErrorAction SilentlyContinue
-
             -   name: Set reusable strings
                 # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
                 id: strings
@@ -69,42 +62,23 @@ jobs:
                 run: |
                     echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
-            # - name: Cache
-            #   uses: actions/cache@v4.0.2
-            #   with:
-            #     # A list of files, directories, and wildcard patterns to cache and restore
-            #     path:
-            #     # An explicit key for restoring and saving the cache
-            #     key:
-            #     # An ordered list of keys to use for restoring stale cache if no cache hit occurred for key. Note `cache-hit` returns false in this case.
-            #     restore-keys: # optional
-            #     # The chunk size used to split up large files during upload, in bytes
-            #     upload-chunk-size: # optional
-            #     # An optional boolean when enabled, allows windows runners to save or restore caches that can be restored or saved respectively on other platforms
-            #     enableCrossOsArchive: # optional, default is false
-            #     # Fail the workflow if cache entry is not found
-            #     fail-on-cache-miss: # optional, default is false
-            #     # Check if a cache entry exists for the given input(s) (key, restore-keys) without downloading the cache
-            #     lookup-only: # optional, default is false
-            #     # Run the post step to save the cache even if another step before fails
-            #     save-always: # optional, default is false
+            -   uses: lukka/get-cmake@latest
+            -   name: Setup anew (or from cache) vcpkg (and does not build any package)
+                uses: lukka/run-vcpkg@v11
 
-            -   name: Configure CMake
-                # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
-                # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-                run: >
-                    cmake -B ${{ steps.strings.outputs.build-output-dir }}
-                    -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
-                    -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
-                    -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-                    -S ${{ github.workspace }}
+            -   name: Run CMake consuming CMakePreset.json and run vcpkg to build packages
+                uses: lukka/run-cmake@v10
+                with:
+                    configurePreset: 'ninja-multi-vcpkg'
+                    configurePresetAdditionalArgs: "['-DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}','-DCMAKE_C_COMPILER=${{ matrix.c_compiler }}','-DCMAKE_BUILD_TYPE=${{ matrix.build_type }}', '-B ${{ steps.strings.outputs.build-output-dir }}', '-S ${{ github.workspace }}']"
+                    buildPreset: 'ninja-multi-vcpkg'
+                    buildPresetAdditionalArgs: "['--config Release']"
 
             -   name: Build
                 # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
                 run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
 
-        # - name: Test
-        #   working-directory: ${{ steps.strings.outputs.build-output-dir }}
-        #   # Execute tests defined by the CMake configuration. Note that --build-config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
-        #   # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-        #   run: ctest --build-config ${{ matrix.build_type }}
+        env:
+            VCPKG_DEFAULT_TRIPLET: ${{ matrix.triplet }}
+            VCPKG_DEFAULT_HOST_TRIPLET: ${{ matrix.triplet }}
+
