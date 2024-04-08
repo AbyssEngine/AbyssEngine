@@ -32,10 +32,7 @@
 //-----------------------------------------------------------------------------
 // Define calling convention
 
-// #define PKEXPORT
-#define PKEXPORT __cdecl // Use for normal __cdecl calling
-// #define PKEXPORT  __stdcall
-// #define PKEXPORT  __fastcall
+#define PKEXPORT
 
 //-----------------------------------------------------------------------------
 // Public functions
@@ -44,12 +41,11 @@
 extern "C" {
 #endif
 
-unsigned int PKEXPORT explode(unsigned int(PKEXPORT *read_buf)(char *buf, unsigned int *size, void *param),
-                              void(PKEXPORT *write_buf)(char *buf, unsigned int *size, void *param), char *work_buf,
-                              void *param);
+unsigned int explode(unsigned int (*read_buf)(char *buf, unsigned int *size, void *param),
+                     void (*write_buf)(char *buf, unsigned int *size, void *param), char *work_buf, void *param);
 
 // The original name "crc32" was changed to "crc32pk" due
 // to compatibility with zlib
-unsigned long PKEXPORT crc32_pk(const char *buffer, const unsigned int *size, const unsigned long *old_crc);
+unsigned long crc32_pk(const char *buffer, const unsigned int *size, const unsigned long *old_crc);
 
 #endif // ABYSS_IMPLODE_H

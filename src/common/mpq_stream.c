@@ -242,10 +242,6 @@ void *mpq_stream_decompress_multi(mpq_stream_t *mpq_stream, void *buffer, const 
         void *out_buffer = malloc(expected_length + 1);
         FAIL_IF_NULL(out_buffer);
 
-        if (out_buffer == NULL) {
-            LOG_FATAL("Failed to allocate memory for ZLIB decompression.");
-        }
-
         memset(out_buffer, 0, expected_length + 1);
         z_stream inflate_stream;
         inflate_stream.zalloc    = Z_NULL;

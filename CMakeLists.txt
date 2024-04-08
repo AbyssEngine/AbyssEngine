@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(AbyssEngine C)
+project(AbyssEngine)
 
 option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 
@@ -8,6 +8,26 @@ set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_C_STANDARD 99)
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    # Homebrew ships libarchive keg only, include dirs have to be set manually
+    execute_process(
+            COMMAND brew --prefix libarchive
+            OUTPUT_VARIABLE LIBARCHIVE_PREFIX
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            COMMAND_ERROR_IS_FATAL ANY
+    )
+    set(LibArchive_INCLUDE_DIR "${LIBARCHIVE_PREFIX}/include")
+endif ()
+
+find_package(SDL2 REQUIRED)
+include_directories(${SDL2_INCLUDE_DIRS})
+
+find_package(ZLIB REQUIRED)
+include_directories(${ZLIB_INCLUDE_DIRS})
+
+find_package(LibArchive REQUIRED)
+include_directories(${LibArchive_INCLUDE_DIR})
 
 #add_compile_options(-fsanitize=address -g)
 #add_link_options(-fsanitize=address)
@@ -31,8 +51,6 @@ if (NOT CMAKE_BUILD_TYPE)
     message(STATUS "No build type selected, defaulting to Release")
     set(CMAKE_BUILD_TYPE Release)
 endif ()
-
-add_subdirectory(3rdparty EXCLUDE_FROM_ALL)
 
 add_executable(AbyssEngine WIN32 MACOSX_BUNDLE
         src/abyss.c
@@ -63,9 +81,9 @@ if (WIN32)
 endif ()
 
 target_link_libraries(AbyssEngine
-        SDL2::SDL2
-        zlibstatic
-        archive_static
+        ${SDL2_LIBRARIES}
+        ${ZLIB_LIBRARIES}
+        ${LibArchive_LIBRARIES}
         ${ADDITIONAL_LIBRARIES}
 )
 

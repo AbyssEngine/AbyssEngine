@@ -1,3 +1,0 @@
-add_subdirectory(libarchive EXCLUDE_FROM_ALL)
-add_subdirectory(zlib EXCLUDE_FROM_ALL)
-add_subdirectory(sdl EXCLUDE_FROM_ALL)
