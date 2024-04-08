@@ -6,3 +6,7 @@
 	path = 3rdparty/sdl
 	url = https://github.com/libsdl-org/SDL.git
 	branch = SDL2
+[submodule "3rdparty/zlib"]
+	path = 3rdparty/zlib
+	url = https://github.com/madler/zlib
+	branch = master
