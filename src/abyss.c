@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         FATAL(SDL_GetError());
     }
-    char *zz = malloc(4096);
+    
     LOG_DEBUG("Initializing crypto...");
     crypto_init();
 

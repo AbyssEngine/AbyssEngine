@@ -44,7 +44,7 @@ void explode_write(char *buf, unsigned int *size, void *param) {
     pk_info_t *pk_info = param;
 
     if (*size > pk_info->to_write) {
-        LOG_ERROR("Attempted to write past end of stread for PkWare Explode decompression.");
+        LOG_ERROR("Attempted to write past end of stream for PkWare Explode decompression.");
     }
 
     memcpy((char *)pk_info->buff_out + pk_info->out_pos, buf, *size);
@@ -204,7 +204,7 @@ void *mpq_stream_load_block(mpq_stream_t *mpq_stream, const uint32_t block_index
 
     if ((mpq_stream->block->flags & FILE_FLAG_ENCRYPTED) && mpq_stream->block->size_uncompressed > 3) {
         if (mpq_stream->block->encryption_seed == 0) {
-            LOG_FATAL("Unable to determmine encryption key for file block load.");
+            LOG_FATAL("Unable to determine encryption key for file block load.");
         }
 
         LOG_FATAL("TODO: Decrypt bytes");
