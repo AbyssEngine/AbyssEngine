@@ -18,11 +18,12 @@ jobs:
 
             matrix:
                 include:
-                    -   name: Windows (MSVC)
-                        os: windows-latest
-                        c_compiler: cl
-                        cpp_compiler: cl
-                        triplet: x64-windows
+                    # Disabled windows for now due to https://github.com/microsoft/vcpkg/issues/37893
+                    #                    -   name: Windows (MSVC)
+                    #                        os: windows-latest
+                    #                        c_compiler: cl
+                    #                        cpp_compiler: cl
+                    #                        triplet: x64-windows
                     -   name: Ubuntu GCC
                         os: ubuntu-latest
                         c_compiler: gcc
