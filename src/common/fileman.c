@@ -36,6 +36,9 @@ void fileman_init() {
     fileman->mpqs  = calloc(0, sizeof(mpq_t *));
     fileman->files = calloc(0, sizeof(fileman_file_entry_t));
 
+    FAIL_IF_NULL(fileman->mpqs);
+    FAIL_IF_NULL(fileman->files);
+
     for (int mpq_idx = 0; mpq_idx < config->num_mpqs; mpq_idx++) {
         fileman_add_mpq(config->mpqs[mpq_idx]);
     }
@@ -60,7 +63,7 @@ void fileman_add_mpq(const char *mpq_path) {
 mpq_stream_t *fileman_load(const char *file_path) {
 
     char                 *path_fixed = fix_path(file_path);
-    const uint64_t              file_hash  = crypto_hash_file_name(path_fixed);
+    const uint64_t        file_hash  = crypto_hash_file_name(path_fixed);
     fileman_file_entry_t *file_entry = NULL;
 
     for (int i = 0; i < fileman->file_count; i++) {
