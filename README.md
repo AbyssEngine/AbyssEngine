@@ -59,6 +59,13 @@ cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 ```
 
+Alternatively, meson can be used:
+
+```bash
+meson setup build
+ninja -C build
+```
+
 ### Running
 
 On **Linux** and **Windows**, you can run the engine by executing the `abyss` executable in the build directory.
