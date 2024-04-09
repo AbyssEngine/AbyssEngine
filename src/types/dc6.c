@@ -42,7 +42,7 @@ void dc6_decode_frame(const dc6_t *dc6, uint32_t frame_index) {
 
     frame->indexed_pixel_data = malloc(frame->header.width * frame->header.height);
     FAIL_IF_NULL(frame->indexed_pixel_data);
-    memset(frame->indexed_pixel_data, 0, frame->header.width * frame->header.height);
+    memset(frame->indexed_pixel_data, 0, (size_t)frame->header.width * frame->header.height);
 
     uint32_t x      = 0;
     uint32_t y      = frame->header.height - 1;
