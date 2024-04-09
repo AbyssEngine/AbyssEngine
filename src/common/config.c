@@ -13,8 +13,9 @@
 config_t *config    = NULL;
 bool      added_mpq = false;
 
-static const char *default_mpqs[] = {"d2exp.mpq",  "d2xmusic.mpq", "d2xtalk.mpq", "d2xvideo.mpq", "d2data.mpq",
-                                     "d2char.mpq", "d2music.mpq",  "d2sfx.mpq",   "d2video.mpq",  "d2speech.mpq"};
+static const char *default_mpqs[] = {"d2exp.mpq",   "d2xmusic.mpq", "d2xtalk.mpq", "d2xvideo.mpq",
+                                     "d2data.mpq",  "d2char.mpq",   "d2music.mpq", "d2sfx.mpq",
+                                     "d2video.mpq", "d2speech.mpq", NULL};
 
 #define MAX_LINE_LEN       4096
 #define IS_STR_EQUAL(X, Y) (strcmp(X, Y) == 0)
@@ -218,15 +219,10 @@ void config_load(const char *file_path) {
 
     config_set_sane_defaults();
 
-    char *category = malloc(sizeof(char) * MAX_LINE_LEN);
-    char *key      = malloc(sizeof(char) * MAX_LINE_LEN);
-    char *value    = malloc(sizeof(char) * MAX_LINE_LEN);
-    char *line     = malloc(sizeof(char) * MAX_LINE_LEN);
-
-    FAIL_IF_NULL(category);
-    FAIL_IF_NULL(key);
-    FAIL_IF_NULL(value);
-    FAIL_IF_NULL(line);
+    char category[MAX_LINE_LEN];
+    char key[MAX_LINE_LEN];
+    char value[MAX_LINE_LEN];
+    char line[MAX_LINE_LEN];
 
     memset(category, 0, sizeof(char) * MAX_LINE_LEN);
     memset(key, 0, sizeof(char) * MAX_LINE_LEN);
@@ -275,10 +271,6 @@ void config_load(const char *file_path) {
     }
 
     fclose(ini_file);
-    free(line);
-    free(value);
-    free(key);
-    free(category);
 }
 
 void config_free() {
@@ -309,17 +301,14 @@ void config_add_mpq(const char *mpq_file) {
 }
 
 void config_set_sane_defaults() {
-    char *base_path = malloc(sizeof(char) * 4096);
-    FAIL_IF_NULL(base_path);
-
+    char base_path[4096];
     memset(base_path, 0, sizeof(char) * 4096);
     getcwd(base_path, 4096);
     SET_PARAM_STR(config->base_path, base_path);
-    free(base_path);
 
     added_mpq = false;
-    for (int i = 0; i < 10; i++) {
-        config_add_mpq(default_mpqs[i]);
+    for (const char **mpq = default_mpqs; *mpq != NULL; mpq++) {
+        config_add_mpq(*mpq);
     }
 
     SET_PARAM_STR(config->graphics.scale_quality, "nearest");

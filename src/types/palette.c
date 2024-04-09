@@ -40,15 +40,11 @@ palette_t *palette_get(const char *palette_name) {
     result->name = strdup(palette_name);
     FAIL_IF_NULL(result->name);
 
-    char *path_buff = malloc(4096);
-    FAIL_IF_NULL(path_buff);
-
+    char path_buff[4096];
     memset(path_buff, 0, 4096);
     snprintf(path_buff, 4096, PALETTE_PATH, palette_name);
 
     mpq_stream_t *stream = fileman_load(path_buff);
-
-    free(path_buff);
 
     if (mpq_stream_get_size(stream) != 256 * 3) {
         LOG_ERROR("Invalid palette file size. Expected %d but %d was returned.", 256 * 3, mpq_stream_get_size(stream));

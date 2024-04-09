@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
+include(cmake/macros.cmake)
 
 project(AbyssEngine)
 
@@ -8,6 +9,7 @@ set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_C_STANDARD 99)
+
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     # Homebrew ships libarchive keg only, include dirs have to be set manually
@@ -33,19 +35,8 @@ include_directories(${LibArchive_INCLUDE_DIR})
 #add_link_options(-fsanitize=address)
 
 # Ensures that we do an out of source build
-MACRO(MACRO_ENSURE_OUT_OF_SOURCE_BUILD MSG)
-    STRING(COMPARE EQUAL "${CMAKE_SOURCE_DIR}"
-            "${CMAKE_BINARY_DIR}" insource)
-    GET_FILENAME_COMPONENT(PARENTDIR ${CMAKE_SOURCE_DIR} PATH)
-    STRING(COMPARE EQUAL "${CMAKE_SOURCE_DIR}"
-            "${PARENTDIR}" insourcesubdir)
-    IF (insource OR insourcesubdir)
-        MESSAGE(FATAL_ERROR "${MSG}")
-    ENDIF (insource OR insourcesubdir)
-ENDMACRO(MACRO_ENSURE_OUT_OF_SOURCE_BUILD)
-MACRO_ENSURE_OUT_OF_SOURCE_BUILD(
-        "${CMAKE_PROJECT_NAME} requires an out of source build."
-)
+
+MACRO_ENSURE_OUT_OF_SOURCE_BUILD("${CMAKE_PROJECT_NAME} requires an out of source build.")
 
 if (NOT CMAKE_BUILD_TYPE)
     message(STATUS "No build type selected, defaulting to Release")
@@ -54,27 +45,27 @@ endif ()
 
 add_executable(AbyssEngine WIN32 MACOSX_BUNDLE
         src/abyss.c
-        src/common/resource_paths.h
+        src/common/config.c src/common/config.h
+        src/common/fileman.c src/common/fileman.h
         src/common/globals.c src/common/globals.h
         src/common/log.c src/common/log.h
-        src/common/config.c src/common/config.h
-        src/types/mpq.c src/types/mpq.h
-        src/types/mpq_hash.c src/types/mpq_hash.h
-        src/types/mpq_header.c src/types/mpq_header.h
-        src/types/mpq_block.c src/types/mpq_block.h
         src/common/mpq_stream.c src/common/mpq_stream.h
-        src/util/crypto.c src/util/crypto.h
-        src/common/fileman.c src/common/fileman.h
-        src/util/implode.c src/util/implode.h
-        src/types/palette.c src/types/palette.h
-        src/types/dc6.c src/types/dc6.h
-        src/drawing/sprite.c src/drawing/sprite.h
+        src/common/resource_paths.h
+        src/common/ring_buffer.c src/common/ring_buffer.h
         src/drawing/cursor.c src/drawing/cursor.h
-        src/types/font.c src/types/font.h
+        src/drawing/label.c src/drawing/label.h
+        src/drawing/sprite.c src/drawing/sprite.h
         src/scenes/scene.c src/scenes/scene.h
         src/scenes/scene_mainmenu.c src/scenes/scene_mainmenu.h
+        src/types/dc6.c src/types/dc6.h
         src/types/font.c src/types/font.h
-        src/drawing/label.c src/drawing/label.h
+        src/types/mpq.c src/types/mpq.h
+        src/types/mpq_block.c src/types/mpq_block.h
+        src/types/mpq_hash.c src/types/mpq_hash.h
+        src/types/mpq_header.c src/types/mpq_header.h
+        src/types/palette.c src/types/palette.h
+        src/util/crypto.c src/util/crypto.h
+        src/util/implode.c src/util/implode.h
 )
 # if WIN32 then SDL2::SDL2main needs to be linked
 if (WIN32)

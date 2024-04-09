@@ -1,5 +1,6 @@
 #include "scene.h"
 #include "../common/log.h"
+#include <stdlib.h>
 
 void    *current_scene_ptr;
 scene_t *current_scene;

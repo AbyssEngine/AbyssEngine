@@ -1,5 +1,6 @@
 #include "mpq_header.h"
 #include "../common/log.h"
+#include <stdlib.h>
 
 static const char mpq_magic[4] = {'M', 'P', 'Q', 0x1A};
 

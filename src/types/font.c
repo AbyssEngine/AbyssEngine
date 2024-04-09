@@ -31,9 +31,7 @@ font_t *font_load(const char *path) {
 
     while (!mpq_stream_eof(stream)) {
         result->glyphs = realloc(result->glyphs, sizeof(font_glyph_t) * (++result->glyph_count));
-        if (result->glyphs == NULL) {
-            LOG_FATAL("Failed to allocate memory for font glyphs.");
-        }
+        FAIL_IF_NULL(result->glyphs);
         font_glyph_t *glyph = &result->glyphs[result->glyph_count - 1];
 
         mpq_stream_read(stream, &glyph->code, 0, 2);

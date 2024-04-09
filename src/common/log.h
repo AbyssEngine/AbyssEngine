@@ -7,9 +7,15 @@
 #define LOG_INFO(...)  log_message(LOG_LEVEL_INFO, __FILE__, __LINE__, __VA_ARGS__)
 #define LOG_WARN(...)  log_message(LOG_LEVEL_WARN, __FILE__, __LINE__, __VA_ARGS__)
 #define LOG_ERROR(...) log_message(LOG_LEVEL_ERROR, __FILE__, __LINE__, __VA_ARGS__)
-#define LOG_FATAL(...) log_message(LOG_LEVEL_FATAL, __FILE__, __LINE__, __VA_ARGS__)
+#define LOG_FATAL(...)                                                                                                 \
+    log_message(LOG_LEVEL_FATAL, __FILE__, __LINE__, __VA_ARGS__);                                                     \
+    exit(-1)
 
-#define FAIL_IF_NULL(ptr) if (ptr == NULL) { LOG_FATAL("Failed to allocate memory."); }
+#define FAIL_IF_NULL(ptr)                                                                                              \
+    if (ptr == NULL) {                                                                                                 \
+        LOG_FATAL("Failed to allocate memory.");                                                                       \
+        exit(-1);                                                                                                      \
+    }
 
 typedef enum {
     LOG_LEVEL_EVERYTHING,

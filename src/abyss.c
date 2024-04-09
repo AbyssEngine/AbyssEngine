@@ -22,9 +22,7 @@ int main(int argc, char **argv) {
     crypto_init();
 
     LOG_DEBUG("Loading configuration...");
-    char *config_path = malloc(4096);
-    FAIL_IF_NULL(config_path);
-
+    char config_path[4096];
     memset(config_path, 0, 4096);
 #ifdef _WIN32
     snprintf(config_path, 4096, "%s\\abyss\\abyss.ini", getenv("APPDATA"));
@@ -34,7 +32,6 @@ int main(int argc, char **argv) {
     snprintf(config_path, 4096, "%s/.config/abyss/abyss.ini", getenv("HOME"));
 #endif
     config_load(config_path);
-    free(config_path);
 
     LOG_DEBUG("Initializing file manager...");
     fileman_init();

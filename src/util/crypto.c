@@ -14,9 +14,9 @@ void crypto_init() {
         int index2 = index1;
         for (int i = 0; i < 5; i++) {
             seed                   = (seed * 125 + 3) % 0x2AAAAB;
-            const uint32_t temp1         = (seed & 0xFFFF) << 0x10;
+            const uint32_t temp1   = (seed & 0xFFFF) << 0x10;
             seed                   = (seed * 125 + 3) % 0x2AAAAB;
-            const uint32_t temp2         = (seed & 0xFFFF);
+            const uint32_t temp2   = (seed & 0xFFFF);
             crypto_buffer[index2]  = temp1 | temp2;
             index2                += 0x100;
         }
@@ -29,9 +29,9 @@ uint32_t crypto_hash_string(const char *key, const uint32_t hash_type) {
 
     const size_t len = strlen(key);
     for (size_t i = 0; i < len; i++) {
-        const char ch = toupper(key[i]);
-        seed1   = crypto_buffer[(hash_type * 0x100) + (uint32_t)ch] ^ (seed1 + seed2);
-        seed2   = (uint32_t)ch + seed1 + seed2 + (seed2 << 5) + 3;
+        const char ch = (const char)toupper(key[i]);
+        seed1         = crypto_buffer[(hash_type * 0x100) + (uint32_t)ch] ^ (seed1 + seed2);
+        seed2         = (uint32_t)ch + seed1 + seed2 + (seed2 << 5) + 3;
     }
 
     return seed1;
@@ -45,7 +45,7 @@ uint32_t *crypto_decrypt_table(FILE *file, uint32_t size, const char *name) {
     uint32_t *table = malloc(sizeof(uint32_t) * size);
 
     FAIL_IF_NULL(table);
-    uint8_t   buff[4];
+    uint8_t buff[4];
 
     for (uint32_t i = 0; i < size; i++) {
         seed2 += crypto_buffer[0x400 + (seed & 0xFF)];
