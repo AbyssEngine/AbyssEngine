@@ -29,36 +29,14 @@ jobs:
             -   name: Checkout repository
                 uses: actions/checkout@v4
 
-            -   name: Install Dependencies (Windows)
-                if: runner.os == 'Windows'
-                uses: lukka/run-vcpkg@v11
-
-            -   name: Install Dependencies (Linux)
+            -   name: Install Dependencies
                 if: runner.os == 'Linux'
                 run: |
                     sudo apt-get update
                     sudo apt-get install -y build-essential cmake ninja-build libsdl2-dev zlib1g-dev libarchive-dev
 
-            -   name: Install Dependencies (MacOS)
-                if: runner.os == 'MacOS'
-                run: |
-                    brew update
-                    brew install cmake ninja sdl2 zlib libarchive
 
-            -   name: Configure CMake (Windows)
-                if: runner.os == 'Windows'
-                run: >
-                    cmake
-                    -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
-                    -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }}
-                    -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
-                    -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
-                    -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-                    -S ${{ github.workspace }}
-                    -B ${{ steps.strings.outputs.build-output-dir }}
-
-
-            -   name: Configure CMake (Links/macOS)
+            -   name: Configure CMake
                 if: runner.os != 'Windows'
                 run: >
                     cmake
@@ -66,7 +44,6 @@ jobs:
                     -DCMAKE_C_COMPILER=clang
                     -DCMAKE_BUILD_TYPE=Release
                     -S ${{ github.workspace }}
-                    -B ${{ steps.strings.outputs.build-output-dir }}
 
             # Initializes the CodeQL tools for scanning.
             -   name: Initialize CodeQL
@@ -83,7 +60,7 @@ jobs:
             # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
             -   if: matrix.build-mode == 'manual'
                 run: |
-                    cmake --build ${{ steps.strings.outputs.build-output-dir }} --config Release
+                    cmake --build --config Release
 
             -   name: Perform CodeQL Analysis
                 uses: github/codeql-action/analyze@v3
