@@ -3,6 +3,7 @@
 #include "common/globals.h"
 #include "common/log.h"
 #include "drawing/cursor.h"
+#include "drawing/label.h"
 #include "scenes/scene.h"
 #include "scenes/scene_mainmenu.h"
 #include "types/palette.h"
@@ -69,6 +70,7 @@ int main(int argc, char **argv) {
     scene_initialize();
     cursor_set_type(CURSOR_STANDARD);
     scene_set(&scene_mainmenu);
+    label_initialize_caches();
 
     SDL_Event sdl_event;
     running             = true;
@@ -130,6 +132,7 @@ int main(int argc, char **argv) {
         SDL_RenderPresent(sdl_renderer);
     }
 
+    label_finalize_caches();
     scene_finalize();
     cursor_finalize();
     palette_finalize();

@@ -22,6 +22,17 @@ void *scene_mainmenu_create() {
     sprite_set_blend_mode(result->d2logo_fire_left_sprite, SDL_BLENDMODE_ADD);
     sprite_set_blend_mode(result->d2logo_fire_right_sprite, SDL_BLENDMODE_ADD);
 
+    result->copyright_label = label_create(FONTS_FONTFORMAL10, PALETTE_SKY);
+    label_set_text(
+        result->copyright_label,
+        "Abyss Engine is neither developed by, nor endorsed by Blizzard/Activision or its parent company Microsoft.");
+    label_set_color(result->copyright_label, 0xFF, 0xFF, 0x8C, 0xFF);
+    label_set_align(result->copyright_label, LABEL_ALIGN_CENTER, LABEL_ALIGN_CENTER);
+
+    result->build_label = label_create(FONTS_FONT8, PALETTE_STATIC);
+    label_set_text(result->build_label, "Abyss Engine - Local Build");
+    label_set_color(result->build_label, 0xFF, 0xFF, 0xFF, 0xFF);
+    label_set_align(result->build_label, LABEL_ALIGN_END, LABEL_ALIGN_BEGIN);
     return result;
 }
 
@@ -33,6 +44,9 @@ void scene_mainmenu_render(void *scene_ref) {
     sprite_draw_animated(mainmenu->d2logo_black_right_sprite, 400, 120);
     sprite_draw_animated(mainmenu->d2logo_fire_left_sprite, 400, 120);
     sprite_draw_animated(mainmenu->d2logo_fire_right_sprite, 400, 120);
+
+    label_draw(mainmenu->copyright_label, 400, 590);
+    label_draw(mainmenu->build_label, 797, 3);
 }
 
 void scene_mainmenu_update(void *scene_ref, uint32_t delta) {}
@@ -40,11 +54,12 @@ void scene_mainmenu_update(void *scene_ref, uint32_t delta) {}
 void scene_mainmenu_free(void *scene_ref) {
     mainmenu_t *mainmenu = (mainmenu_t *)scene_ref;
 
-    sprite_free(mainmenu->background_sprite);
+    label_free(mainmenu->copyright_label);
     sprite_free(mainmenu->d2logo_black_left_sprite);
     sprite_free(mainmenu->d2logo_black_right_sprite);
     sprite_free(mainmenu->d2logo_fire_left_sprite);
     sprite_free(mainmenu->d2logo_fire_right_sprite);
+    sprite_free(mainmenu->background_sprite);
 
     free(mainmenu);
 }
