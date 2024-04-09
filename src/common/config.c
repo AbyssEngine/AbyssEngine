@@ -24,7 +24,9 @@ static const char *default_mpqs[] = {"d2exp.mpq",  "d2xmusic.mpq", "d2xtalk.mpq"
         free(X);                                                                                                       \
     }                                                                                                                  \
     (X) = malloc(sizeof(char) * (strlen(Y) + 1));                                                                      \
-    FAIL_IF_NULL(X);                                                                                                   \
+    if (X == NULL) {                                                                                                   \
+        LOG_FATAL("Failed to allocate memory.");                                                                       \
+    }                                                                                                                  \
     memset(X, 0, sizeof(char) * (strlen(Y) + 1));                                                                      \
     strcat(X, Y);
 

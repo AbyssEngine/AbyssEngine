@@ -64,9 +64,9 @@ void sprite_load_dc6(sprite_t *sprite, const char *path, const char *palette_nam
         spr_frame->offset_x = dc6_frame->header.offset_x;
         spr_frame->offset_y = dc6_frame->header.offset_y;
 
-        uint32_t *pixels = malloc(4 * spr_frame->width * spr_frame->height);
+        uint32_t *pixels = malloc((size_t)spr_frame->width * spr_frame->height * 4);
         FAIL_IF_NULL(pixels);
-        memset(pixels, 0, spr_frame->width * spr_frame->height);
+        memset(pixels, 0, (size_t)spr_frame->width * spr_frame->height);
 
         for (uint32_t idx = 0; idx < (spr_frame->width * spr_frame->height); idx++) {
             pixels[idx] = palette->entries[dc6_frame->indexed_pixel_data[idx]];
