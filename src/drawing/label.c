@@ -68,9 +68,12 @@ void label_set_text(label_t *label, const char *text) {
         dc6_frame_t  *frame = &label->dc6->frames[glyph->frame_index];
 
         for (int y = 0; y < frame->header.height; y++) {
-            for (int x = 0; x < glyph->width; x++) {
-                if (x >= frame->header.width) {
-                    LOG_FATAL("Invalid glyph width: %d", x);
+            if (y >= label->height) {
+                break;
+            }
+            for (int x = 0; x < frame->header.width; x++) {
+                if (x + offset_x >= label->width) {
+                    break;
                 }
                 const uint8_t  palette_index = frame->indexed_pixel_data[(y * frame->header.width) + x];
                 const uint32_t pixel_index   = (y * label->width) + x + offset_x;
