@@ -1,6 +1,7 @@
 #ifndef ABYSS_SCENE_MAINMENU_H
 #define ABYSS_SCENE_MAINMENU_H
 
+#include "../drawing/label.h"
 #include "../drawing/sprite.h"
 #include "scene.h"
 
@@ -12,6 +13,8 @@ typedef struct mainmenu_s {
     sprite_t *d2logo_black_right_sprite;
     sprite_t *d2logo_fire_left_sprite;
     sprite_t *d2logo_fire_right_sprite;
+    label_t  *copyright_label;
+    label_t  *build_label;
 } mainmenu_t;
 
 void *scene_mainmenu_create();

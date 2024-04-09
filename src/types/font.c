@@ -8,9 +8,9 @@
 #include <string.h>
 
 font_t *font_load(const char *path) {
-    char *path_fixed = malloc(4096);
-    FAIL_IF_NULL(path_fixed);
+    char path_fixed[4096];
     memset(path_fixed, 0, 4096);
+
     snprintf(path_fixed, 4096, path, config->locale);
     strcat(path_fixed, ".tbl");
     mpq_stream_t *stream = fileman_load(path_fixed);
@@ -20,7 +20,7 @@ font_t *font_load(const char *path) {
     memset(result, 0, sizeof(font_t));
     result->glyphs = calloc(0, sizeof(font_glyph_t));
 
-    char magic[5];
+    char       magic[5];
     const char test[5] = "Woo!\x01";
     mpq_stream_read(stream, magic, 0, 5);
     if (memcmp(magic, test, 5) != 0) {
@@ -53,7 +53,6 @@ font_t *font_load(const char *path) {
     }
 
     mpq_stream_free(stream);
-    free(path_fixed);
 
     return result;
 }
@@ -61,4 +60,12 @@ font_t *font_load(const char *path) {
 void font_free(font_t *font) {
     free(font->glyphs);
     free(font);
+}
+font_glyph_t *font_get_glyph(font_t *font, uint16_t code) {
+    for (int i = 0; i < font->glyph_count; i++) {
+        if (font->glyphs[i].code == code) {
+            return &font->glyphs[i];
+        }
+    }
+    return NULL;
 }

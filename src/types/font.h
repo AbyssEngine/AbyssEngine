@@ -15,7 +15,8 @@ typedef struct font_s {
     uint32_t      glyph_count;
 } font_t;
 
-font_t *font_load(const char *path);
-void    font_free(font_t *font);
+font_t       *font_load(const char *path);
+void          font_free(font_t *font);
+font_glyph_t *font_get_glyph(font_t *font, uint16_t code);
 
 #endif // ABYSS_FONT_H
