@@ -12,6 +12,7 @@ jobs:
     analyze:
         name: Analyze (${{ matrix.language }})
         runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
+        needs: build
         timeout-minutes: ${{ (matrix.language == 'swift' && 120) || 360 }}
         permissions:
             security-events: write
@@ -26,25 +27,25 @@ jobs:
                     -   language: c-cpp
                         build-mode: manual
         steps:
-            -   name: Checkout repository
-                uses: actions/checkout@v4
-
-            -   name: Install Dependencies
-                if: runner.os == 'Linux'
-                run: |
-                    sudo apt-get update
-                    sudo apt-get install -y build-essential cmake ninja-build libsdl2-dev zlib1g-dev libarchive-dev
-
-
-            -   name: Configure CMake
-                if: runner.os != 'Windows'
-                run: >
-                    cmake
-                    -DCMAKE_CXX_COMPILER=clang++
-                    -DCMAKE_C_COMPILER=clang
-                    -DCMAKE_BUILD_TYPE=Release
-                    -S ${{ github.workspace }}
-                    -B ${{ github.workspace }}/build
+            #            -   name: Checkout repository
+            #                uses: actions/checkout@v4
+            #
+            #            -   name: Install Dependencies
+            #                if: runner.os == 'Linux'
+            #                run: |
+            #                    sudo apt-get update
+            #                    sudo apt-get install -y build-essential cmake ninja-build libsdl2-dev zlib1g-dev libarchive-dev
+            #
+            #
+            #            -   name: Configure CMake
+            #                if: runner.os != 'Windows'
+            #                run: >
+            #                    cmake
+            #                    -DCMAKE_CXX_COMPILER=clang++
+            #                    -DCMAKE_C_COMPILER=clang
+            #                    -DCMAKE_BUILD_TYPE=Release
+            #                    -S ${{ github.workspace }}
+            #                    -B ${{ github.workspace }}/build
 
             # Initializes the CodeQL tools for scanning.
             -   name: Initialize CodeQL
@@ -59,9 +60,9 @@ jobs:
             # to build your code.
             # ℹ️ Command-line programs to run using the OS shell.
             # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
-            -   if: matrix.build-mode == 'manual'
-                run: |
-                    cmake --build ${{ github.workspace }}/build --config Release
+            #            -   if: matrix.build-mode == 'manual'
+            #                run: |
+            #                    cmake --build ${{ github.workspace }}/build --config Release
 
             -   name: Perform CodeQL Analysis
                 uses: github/codeql-action/analyze@v3

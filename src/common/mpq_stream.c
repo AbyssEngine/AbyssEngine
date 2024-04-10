@@ -16,9 +16,9 @@
 #define COMPRESSION_TYPE_SPARSE_THEN_BZIP2       0x30
 #define COMPRESSION_TYPE_IMA_ADPCM_MONO          0x40
 #define COMPRESSION_TYPE_HUFFMAN_THEN_ADPCM_MONO 0x41
-#define COMPRESSION_TYPE_IMA_ADPCM_STERIO        0x80s
+#define COMPRESSION_TYPE_IMA_ADPCM_STEREO        0x80
 
-static int mmin(const int a, const int b) { return (a < b) ? a : b; }
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
 
 typedef struct pk_info_s {
     void    *buff_in;
@@ -31,7 +31,7 @@ typedef struct pk_info_s {
 
 unsigned int explode_read(char *buf, unsigned int *size, void *param) {
     pk_info_t     *pk_info = param;
-    const uint32_t to_read = mmin(*size, pk_info->to_read);
+    const uint32_t to_read = MIN(*size, pk_info->to_read);
     memcpy(buf, (char *)pk_info->buff_in + pk_info->in_pos, to_read);
     pk_info->in_pos  += to_read;
     pk_info->to_read -= to_read;
@@ -158,7 +158,7 @@ void mpq_stream_buffer_data(mpq_stream_t *mpq_stream) {
     }
 
     const uint32_t expected_length =
-        mmin(mpq_stream->block->size_uncompressed - (block_index * mpq_stream->size), mpq_stream->size);
+        MIN(mpq_stream->block->size_uncompressed - (block_index * mpq_stream->size), (int)mpq_stream->size);
     mpq_stream->data_buffer      = mpq_stream_load_block(mpq_stream, block_index, expected_length);
     mpq_stream->data_buffer_size = expected_length;
     mpq_stream->block_index      = block_index;
@@ -177,7 +177,7 @@ void mpq_stream_free(mpq_stream_t *mpq_stream) {
 
 uint32_t mpq_stream_copy(mpq_stream_t *mpq_stream, void *buffer, const uint32_t offset, const uint32_t position,
                          const uint32_t count) {
-    const uint32_t bytes_to_copy = mmin(mpq_stream->data_buffer_size - position, count);
+    const uint32_t bytes_to_copy = MIN(mpq_stream->data_buffer_size - position, count);
     if (bytes_to_copy <= 0) {
         LOG_FATAL("Tried reading past end of stream!");
     }

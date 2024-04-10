@@ -1,5 +1,6 @@
 #include "ring_buffer.h"
 #include "log.h"
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
