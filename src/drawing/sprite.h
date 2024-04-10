@@ -18,7 +18,7 @@ typedef struct sprite_s {
     uint32_t        frame_count;
     float           play_length;
     uint32_t        ticks_per_frame;
-    uint16_t        last_ticks;
+    uint64_t        last_ticks;
     uint32_t        animation_index;
 } sprite_t;
 

@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
 
     SDL_Event sdl_event;
     running             = true;
-    uint32_t last_ticks = SDL_GetTicks();
+    uint64_t last_ticks = SDL_GetTicks64();
 
     while (running) {
         while (SDL_PollEvent(&sdl_event)) {
@@ -111,8 +111,8 @@ int main(int argc, char **argv) {
             }
         }
 
-        const uint32_t current_ticks = SDL_GetTicks();
-        const uint32_t tick_delta    = current_ticks - last_ticks;
+        const uint64_t current_ticks = SDL_GetTicks64();
+        const uint64_t tick_delta    = current_ticks - last_ticks;
 
         if (tick_delta == 0) {
             SDL_Delay(1);

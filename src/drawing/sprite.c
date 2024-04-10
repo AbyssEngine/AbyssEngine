@@ -45,7 +45,7 @@ void sprite_load_dc6(sprite_t *sprite, const char *path, const char *palette_nam
 
     sprite->frame_count     = dc6->header.directions * dc6->header.frames_per_direction;
     sprite->frames          = malloc(sizeof(sprite_frame_t) * sprite->frame_count);
-    sprite->last_ticks      = SDL_GetTicks();
+    sprite->last_ticks      = SDL_GetTicks64();
     sprite->animation_index = 0;
 
     FAIL_IF_NULL(sprite->frames);
@@ -57,7 +57,7 @@ void sprite_load_dc6(sprite_t *sprite, const char *path, const char *palette_nam
         sprite_frame_t    *spr_frame = &sprite->frames[i];
 
         spr_frame->texture = SDL_CreateTexture(sdl_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC,
-                                               dc6_frame->header.width, dc6_frame->header.height);
+                                               (int)dc6_frame->header.width, (int)dc6_frame->header.height);
 
         spr_frame->width    = dc6_frame->header.width;
         spr_frame->height   = dc6_frame->header.height;
@@ -72,7 +72,7 @@ void sprite_load_dc6(sprite_t *sprite, const char *path, const char *palette_nam
             pixels[idx] = palette->entries[dc6_frame->indexed_pixel_data[idx]];
         }
 
-        SDL_UpdateTexture(spr_frame->texture, NULL, (void *)pixels, spr_frame->width * 4);
+        SDL_UpdateTexture(spr_frame->texture, NULL, pixels, (int)spr_frame->width * 4);
         free(pixels);
     }
 
@@ -90,7 +90,7 @@ void sprite_free(sprite_t *sprite) {
 void sprite_draw(const sprite_t *sprite, const uint8_t frame_index, const int x, const int y) {
     const sprite_frame_t *frame = &sprite->frames[frame_index];
 
-    const SDL_Rect dest = {x + frame->offset_x, y - frame->height + frame->offset_y, frame->width, frame->height};
+    const SDL_Rect dest = {x + frame->offset_x, y - frame->height + frame->offset_y, (int)frame->width, (int)frame->height};
 
     SDL_RenderCopy(sdl_renderer, frame->texture, NULL, &dest);
 }
@@ -100,8 +100,8 @@ void sprite_draw_animated(sprite_t *sprite, const int x, const int y) {
         LOG_FATAL("Attempted to animate a sprite with no ticks per frame!");
     }
 
-    const uint16_t cur_ticks  = SDL_GetTicks();
-    uint16_t       tick_delta = cur_ticks - sprite->last_ticks;
+    const uint64_t cur_ticks  = SDL_GetTicks64();
+    uint64_t       tick_delta = cur_ticks - sprite->last_ticks;
 
     while (tick_delta >= sprite->ticks_per_frame) {
         sprite->last_ticks += sprite->ticks_per_frame;
@@ -111,7 +111,7 @@ void sprite_draw_animated(sprite_t *sprite, const int x, const int y) {
         }
     }
 
-    sprite_draw(sprite, sprite->animation_index, x, y);
+    sprite_draw(sprite, (uint8_t)sprite->animation_index, x, y);
 }
 
 void sprite_draw_multi(const sprite_t *sprite, const uint8_t frame_index, const int x, const int y, const int frames_x,
@@ -120,17 +120,17 @@ void sprite_draw_multi(const sprite_t *sprite, const uint8_t frame_index, const 
     int cur_y     = y;
     int cur_frame = frame_index;
 
-    for (int y = 0; y < frames_y; y++) {
-        for (int x = 0; x < frames_x; x++) {
+    for (int py = 0; py < frames_y; py++) {
+        for (int px = 0; px < frames_x; px++) {
             const sprite_frame_t *frame = &sprite->frames[cur_frame++];
-            SDL_Rect              dest  = {cur_x, cur_y, frame->width, frame->height};
+            SDL_Rect              dest  = {cur_x, cur_y,  (int)frame->width, (int)frame->height};
             SDL_RenderCopy(sdl_renderer, frame->texture, NULL, &dest);
 
             // sprite_draw(sprite, cur_frame++, cur_x, cur_y);
-            cur_x += sprite->frames[cur_frame - 1].width;
+            cur_x += (int)sprite->frames[cur_frame - 1].width;
         }
         cur_x  = x;
-        cur_y += sprite->frames[cur_frame - 1].height;
+        cur_y += (int)sprite->frames[cur_frame - 1].height;
     }
 }
 
@@ -142,5 +142,5 @@ void sprite_set_blend_mode(const sprite_t *sprite, const SDL_BlendMode blend_mod
 
 void sprite_set_play_length(sprite_t *sprite, const float play_length) {
     sprite->play_length     = play_length;
-    sprite->ticks_per_frame = (1000 * play_length) / sprite->frame_count;
+    sprite->ticks_per_frame = (uint32_t)((1000 * play_length) / (float)sprite->frame_count);
 }

@@ -30,7 +30,7 @@ void scene_render() {
     current_scene->render(current_scene_ptr);
 }
 
-void scene_update(uint32_t delta) {
+void scene_update(uint64_t delta) {
     if (next_scene != NULL) {
         if (current_scene != NULL) {
             current_scene->free(current_scene_ptr);

@@ -7,7 +7,7 @@
 
 #define FATAL(MSG)                                                                                                     \
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Fatal Error", MSG, sdl_window);                                    \
-    exit(-1);
+    exit(-1)
 
 #define MAX_TEXT_INPUT_LENGTH 100
 

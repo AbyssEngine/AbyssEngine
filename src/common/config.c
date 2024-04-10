@@ -25,11 +25,11 @@ static const char *default_mpqs[] = {"d2exp.mpq",   "d2xmusic.mpq", "d2xtalk.mpq
         free(X);                                                                                                       \
     }                                                                                                                  \
     (X) = malloc(sizeof(char) * (strlen(Y) + 1));                                                                      \
-    if (X == NULL) {                                                                                                   \
+    if ((X) == NULL) {                                                                                                   \
         LOG_FATAL("Failed to allocate memory.");                                                                       \
     }                                                                                                                  \
     memset(X, 0, sizeof(char) * (strlen(Y) + 1));                                                                      \
-    strcat(X, Y);
+    strcat(X, Y)
 
 static const char *valid_categories[] = {"general", "mpqs", "graphics", "audio", NULL};
 
@@ -222,7 +222,6 @@ void config_load(const char *file_path) {
     char category[MAX_LINE_LEN];
     char key[MAX_LINE_LEN];
     char value[MAX_LINE_LEN];
-    char line[MAX_LINE_LEN];
 
     memset(category, 0, sizeof(char) * MAX_LINE_LEN);
     memset(key, 0, sizeof(char) * MAX_LINE_LEN);
@@ -234,6 +233,7 @@ void config_load(const char *file_path) {
     }
 
     while (true) {
+        char line[MAX_LINE_LEN];
         memset(line, 0, sizeof(char) * MAX_LINE_LEN);
         if (fgets(line, MAX_LINE_LEN, ini_file) == NULL) {
             break;

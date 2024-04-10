@@ -49,7 +49,7 @@ void scene_mainmenu_render(void *scene_ref) {
     label_draw(mainmenu->build_label, 797, 3);
 }
 
-void scene_mainmenu_update(void *scene_ref, uint32_t delta) {}
+void scene_mainmenu_update(void *scene_ref, uint64_t delta) {}
 
 void scene_mainmenu_free(void *scene_ref) {
     mainmenu_t *mainmenu = (mainmenu_t *)scene_ref;

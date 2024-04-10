@@ -14,7 +14,6 @@
 #define FAIL_IF_NULL(ptr)                                                                                              \
     if (ptr == NULL) {                                                                                                 \
         LOG_FATAL("Failed to allocate memory.");                                                                       \
-        exit(-1);                                                                                                      \
     }
 
 typedef enum {
