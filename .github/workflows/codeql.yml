@@ -13,8 +13,9 @@ jobs:
         runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
         needs: [ ] # No dependencies
         steps:
-        # This is a placeholder job with no actions. It satisfies the requirement of having at least one job with no dependencies.
-
+            # This is a placeholder job with no actions. It satisfies the requirement of having at least one job with no dependencies.
+            -   name: Placeholder
+                run: echo "Placeholder job"
     analyze:
         name: Analyze (${{ matrix.language }})
         runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
