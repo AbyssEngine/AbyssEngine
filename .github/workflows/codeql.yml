@@ -9,6 +9,12 @@ on:
         -   cron: '27 0 * * 6'
 
 jobs:
+    placeholder:
+        runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
+        needs: [ ] # No dependencies
+        steps:
+        # This is a placeholder job with no actions. It satisfies the requirement of having at least one job with no dependencies.
+
     analyze:
         name: Analyze (${{ matrix.language }})
         runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
