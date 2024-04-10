@@ -49,7 +49,12 @@ jobs:
 
             -   name: Install Dependencies (Windows)
                 if: runner.os == 'Windows'
-                uses: lukka/run-vcpkg@v11
+                uses: lukka/run-vcpkg@v10
+                with:
+                    vcpkgJsonGlob: "**/vcpkg.json"
+                    vcpkgDirectory: "${{ github.workspace }}/vcpkg"
+                    vcpkgGitCommitId: "f56238700757aa05975e41fa835739c632810f3f"
+                    appendedCacheKey: ${{ hashFiles( '**/vcpkg.json' ) }}
 
             -   name: Install Dependencies (Linux)
                 if: runner.os == 'Linux'
