@@ -8,12 +8,12 @@
 palette_t **palettes;
 int         palette_count;
 
-void palette_initialize() {
+void palette_initialize(void) {
     palettes      = calloc(0, sizeof(palette_t *));
     palette_count = 0;
 }
 
-void palette_finalize() {
+void palette_finalize(void) {
     for (int i = 0; i < palette_count; i++) {
         free(palettes[i]->name);
         free(palettes[i]);
@@ -23,7 +23,7 @@ void palette_finalize() {
 
 palette_t *palette_get(const char *palette_name) {
     for (int i = 0; i < palette_count; i++) {
-        if (strcmp(palette_name, palettes[i]->name)) {
+        if (strcmp(palette_name, palettes[i]->name) != 0) {
             continue;
         }
 
@@ -33,10 +33,6 @@ palette_t *palette_get(const char *palette_name) {
     palette_t *result = malloc(sizeof(palette_t));
     FAIL_IF_NULL(result);
 
-    if (result == NULL) {
-        LOG_ERROR("Failed to allocate memory for palette.");
-    }
-
     result->name = strdup(palette_name);
     FAIL_IF_NULL(result->name);
 
@@ -44,7 +40,7 @@ palette_t *palette_get(const char *palette_name) {
     memset(path_buff, 0, 4096);
     snprintf(path_buff, 4096, PALETTE_PATH, palette_name);
 
-    mpq_stream_t *stream = fileman_load(path_buff);
+    struct mpq_stream *stream = fileman_load(path_buff);
 
     if (mpq_stream_get_size(stream) != 256 * 3) {
         LOG_ERROR("Invalid palette file size. Expected %d but %d was returned.", 256 * 3, mpq_stream_get_size(stream));

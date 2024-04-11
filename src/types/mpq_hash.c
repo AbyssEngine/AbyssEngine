@@ -1,5 +1,4 @@
 #include "mpq_hash.h"
-#include "../common/log.h"
 #include "../util/crypto.h"
 #include <stdlib.h>
 
@@ -12,7 +11,7 @@ mpq_hash_entry_t *mpq_hash_read_table(FILE *file, const mpq_header_t *mpq_header
     uint32_t n;
     uint32_t i;
     for (n = 0, i = 0; i < mpq_header->hash_table_entries; n += 4, i++) {
-        mpq_hash_t *entry = &result[i].hash;
+        struct mpq_hash *entry = &result[i].hash;
 
         entry->a           = hash_data[n];
         entry->b           = hash_data[n + 1];

@@ -6,7 +6,7 @@
 
 uint32_t crypto_buffer[0x500];
 
-void crypto_init() {
+void crypto_init(void) {
     LOG_DEBUG("Initializing cryptographic table.");
     uint32_t seed = 0x00100001;
 
@@ -68,4 +68,28 @@ uint64_t crypto_hash_file_name(const char *file_name) {
     const uint32_t a = crypto_hash_string(file_name, 1);
     const uint32_t b = crypto_hash_string(file_name, 2);
     return (((uint64_t)a) << 32) | (uint64_t)b;
+}
+
+uint32_t crypto_decrypt(uint32_t *buffer, uint32_t size, uint32_t seed) {
+    uint32_t seed2 = 0xEEEEEEEE;
+
+    for (uint32_t i = 0; i < size; i++) {
+        seed2           += crypto_buffer[0x400 + (seed & 0xFF)];
+        uint32_t result  = buffer[i] ^ (seed + seed2);
+        seed             = ((~seed << 21) + 0x11111111) | (seed >> 11);
+        seed2            = result + seed2 + (seed2 << 5) + 3;
+        buffer[i]        = result;
+    }
+}
+
+void crypto_decrypt_bytes(char *buffer, uint32_t size, uint32_t seed) {
+    uint32_t seed2 = 0xEEEEEEEE;
+
+    for (uint32_t i = 0; i < size - 3; i += 4) {
+        seed2                     += crypto_buffer[0x400 + (seed & 0xFF)];
+        uint32_t result            = *((uint32_t *)(buffer + i)) ^ (seed + seed2);
+        seed                       = ((~seed << 21) + 0x11111111) | (seed >> 11);
+        seed2                      = result + seed2 + (seed2 << 5) + 3;
+        *(uint32_t *)(buffer + i)  = result;
+    }
 }

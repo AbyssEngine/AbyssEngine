@@ -7,18 +7,18 @@
 
 // Compression structure (Size 12596 bytes)
 typedef struct {
-    unsigned long  offs0000;   // 0000
-    unsigned long  ctype;      // 0004 - Compression type (CMP_BINARY or CMP_ASCII)
-    unsigned long  outputPos;  // 0008 - Position in output buffer
-    unsigned long  dsize_bits; // 000C - Dict size (4, 5, 6 for 0x400, 0x800, 0x1000)
-    unsigned long  dsize_mask; // 0010 - Dict size bitmask (0x0F, 0x1F, 0x3F for 0x400, 0x800, 0x1000)
-    unsigned long  bit_buff;   // 0014 - 16-bit buffer for processing input data
-    unsigned long  extra_bits; // 0018 - Number of extra (above 8) bits in bit buffer
-    unsigned int   in_pos;     // 001C - Position in in_buff
-    unsigned long  in_bytes;   // 0020 - Number of bytes in input buffer
-    void          *param;      // 0024 - Custom parameter
-    unsigned int   (*read_buf)(char *buf, unsigned int *size, void *param);  // 0028
-    void           (*write_buf)(char *buf, unsigned int *size, void *param); // 002C
+    unsigned long offs0000;   // 0000
+    unsigned long ctype;      // 0004 - Compression type (CMP_BINARY or CMP_ASCII)
+    unsigned long outputPos;  // 0008 - Position in output buffer
+    unsigned long dsize_bits; // 000C - Dict size (4, 5, 6 for 0x400, 0x800, 0x1000)
+    unsigned long dsize_mask; // 0010 - Dict size bitmask (0x0F, 0x1F, 0x3F for 0x400, 0x800, 0x1000)
+    unsigned long bit_buff;   // 0014 - 16-bit buffer for processing input data
+    unsigned long extra_bits; // 0018 - Number of extra (above 8) bits in bit buffer
+    unsigned int  in_pos;     // 001C - Position in in_buff
+    unsigned long in_bytes;   // 0020 - Number of bytes in input buffer
+    void         *param;      // 0024 - Custom parameter
+    unsigned int (*read_buf)(char *buf, unsigned int *size, void *param); // 0028
+    void (*write_buf)(char *buf, unsigned int *size, void *param);        // 002C
     unsigned char  out_buff[0x2000]; // 0030 - Output circle buffer. Starting position is 0x1000
     unsigned char  offs2030[0x204];  // 2030 - ???
     unsigned char  in_buff[0x800];   // 2234 - Buffer for data to be decompressed
@@ -102,11 +102,11 @@ static unsigned short ChCodeAsc[] = {
 //-----------------------------------------------------------------------------
 // Local variables
 
-static char copyright[] = "PKWARE Data Compression Library for Win32\r\n"
-                          "Copyright 1989-1995 PKWARE Inc.  All Rights Reserved\r\n"
-                          "Patent No. 5,051,745\r\n"
-                          "PKWARE Data Compression Library Reg. U.S. Pat. and Tm. Off.\r\n"
-                          "Version 1.11";
+// static char copyright[] = "PKWARE Data Compression Library for Win32\r\n"
+//                           "Copyright 1989-1995 PKWARE Inc.  All Rights Reserved\r\n"
+//                           "Patent No. 5,051,745\r\n"
+//                           "PKWARE Data Compression Library Reg. U.S. Pat. and Tm. Off.\r\n"
+//                           "Version 1.11";
 
 //-----------------------------------------------------------------------------
 // Local functions
@@ -406,11 +406,11 @@ unsigned int explode(unsigned int (*read_buf)(char *buf, unsigned int *size, voi
     return CMP_ABORT;
 }
 
-static char copy_right[] = "PKWARE Data Compression Library for Win32\r\n"
-                           "Copyright 1989-1995 PKWARE Inc.  All Rights Reserved\r\n"
-                           "Patent No. 5,051,745\r\n"
-                           "PKWARE Data Compression Library Reg. U.S. Pat. and Tm. Off.\r\n"
-                           "Version 1.11\r\n";
+// static char copy_right[] = "PKWARE Data Compression Library for Win32\r\n"
+//                            "Copyright 1989-1995 PKWARE Inc.  All Rights Reserved\r\n"
+//                            "Patent No. 5,051,745\r\n"
+//                            "PKWARE Data Compression Library Reg. U.S. Pat. and Tm. Off.\r\n"
+//                            "Version 1.11\r\n";
 
 static unsigned long crc_table[] = {
     0x00000000, 0x77073096, 0xEE0E612C, 0x990951BA, 0x076DC419, 0x706AF48F, 0xE963A535, 0x9E6495A3, 0x0EDB8832,

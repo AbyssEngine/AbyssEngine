@@ -16,14 +16,15 @@ typedef uint32_t file_flag;
 #define FILE_FLAG_SECTOR_CRC    ((file_flag)0x04000000)
 #define FILE_FLAG_EXISTS        ((file_flag)0x80000000)
 
-typedef struct mpq_block_s {
+struct mpq_block {
     uint32_t  file_position;
     uint32_t  size_compressed;
     uint32_t  size_uncompressed;
     file_flag flags;
     uint32_t  encryption_seed;
-} mpq_block_t;
+};
 
-mpq_block_t *mpq_block_read_table(FILE *file, const char *mpq_path, const mpq_header_t *mpq_header);
+struct mpq_block *mpq_block_read_table(FILE *file, const mpq_header_t *mpq_header);
+void              mpq_block_calculate_encryption_seed(struct mpq_block *block, const char *file_name);
 
 #endif // ABYSS_MPQ_BLOCK_H

@@ -19,8 +19,8 @@ extern int           mouse_y;
 extern bool          key_pressed[SDL_NUM_SCANCODES];
 extern char          text_input[MAX_TEXT_INPUT_LENGTH + 1];
 
-void start_text_input();
-void stop_text_input();
-bool is_in_text_input();
+void start_text_input(void);
+void stop_text_input(void);
+bool is_in_text_input(void);
 
 #endif // ABYSS_GLOBALS_H

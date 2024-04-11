@@ -3,15 +3,15 @@
 #include "../common/globals.h"
 #include "../common/log.h"
 
-label_t *label_create(const char *font_path, const char *palette_name) {
+struct label *label_create(const char *font_path, const char *palette_name) {
     char dc6_path[4096];
 
-    label_t *result = malloc(sizeof(label_t));
+    struct label *result = malloc(sizeof(struct label));
     FAIL_IF_NULL(result);
-    memset(result, 0, sizeof(label_t));
+    memset(result, 0, sizeof(struct label));
 
     memset(dc6_path, 0, sizeof(dc6_path));
-    snprintf(dc6_path, sizeof(dc6_path), font_path, config->locale);
+    snprintf(dc6_path, sizeof(dc6_path), font_path, config.locale);
     strncat(dc6_path, ".dc6", sizeof(dc6_path) - strlen(dc6_path) - 1);
 
     result->font    = font_load(font_path);
@@ -21,33 +21,59 @@ label_t *label_create(const char *font_path, const char *palette_name) {
     return result;
 }
 
-void label_free(label_t *label) {
+void label_free(struct label *label) {
     if (label->texture != NULL) {
         SDL_DestroyTexture(label->texture);
     }
+
+    if (label->text != NULL) {
+        free(label->text);
+    }
+
     font_free(label->font);
     dc6_free(label->dc6);
 
     free(label);
 }
 
-void label_initialize_caches() { LOG_DEBUG("Initializing label caches..."); }
+void label_initialize_caches(void) { LOG_DEBUG("Initializing label caches..."); }
 
-void label_finalize_caches() { LOG_DEBUG("Finalizing label caches..."); }
+void label_finalize_caches(void) { LOG_DEBUG("Finalizing label caches..."); }
 
-void label_set_text(label_t *label, const char *text) {
+void label_set_text(struct label *label, const char *text) {
     if (label->texture != NULL) {
         SDL_DestroyTexture(label->texture);
     }
 
+    if (label->text != NULL) {
+        if (strcmp(label->text, text) == 0) {
+            return;
+        }
+
+        free(label->text);
+    }
+
+    if (text == NULL || text[0] == '\0') {
+        label->width  = 0;
+        label->height = 0;
+
+        if (label->texture != NULL) {
+            SDL_DestroyTexture(label->texture);
+            label->texture = NULL;
+        }
+        
+        return;
+    }
+
+    label->text   = strdup(text);
     label->width  = 0;
     label->height = 0;
 
     for (const char *ch = text; *ch; ch++) {
-        font_glyph_t *glyph  = font_get_glyph(label->font, *ch);
-        dc6_frame_t  *frame  = &label->dc6->frames[glyph->frame_index];
-        label->width        += glyph->width;
-        label->height        = label->height > frame->header.height ? label->height : frame->header.height;
+        struct font_glyph *glyph  = font_get_glyph(label->font, *ch);
+        struct dc6_frame  *frame  = &label->dc6->frames[glyph->frame_index];
+        label->width             += glyph->width;
+        label->height             = label->height > frame->header.height ? label->height : frame->header.height;
     }
 
     if (label->width == 0 || label->height == 0) {
@@ -64,14 +90,14 @@ void label_set_text(label_t *label, const char *text) {
 
     int offset_x = 0;
     for (const char *ch = text; *ch; ch++) {
-        font_glyph_t *glyph = font_get_glyph(label->font, *ch);
-        dc6_frame_t  *frame = &label->dc6->frames[glyph->frame_index];
+        struct font_glyph *glyph = font_get_glyph(label->font, *ch);
+        struct dc6_frame  *frame = &label->dc6->frames[glyph->frame_index];
 
-        for (int y = 0; y < frame->header.height; y++) {
+        for (uint32_t y = 0; y < frame->header.height; y++) {
             if (y >= label->height) {
                 break;
             }
-            for (int x = 0; x < frame->header.width; x++) {
+            for (uint32_t x = 0; x < frame->header.width; x++) {
                 if (x + offset_x >= label->width) {
                     break;
                 }
@@ -96,7 +122,7 @@ void label_set_text(label_t *label, const char *text) {
     label_update_offsets(label);
 }
 
-void label_draw(const label_t *label, const int x, const int y) {
+void label_draw(const struct label *label, const int x, const int y) {
     if (label->texture == NULL) {
         return;
     }
@@ -105,16 +131,17 @@ void label_draw(const label_t *label, const int x, const int y) {
     SDL_RenderCopy(sdl_renderer, label->texture, NULL, &dest);
 }
 
-void label_set_color(label_t *label, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+void label_set_color(struct label *label, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
     SDL_SetTextureColorMod(label->texture, r, g, b);
+    SDL_SetTextureAlphaMod(label->texture, a);
 }
 
-void label_set_align(label_t *label, label_align_t horizontal, label_align_t vertical) {
+void label_set_align(struct label *label, label_align_t horizontal, label_align_t vertical) {
     label->horizontal_align = horizontal;
     label->vertical_align   = vertical;
     label_update_offsets(label);
 }
-void label_update_offsets(label_t *label) {
+void label_update_offsets(struct label *label) {
     switch (label->horizontal_align) {
     case LABEL_ALIGN_BEGIN:
         label->offset_x = 0;

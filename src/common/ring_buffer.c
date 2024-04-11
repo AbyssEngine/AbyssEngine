@@ -4,8 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-ring_buffer_t *ring_buffer_create(uint32_t size) {
-    ring_buffer_t *result = malloc(sizeof(ring_buffer_t));
+struct ring_buffer *ring_buffer_create(uint32_t size) {
+    struct ring_buffer *result = malloc(sizeof(struct ring_buffer));
     FAIL_IF_NULL(result);
     result->size               = size;
     result->read_position      = 0;
@@ -17,12 +17,12 @@ ring_buffer_t *ring_buffer_create(uint32_t size) {
     return result;
 }
 
-void ring_buffer_free(ring_buffer_t *ring_buffer) {
+void ring_buffer_free(struct ring_buffer *ring_buffer) {
     free(ring_buffer->buffer);
     free(ring_buffer);
 }
 
-void ring_buffer_write(ring_buffer_t *ring_buffer, const char *data, uint32_t length) {
+void ring_buffer_write(struct ring_buffer *ring_buffer, const char *data, uint32_t length) {
     if (ring_buffer->remaining_to_write < length) {
         LOG_FATAL("Not enough space in ring buffer to write %d bytes", length);
     }
@@ -43,7 +43,7 @@ void ring_buffer_write(ring_buffer_t *ring_buffer, const char *data, uint32_t le
     ring_buffer->remaining_to_write -= length;
 }
 
-uint32_t ring_buffer_read(ring_buffer_t *ring_buffer, char *buffer, uint32_t length) {
+uint32_t ring_buffer_read(struct ring_buffer *ring_buffer, char *buffer, uint32_t length) {
     if (ring_buffer->remaining_to_read < length) {
         LOG_FATAL("Not enough data in ring buffer to read %d bytes", length);
     }

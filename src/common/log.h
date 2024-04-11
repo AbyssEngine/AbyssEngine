@@ -16,18 +16,18 @@
         LOG_FATAL("Failed to allocate memory.");                                                                       \
     }
 
-typedef enum {
+enum log_level {
     LOG_LEVEL_EVERYTHING,
     LOG_LEVEL_DEBUG,
     LOG_LEVEL_INFO,
     LOG_LEVEL_WARN,
     LOG_LEVEL_ERROR,
     LOG_LEVEL_FATAL
-} log_level_t;
+};
 
-extern log_level_t log_level;
+extern enum log_level log_level;
 
-void log_set_level(log_level_t level);
-void log_message(log_level_t level, const char *file, int line, const char *format, ...);
+void log_set_level(enum log_level level);
+void log_message(enum log_level level, const char *file, int line, const char *format, ...);
 
 #endif // ABYSS_LOG_H

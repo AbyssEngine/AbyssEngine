@@ -10,8 +10,8 @@
 #include <unistd.h>
 #endif
 
-config_t *config    = NULL;
-bool      added_mpq = false;
+struct config config;
+bool          added_mpq = false;
 
 static const char *default_mpqs[] = {"d2exp.mpq",   "d2xmusic.mpq", "d2xtalk.mpq", "d2xvideo.mpq",
                                      "d2data.mpq",  "d2char.mpq",   "d2music.mpq", "d2sfx.mpq",
@@ -25,7 +25,7 @@ static const char *default_mpqs[] = {"d2exp.mpq",   "d2xmusic.mpq", "d2xtalk.mpq
         free(X);                                                                                                       \
     }                                                                                                                  \
     (X) = malloc(sizeof(char) * (strlen(Y) + 1));                                                                      \
-    if ((X) == NULL) {                                                                                                   \
+    if ((X) == NULL) {                                                                                                 \
         LOG_FATAL("Failed to allocate memory.");                                                                       \
     }                                                                                                                  \
     memset(X, 0, sizeof(char) * (strlen(Y) + 1));                                                                      \
@@ -117,70 +117,70 @@ void extract_key_value(const char *str, char *key, char *value) {
 void config_set(char *category, char *key, char *value) {
     if (IS_STR_EQUAL(category, "general")) {
         if (IS_STR_EQUAL(key, "basepath")) {
-            if (strlen(config->base_path) != 0) {
-                memset(config->base_path, 0, sizeof(char) * strlen(config->base_path));
+            if (strlen(config.base_path) != 0) {
+                memset(config.base_path, 0, sizeof(char) * strlen(config.base_path));
             }
-            SET_PARAM_STR(config->base_path, value);
-            LOG_DEBUG("Setting base path to '%s'", config->base_path);
+            SET_PARAM_STR(config.base_path, value);
+            LOG_DEBUG("Setting base path to '%s'", config.base_path);
         } else if (IS_STR_EQUAL(key, "locale")) {
-            if (strlen(config->locale) != 0) {
-                memset(config->locale, 0, sizeof(char) * strlen(config->locale));
+            if (strlen(config.locale) != 0) {
+                memset(config.locale, 0, sizeof(char) * strlen(config.locale));
             }
-            SET_PARAM_STR(config->locale, value);
-            LOG_DEBUG("Setting locale to '%s'", config->locale);
+            SET_PARAM_STR(config.locale, value);
+            LOG_DEBUG("Setting locale to '%s'", config.locale);
         } else {
             LOG_FATAL("Invalid key '%s' in the configuration file!", key);
         }
     } else if (IS_STR_EQUAL(category, "graphics")) {
         if (IS_STR_EQUAL(key, "scalequality")) {
-            if (strlen(config->graphics.scale_quality) != 0) {
-                memset(config->graphics.scale_quality, 0, sizeof(char) * strlen(config->graphics.scale_quality));
+            if (strlen(config.graphics.scale_quality) != 0) {
+                memset(config.graphics.scale_quality, 0, sizeof(char) * strlen(config.graphics.scale_quality));
             }
-            SET_PARAM_STR(config->graphics.scale_quality, value);
-            LOG_DEBUG("Setting scale quality to '%s'", config->graphics.scale_quality);
+            SET_PARAM_STR(config.graphics.scale_quality, value);
+            LOG_DEBUG("Setting scale quality to '%s'", config.graphics.scale_quality);
         } else if (IS_STR_EQUAL(key, "initialscale")) {
-            config->graphics.initial_scale = strtof(value, NULL);
-            if (config->graphics.initial_scale <= 0.0f) {
+            config.graphics.initial_scale = strtof(value, NULL);
+            if (config.graphics.initial_scale <= 0.0f) {
                 LOG_FATAL("Invalid value '%s' for key '%s' in the configuration file!", value, key);
             }
-            LOG_DEBUG("Setting initial scale to '%f'", config->graphics.initial_scale);
+            LOG_DEBUG("Setting initial scale to '%f'", config.graphics.initial_scale);
         } else if (IS_STR_EQUAL(key, "fullscreen")) {
             if (IS_STR_EQUAL(value, "true")) {
-                config->graphics.fullscreen = true;
+                config.graphics.fullscreen = true;
             } else if (IS_STR_EQUAL(value, "false")) {
-                config->graphics.fullscreen = false;
+                config.graphics.fullscreen = false;
             } else {
                 LOG_FATAL("Invalid value '%s' for key '%s' in the configuration file!", value, key);
             }
-            LOG_DEBUG("Setting fullscreen to '%s'", config->graphics.fullscreen ? "true" : "false");
+            LOG_DEBUG("Setting fullscreen to '%s'", config.graphics.fullscreen ? "true" : "false");
         } else {
             LOG_FATAL("Invalid key '%s' in the configuration file!", key);
         }
     } else if (IS_STR_EQUAL(category, "audio")) {
         if (IS_STR_EQUAL(key, "mastervolume")) {
-            config->audio.master_volume = strtof(value, NULL);
-            if (config->audio.master_volume < 0.0f || config->audio.master_volume > 1.0f) {
+            config.audio.master_volume = strtof(value, NULL);
+            if (config.audio.master_volume < 0.0f || config.audio.master_volume > 1.0f) {
                 LOG_FATAL("Invalid value '%s' for key '%s' in the configuration file!", value, key);
             }
-            LOG_DEBUG("Setting master volume to '%f'", config->audio.master_volume);
+            LOG_DEBUG("Setting master volume to '%f'", config.audio.master_volume);
         } else if (IS_STR_EQUAL(key, "musicvolume")) {
-            config->audio.music_volume = strtof(value, NULL);
-            if (config->audio.music_volume < 0.0f || config->audio.music_volume > 1.0f) {
+            config.audio.music_volume = strtof(value, NULL);
+            if (config.audio.music_volume < 0.0f || config.audio.music_volume > 1.0f) {
                 LOG_FATAL("Invalid value '%s' for key '%s' in the configuration file!", value, key);
             }
-            LOG_DEBUG("Setting music volume to '%f'", config->audio.music_volume);
+            LOG_DEBUG("Setting music volume to '%f'", config.audio.music_volume);
         } else if (IS_STR_EQUAL(key, "sfxvolume")) {
-            config->audio.sfx_volume = strtof(value, NULL);
-            if (config->audio.sfx_volume < 0.0f || config->audio.sfx_volume > 1.0f) {
+            config.audio.sfx_volume = strtof(value, NULL);
+            if (config.audio.sfx_volume < 0.0f || config.audio.sfx_volume > 1.0f) {
                 LOG_FATAL("Invalid value '%s' for key '%s' in the configuration file!", value, key);
             }
-            LOG_DEBUG("Setting sfx volume to '%f'", config->audio.sfx_volume);
+            LOG_DEBUG("Setting sfx volume to '%f'", config.audio.sfx_volume);
         } else if (IS_STR_EQUAL(key, "uivolume")) {
-            config->audio.ui_volume = strtof(value, NULL);
-            if (config->audio.ui_volume < 0.0f || config->audio.ui_volume > 1.0f) {
+            config.audio.ui_volume = strtof(value, NULL);
+            if (config.audio.ui_volume < 0.0f || config.audio.ui_volume > 1.0f) {
                 LOG_FATAL("Invalid value '%s' for key '%s' in the configuration file!", value, key);
             }
-            LOG_DEBUG("Setting ui volume to '%f'", config->audio.ui_volume);
+            LOG_DEBUG("Setting ui volume to '%f'", config.audio.ui_volume);
         } else {
             LOG_FATAL("Invalid key '%s' in the configuration file!", key);
         }
@@ -193,12 +193,12 @@ void config_set(char *category, char *key, char *value) {
 
         if (!added_mpq) {
             added_mpq = true;
-            for (int i = 0; i < config->num_mpqs; i++) {
-                free(config->mpqs[i]);
+            for (int i = 0; i < config.num_mpqs; i++) {
+                free(config.mpqs[i]);
             }
-            free(config->mpqs);
-            config->num_mpqs = 0;
-            config->mpqs     = calloc(0, sizeof(char *));
+            free(config.mpqs);
+            config.num_mpqs = 0;
+            config.mpqs     = calloc(0, sizeof(char *));
         }
 
         config_add_mpq(value);
@@ -210,12 +210,9 @@ void config_set(char *category, char *key, char *value) {
 }
 
 void config_load(const char *file_path) {
-    config = malloc(sizeof(config_t));
-    FAIL_IF_NULL(config);
-
-    memset(config, 0, sizeof(config_t));
-    config->mpqs     = calloc(0, sizeof(char *));
-    config->num_mpqs = 0;
+    memset(&config, 0, sizeof(struct config));
+    config.mpqs     = calloc(0, sizeof(char *));
+    config.num_mpqs = 0;
 
     config_set_sane_defaults();
 
@@ -273,52 +270,51 @@ void config_load(const char *file_path) {
     fclose(ini_file);
 }
 
-void config_free() {
-    free(config->base_path);
-    free(config->locale);
-    free(config->graphics.scale_quality);
+void config_free(void) {
+    free(config.base_path);
+    free(config.locale);
+    free(config.graphics.scale_quality);
 
-    for (int i = 0; i < config->num_mpqs; i++) {
-        free(config->mpqs[i]);
+    for (int i = 0; i < config.num_mpqs; i++) {
+        free(config.mpqs[i]);
     }
 
-    free(config->mpqs);
-    free(config);
+    free(config.mpqs);
 }
 
 void config_add_mpq(const char *mpq_file) {
-    config->num_mpqs++;
+    config.num_mpqs++;
 
-    config->mpqs = realloc(config->mpqs, config->num_mpqs * sizeof(char *));
-    FAIL_IF_NULL(config->mpqs);
+    config.mpqs = realloc(config.mpqs, config.num_mpqs * sizeof(char *));
+    FAIL_IF_NULL(config.mpqs);
 
-    config->mpqs[config->num_mpqs - 1] = malloc(sizeof(char) * MAX_LINE_LEN);
-    FAIL_IF_NULL(config->mpqs[config->num_mpqs - 1]);
+    config.mpqs[config.num_mpqs - 1] = malloc(sizeof(char) * MAX_LINE_LEN);
+    FAIL_IF_NULL(config.mpqs[config.num_mpqs - 1]);
 
-    memset(config->mpqs[config->num_mpqs - 1], 0, sizeof(char) * MAX_LINE_LEN);
-    strcat(config->mpqs[config->num_mpqs - 1], config->base_path);
-    strcat(config->mpqs[config->num_mpqs - 1], mpq_file);
+    memset(config.mpqs[config.num_mpqs - 1], 0, sizeof(char) * MAX_LINE_LEN);
+    strcat(config.mpqs[config.num_mpqs - 1], config.base_path);
+    strcat(config.mpqs[config.num_mpqs - 1], mpq_file);
 }
 
-void config_set_sane_defaults() {
+void config_set_sane_defaults(void) {
     char base_path[4096];
     memset(base_path, 0, sizeof(char) * 4096);
     getcwd(base_path, 4096);
-    SET_PARAM_STR(config->base_path, base_path);
+    SET_PARAM_STR(config.base_path, base_path);
 
     added_mpq = false;
     for (const char **mpq = default_mpqs; *mpq != NULL; mpq++) {
         config_add_mpq(*mpq);
     }
 
-    SET_PARAM_STR(config->graphics.scale_quality, "nearest");
-    config->graphics.initial_scale = 1.0f;
-    config->graphics.fullscreen    = false;
+    SET_PARAM_STR(config.graphics.scale_quality, "nearest");
+    config.graphics.initial_scale = 1.0f;
+    config.graphics.fullscreen    = false;
 
-    config->audio.master_volume = 0.8f;
-    config->audio.music_volume  = 1.0f;
-    config->audio.sfx_volume    = 1.0f;
-    config->audio.ui_volume     = 1.0f;
+    config.audio.master_volume = 0.8f;
+    config.audio.music_volume  = 1.0f;
+    config.audio.sfx_volume    = 1.0f;
+    config.audio.ui_volume     = 1.0f;
 
-    SET_PARAM_STR(config->locale, "latin");
+    SET_PARAM_STR(config.locale, "latin");
 }

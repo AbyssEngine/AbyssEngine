@@ -1,9 +1,6 @@
 #ifndef ABYSS_RESOURCEPATHS_H
 #define ABYSS_RESOURCEPATHS_H
 
-#define LOCAL_LANGUAGE      "/data/local/use"
-#define LAGUAGE_TOKEN_TABLE "{LANG}"
-
 #define CURSOR_DEFAULT "/data/global/ui/CURSOR/ohand.DC6"
 
 // -- Main Menu
@@ -54,4 +51,47 @@
 #define FONTS_FONTSUCKER     "/data/local/FONT/%s/ReallyTheLastSucker"
 #define FONTS_FONTREDICULOUS "/data/local/FONT/%s/fontridiculous"
 
+// -- Music
+#define MUSIC_TITLE                     "/data/global/music/introedit.wav"
+#define MUSIC_OPTIONS                   "/data/global/music/Common/options.wav"
+#define MUSIC_ACT1_ANDARIELACTION       "/data/global/music/Act1/andarielaction.wav"
+#define MUSIC_ACT1_BLOODRAVENRESOLUTION "/data/global/music/Act1/bloodravenresolution.wav"
+#define MUSIC_ACT1_CAVES                "/data/global/music/Act1/caves.wav"
+#define MUSIC_ACT1_CRYPT                "/data/global/music/Act1/crypt.wav"
+#define MUSIC_ACT1_DENOFEVILACTION      "/data/global/music/Act1/denofevilaction.wav"
+#define MUSIC_ACT1_MONASTERY            "/data/global/music/Act1/monastery.wav"
+#define MUSIC_ACT1_TOWN1                "/data/global/music/Act1/town1.wav"
+#define MUSIC_ACT1_TRISTRAM             "/data/global/music/Act1/tristram.wav"
+#define MUSIC_ACT1_WILD                 "/data/global/music/Act1/wild.wav"
+#define MUSIC_ACT2_DESERT               "/data/global/music/Act2/desert.wav"
+#define MUSIC_ACT2_HAREM                "/data/global/music/Act2/harem.wav"
+#define MUSIC_ACT2_HORADRICACTION       "/data/global/music/Act2/horadricaction.wav"
+#define MUSIC_ACT2_LAIR                 "/data/global/music/Act2/lair.wav"
+#define MUSIC_ACT2_RADAMENTRESOLUTION   "/data/global/music/Act2/radamentresolution.wav"
+#define MUSIC_ACT2_SANCTUARY            "/data/global/music/Act2/sanctuary.wav"
+#define MUSIC_ACT2_SEWER                "/data/global/music/Act2/sewer.wav"
+#define MUSIC_ACT2_TAINTEDSUNACTION     "/data/global/music/Act2/taintedsunaction.wav"
+#define MUSIC_ACT2_TOMBS                "/data/global/music/Act2/tombs.wav"
+#define MUSIC_ACT2_TOWN2                "/data/global/music/Act2/town2.wav"
+#define MUSIC_ACT2_VALLEY               "/data/global/music/Act2/valley.wav"
+#define MUSIC_ACT3_JUNGLE               "/data/global/music/Act3/jungle.wav"
+#define MUSIC_ACT3_KURAST               "/data/global/music/Act3/kurast.wav"
+#define MUSIC_ACT3_KURASTSEWER          "/data/global/music/Act3/kurastsewer.wav"
+#define MUSIC_ACT3_MEFDEATHACTION       "/data/global/music/Act3/mefdeathaction.wav"
+#define MUSIC_ACT3_ORBACTION            "/data/global/music/Act3/orbaction.wav"
+#define MUSIC_ACT3_SPIDER               "/data/global/music/Act3/spider.wav"
+#define MUSIC_ACT3_TOWN3                "/data/global/music/Act3/town3.wav"
+#define MUSIC_ACT4_DIABLO               "/data/global/music/Act4/diablo.wav"
+#define MUSIC_ACT4_DIABLOACTION         "/data/global/music/Act4/diabloaction.wav"
+#define MUSIC_ACT4_FORGEACTION          "/data/global/music/Act4/forgeaction.wav"
+#define MUSIC_ACT4_IZUALACTION          "/data/global/music/Act4/izualaction.wav"
+#define MUSIC_ACT4_MESA                 "/data/global/music/Act4/mesa.wav"
+#define MUSIC_ACT4_TOWN4                "/data/global/music/Act4/town4.wav"
+#define MUSIC_ACT5_BAAL                 "/data/global/music/Act5/baal.wav"
+#define MUSIC_ACT5_SIEGE                "/data/global/music/Act5/siege.wav"
+#define MUSIC_ACT5_SHENK                "/data/global/music/Act5/shenkmusic.wav"
+#define MUSIC_ACT5_XTOWN                "/data/global/music/Act5/xtown.wav"
+#define MUSIC_ACT5_XTEMPLE              "/data/global/music/Act5/xtemple.wav"
+#define MUSIC_ACT5_ICECAVES             "/data/global/music/Act5/icecaves.wav"
+#define MUSIC_ACT5_NIHLATHAK            "/data/global/music/Act5/nihlathakmusic.wav"
 #endif // ABYSS_RESOURCEPATHS_H

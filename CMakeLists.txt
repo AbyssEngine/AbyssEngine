@@ -1,7 +1,13 @@
 cmake_minimum_required(VERSION 3.20)
-include(cmake/macros.cmake)
 
-project(AbyssEngine)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+
+if (APPLE)
+    set(LANGUAGES C OBJC)
+else ()
+    set(LANGUAGES C)
+endif ()
+project(AbyssEngine LANGUAGES ${LANGUAGES})
 
 option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 
@@ -9,7 +15,26 @@ set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_C_STANDARD 99)
+set(CMAKE_DISABLE_SOURCE_CHANGES ON)
+set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
+if (NOT CMAKE_BUILD_TYPE)
+    message(STATUS "No build type selected, defaulting to Release")
+    set(CMAKE_BUILD_TYPE Release)
+endif ()
+
+#turn on all warnings
+if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wpedantic")
+endif ()
+
+if (CMAKE_C_COMPILER_ID MATCHES "MSVC")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W4")
+endif ()
+
+if (CMAKE_C_COMPILER_ID MATCHES "Clang")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-gnu-zero-variadic-macro-arguments")
+endif ()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     # Homebrew ships libarchive keg only, include dirs have to be set manually
@@ -31,20 +56,16 @@ include_directories(${ZLIB_INCLUDE_DIRS})
 find_package(LibArchive REQUIRED)
 include_directories(${LibArchive_INCLUDE_DIR})
 
+find_package(FFMPEG COMPONENTS AVCODEC AVFORMAT AVUTIL SWSCALE SWRESAMPLE REQUIRED)
+include_directories(${FFMPEG_INCLUDE_DIRS})
+
 #add_compile_options(-fsanitize=address -g)
 #add_link_options(-fsanitize=address)
 
-# Ensures that we do an out of source build
-
-MACRO_ENSURE_OUT_OF_SOURCE_BUILD("${CMAKE_PROJECT_NAME} requires an out of source build.")
-
-if (NOT CMAKE_BUILD_TYPE)
-    message(STATUS "No build type selected, defaulting to Release")
-    set(CMAKE_BUILD_TYPE Release)
-endif ()
-
 add_executable(AbyssEngine WIN32 MACOSX_BUNDLE
         src/abyss.c
+        src/audio/audioman.c src/audio/audioman.h
+        src/audio/audio_stream.c src/audio/audio_stream.h
         src/common/config.c src/common/config.h
         src/common/fileman.c src/common/fileman.h
         src/common/globals.c src/common/globals.h
@@ -76,10 +97,15 @@ target_link_libraries(AbyssEngine
         ${SDL2_LIBRARIES}
         ${ZLIB_LIBRARIES}
         ${LibArchive_LIBRARIES}
+        ${FFMPEG_LIBRARIES}
         ${ADDITIONAL_LIBRARIES}
 )
 
 if (APPLE)
+    find_library(OSX_VIDEOTOOLBOX VideoToolbox)
+    find_library(OSX_COREMEDIA CoreMedia)
+    find_library(OSX_SECURITY Security)
+
     set_target_properties(AbyssEngine PROPERTIES
             MACOSX_BUNDLE_BUNDLE_NAME "Abyss Engine" ,
             MACOSX_BUNDLE_GUI_IDENTIFIER "com.abyss" ,

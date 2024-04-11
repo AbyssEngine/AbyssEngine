@@ -8,13 +8,13 @@
 #endif // _WIN32
 
 #define MAX_LOG_LINE_LENGTH 4096
-log_level_t log_level = LOG_LEVEL_ERROR;
+enum log_level log_level = LOG_LEVEL_ERROR;
 
 static const char *log_level_strings[] = {"", "DEBUG", "INFO ", "WARN ", "ERROR", "FATAL"};
 
-void log_set_level(const log_level_t level) { log_level = level; }
+void log_set_level(const enum log_level level) { log_level = level; }
 
-void log_message(log_level_t level, const char *file, int line, const char *format, ...) {
+void log_message(enum log_level level, const char *file, int line, const char *format, ...) {
     char    msg[MAX_LOG_LINE_LENGTH];
     va_list args;
 

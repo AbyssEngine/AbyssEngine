@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct config_s {
+struct config {
     char  *base_path;
     char  *locale;
     char **mpqs;
@@ -21,14 +21,14 @@ typedef struct config_s {
         float sfx_volume;
         float ui_volume;
     } audio;
-} config_t;
+};
 
 void config_load(const char *file_path);
-void config_set_sane_defaults();
-void config_free();
+void config_set_sane_defaults(void);
+void config_free(void);
 void config_add_mpq(const char *mpq_file);
 void config_set(char *category, char *key, char *value);
 
-extern config_t *config;
+extern struct config config;
 
 #endif // ABYSS_CONFIG_H

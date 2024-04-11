@@ -11,14 +11,14 @@ font_t *font_load(const char *path) {
     char path_fixed[4096];
     memset(path_fixed, 0, 4096);
 
-    snprintf(path_fixed, 4096, path, config->locale);
+    snprintf(path_fixed, 4096, path, config.locale);
     strcat(path_fixed, ".tbl");
-    mpq_stream_t *stream = fileman_load(path_fixed);
+    struct mpq_stream *stream = fileman_load(path_fixed);
 
     font_t *result = malloc(sizeof(font_t));
     FAIL_IF_NULL(result);
     memset(result, 0, sizeof(font_t));
-    result->glyphs = calloc(0, sizeof(font_glyph_t));
+    result->glyphs = calloc(0, sizeof(struct font_glyph));
 
     char       magic[5];
     const char test[5] = "Woo!\x01";
@@ -30,9 +30,9 @@ font_t *font_load(const char *path) {
     mpq_stream_seek(stream, 7, SEEK_CUR); // skip 7 unknown bytes
 
     while (!mpq_stream_eof(stream)) {
-        result->glyphs = realloc(result->glyphs, sizeof(font_glyph_t) * (++result->glyph_count));
+        result->glyphs = realloc(result->glyphs, sizeof(struct font_glyph) * (++result->glyph_count));
         FAIL_IF_NULL(result->glyphs);
-        font_glyph_t *glyph = &result->glyphs[result->glyph_count - 1];
+        struct font_glyph *glyph = &result->glyphs[result->glyph_count - 1];
 
         mpq_stream_read(stream, &glyph->code, 0, 2);
         mpq_stream_seek(stream, 1, SEEK_CUR); // skip 1 unknown byte
@@ -59,8 +59,9 @@ void font_free(font_t *font) {
     free(font->glyphs);
     free(font);
 }
-font_glyph_t *font_get_glyph(font_t *font, uint16_t code) {
-    for (int i = 0; i < font->glyph_count; i++) {
+
+struct font_glyph *font_get_glyph(font_t *font, uint16_t code) {
+    for (uint32_t i = 0; i < font->glyph_count; i++) {
         if (font->glyphs[i].code == code) {
             return &font->glyphs[i];
         }

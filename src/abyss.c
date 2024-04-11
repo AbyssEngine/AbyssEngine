@@ -1,3 +1,4 @@
+#include "audio/audioman.h"
 #include "common/config.h"
 #include "common/fileman.h"
 #include "common/globals.h"
@@ -8,9 +9,11 @@
 #include "scenes/scene_mainmenu.h"
 #include "types/palette.h"
 #include "util/crypto.h"
+#include <libavutil/log.h>
 
-int main(int argc, char **argv) {
+int main(__attribute__((unused)) int argc, __attribute__((unused)) char **argv) {
     log_set_level(LOG_LEVEL_EVERYTHING);
+    av_log_set_level(AV_LOG_FATAL);
     LOG_INFO("Abyss Engine");
 
     LOG_DEBUG("Initializing SDL...");
@@ -38,8 +41,8 @@ int main(int argc, char **argv) {
 
     LOG_DEBUG("Creating window...");
     sdl_window = SDL_CreateWindow("Abyss Engine", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                                  (int)((float)800 * config->graphics.initial_scale),
-                                  (int)((float)600 * config->graphics.initial_scale),
+                                  (int)((float)800 * config.graphics.initial_scale),
+                                  (int)((float)600 * config.graphics.initial_scale),
                                   SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
 
     if (sdl_window == NULL) {
@@ -55,19 +58,19 @@ int main(int argc, char **argv) {
 
     SDL_RenderSetLogicalSize(sdl_renderer, 800, 600);
     SDL_ShowCursor(false);
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, config->graphics.scale_quality);
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, config.graphics.scale_quality);
 
-    if (config->graphics.fullscreen) {
+    if (config.graphics.fullscreen) {
         SDL_SetWindowFullscreen(sdl_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
     }
 
     palette_initialize();
-
     cursor_initialize();
     scene_initialize();
     cursor_set_type(CURSOR_STANDARD);
     scene_set(&scene_mainmenu);
     label_initialize_caches();
+    audioman_init();
 
     SDL_Event sdl_event;
     running             = true;
@@ -89,9 +92,8 @@ int main(int argc, char **argv) {
                 }
                 if (sdl_event.key.keysym.sym == SDLK_RETURN &&
                     (sdl_event.key.keysym.mod == KMOD_LALT || sdl_event.key.keysym.mod == KMOD_RALT)) {
-                    SDL_SetWindowFullscreen(sdl_window,
-                                            config->graphics.fullscreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
-                    config->graphics.fullscreen = !config->graphics.fullscreen;
+                    SDL_SetWindowFullscreen(sdl_window, config.graphics.fullscreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
+                    config.graphics.fullscreen = !config.graphics.fullscreen;
                 }
                 // if in text input, handle backspace
                 if (strlen(text_input) > 0 && sdl_event.key.keysym.sym == SDLK_BACKSPACE) {
@@ -122,6 +124,7 @@ int main(int argc, char **argv) {
         last_ticks = current_ticks;
 
         scene_update(tick_delta);
+        audioman_update();
 
         SDL_RenderClear(sdl_renderer);
         scene_render();
@@ -129,6 +132,7 @@ int main(int argc, char **argv) {
         SDL_RenderPresent(sdl_renderer);
     }
 
+    audioman_free();
     label_finalize_caches();
     scene_finalize();
     cursor_finalize();
