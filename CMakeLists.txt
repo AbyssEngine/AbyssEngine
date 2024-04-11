@@ -87,6 +87,7 @@ add_executable(AbyssEngine WIN32 MACOSX_BUNDLE
         src/types/palette.c src/types/palette.h
         src/util/crypto.c src/util/crypto.h
         src/util/implode.c src/util/implode.h
+        src/util/huffman.c src/util/huffman.h
 )
 # if WIN32 then SDL2::SDL2main needs to be linked
 if (WIN32)

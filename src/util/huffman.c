@@ -135,10 +135,7 @@ struct linked_node *huffman_create_linked_node(int decompressed_value, int weigh
 
 struct linked_node *huffman_get_child1(struct linked_node *node) { return node->child_0; }
 
-struct linked_node *huffman_insert_node(struct linked_node *node, struct linked_node *other) {
-    FAIL_IF_NULL(node);
-    FAIL_IF_NULL(other);
-
+struct linked_node *huffman_insert(struct linked_node *node, struct linked_node *other) {
     if (other->weight <= node->weight) {
         if (node->next != NULL) {
             node->next->prev = other;
@@ -156,8 +153,21 @@ struct linked_node *huffman_insert_node(struct linked_node *node, struct linked_
         node->prev  = other;
         other->next = node;
     } else {
-        huffman_insert_node(node, other);
+        huffman_insert(node, other);
     }
 
+    return node;
+}
+struct linked_node *huffman_decode(char *buffer, struct linked_node *head) {
+    struct linked_node *node = head;
+    // TODO: finish
+    //    while (node->child_0 != NULL) {
+    //        if (*buffer == 0) {
+    //            node = node->child_0;
+    //        } else {
+    //            node = node->child_1;
+    //        }
+    //        buffer++;
+    //    }
     return node;
 }

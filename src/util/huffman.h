@@ -12,6 +12,7 @@ struct linked_node {
 
 struct linked_node *huffman_create_linked_node(int decompressed_value, int weight);
 struct linked_node *huffman_get_child1(struct linked_node *node);
-struct linked_node *huffman_insert_node(struct linked_node *node, struct linked_node *other);
+struct linked_node *huffman_insert(struct linked_node *node, struct linked_node *other);
+struct linked_node *huffman_decode(char *buffer, struct linked_node *head);
 
 #endif // ABYSS_HUFFMAN_H

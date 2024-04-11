@@ -37,6 +37,7 @@ struct audio_stream *audio_stream_create(const char *path) {
     result->avio_context =
         avio_alloc_context(result->av_buffer, AUDIO_STREAM_DECODE_BUFFER_SIZE, 0, result->ring_buffer,
                            audio_stream_read_callback, NULL, audio_stream_seek_callback);
+    
     result->avio_context->opaque = result;
 
     result->av_format_context          = avformat_alloc_context();
