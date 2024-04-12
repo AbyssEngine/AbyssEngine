@@ -54,7 +54,7 @@ jobs:
                         core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
             -   name: Install Deps (Windows)
-                if: matrix.os == 'windows-latest'
+                if: runner.os == 'Windows'
                 uses: crazy-max/ghaction-chocolatey@v1
                 with:
                     args: install nasm ninja
@@ -69,9 +69,9 @@ jobs:
                 if: runner.os == 'MacOS'
                 run: |
                     brew update
-                    brew install cmake ninja sdl2 zlib libarchive nasm automake autoconf autoconf-archive
+                    brew install cmake ninja sdl2 zlib libarchive nasm automake autoconf autoconf-archive ffmpeg
 
-            -   name: Run VCPKG (Windows)
+            -   name: Run VCPKG
                 uses: lukka/run-vcpkg@v10
                 with:
                     vcpkgJsonGlob: "**/vcpkg.json"
@@ -96,6 +96,7 @@ jobs:
                 if: runner.os != 'Windows'
                 run: >
                     cmake
+                    -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
                     -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
                     -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
                     -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
