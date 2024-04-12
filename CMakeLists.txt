@@ -63,33 +63,33 @@ include_directories(${FFMPEG_INCLUDE_DIRS})
 #add_link_options(-fsanitize=address)
 
 add_executable(AbyssEngine WIN32 MACOSX_BUNDLE
-        src/abyss.c
-        src/audio/audioman.c src/audio/audioman.h
-        src/audio/audio_stream.c src/audio/audio_stream.h
-        src/common/config.c src/common/config.h
-        src/common/fileman.c src/common/fileman.h
-        src/common/globals.c src/common/globals.h
-        src/common/log.c src/common/log.h
-        src/common/mpq_stream.c src/common/mpq_stream.h
-        src/common/resource_paths.h
-        src/common/ring_buffer.c src/common/ring_buffer.h
-        src/drawing/cursor.c src/drawing/cursor.h
-        src/drawing/label.c src/drawing/label.h
-        src/drawing/sprite.c src/drawing/sprite.h
-        src/scenes/scene.c src/scenes/scene.h
-        src/scenes/scene_mainmenu.c src/scenes/scene_mainmenu.h
-        src/types/dc6.c src/types/dc6.h
-        src/types/font.c src/types/font.h
-        src/types/mpq.c src/types/mpq.h
-        src/types/mpq_block.c src/types/mpq_block.h
-        src/types/mpq_hash.c src/types/mpq_hash.h
-        src/types/mpq_header.c src/types/mpq_header.h
-        src/types/palette.c src/types/palette.h
-        src/util/bit_reader.c src/util/bit_reader.h
-        src/util/crypto.c src/util/crypto.h
-        src/util/huffman.c src/util/huffman.h
-        src/util/implode.c src/util/implode.h
-        src/util/wav_decompress.c src/util/wav_decompress.h
+        src/Abyss.c
+        src/audio/AudioManager.c src/audio/AudioManager.h
+        src/audio/AudioStream.c src/audio/AudioStream.h
+        src/common/AbyssConfiguration.c src/common/AbyssConfiguration.h
+        src/common/FileManager.c src/common/FileManager.h
+        src/common/Globals.c src/common/Globals.h
+        src/common/Logging.c src/common/Logging.h
+        src/common/MpqStream.c src/common/MpqStream.h
+        src/common/ResourcePaths.h
+        src/common/RingBuffer.c src/common/RingBuffer.h
+        src/drawing/Cursor.c src/drawing/Cursor.h
+        src/drawing/Label.c src/drawing/Label.h
+        src/drawing/Sprite.c src/drawing/Sprite.h
+        src/scenes/Scene.c src/scenes/Scene.h
+        src/scenes/SceneMainMenu.c src/scenes/SceneMainMenu.h
+        src/types/DC6.c src/types/DC6.h
+        src/types/Font.c src/types/Font.h
+        src/types/MPQ.c src/types/MPQ.h
+        src/types/MPQBlock.c src/types/MPQBlock.h
+        src/types/MPQHash.c src/types/MPQHash.h
+        src/types/MPQHeader.c src/types/MPQHeader.h
+        src/types/Palette.c src/types/Palette.h
+        src/util/BitReader.c src/util/BitReader.h
+        src/util/Crypto.c src/util/Crypto.h
+        src/util/Huffman.c src/util/Huffman.h
+        src/util/Implode.c src/util/Implode.h
+        src/util/WavDecompress.c src/util/WavDecompress.h
 )
 # if WIN32 then SDL2::SDL2main needs to be linked
 if (WIN32)
