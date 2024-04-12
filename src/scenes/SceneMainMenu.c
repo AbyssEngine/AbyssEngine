@@ -58,7 +58,7 @@ void scene_mainmenu_render(void *scene_ref) {
     label_draw(mainmenu->build_label, 797, 1);
 }
 
-void scene_mainmenu_update(__attribute__((unused)) void *scene_ref, __attribute__((unused)) uint64_t delta) {}
+void scene_mainmenu_update(void *scene_ref, uint64_t delta) {}
 
 void scene_mainmenu_free(void *scene_ref) {
     struct SceneMainMenu *mainmenu = (struct SceneMainMenu *)scene_ref;

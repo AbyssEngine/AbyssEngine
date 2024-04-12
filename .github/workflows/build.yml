@@ -59,14 +59,6 @@ jobs:
                 with:
                     args: install nasm ninja
 
-            -   name: Run VCPKG (Windows)
-                if: runner.os == 'Windows'
-                uses: lukka/run-vcpkg@v10
-                with:
-                    vcpkgJsonGlob: "**/vcpkg.json"
-                    vcpkgDirectory: "${{ github.workspace }}/vcpkg"
-                    vcpkgGitCommitId: "f56238700757aa05975e41fa835739c632810f3f"
-
             -   name: Install Dependencies (Linux)
                 if: runner.os == 'Linux'
                 run: |
@@ -77,7 +69,14 @@ jobs:
                 if: runner.os == 'MacOS'
                 run: |
                     brew update
-                    brew install cmake ninja sdl2 zlib libarchive
+                    brew install cmake ninja sdl2 zlib libarchive nasm automake autoconf autoconf-archive
+
+            -   name: Run VCPKG (Windows)
+                uses: lukka/run-vcpkg@v10
+                with:
+                    vcpkgJsonGlob: "**/vcpkg.json"
+                    vcpkgDirectory: "${{ github.workspace }}/vcpkg"
+                    vcpkgGitCommitId: "ad3bae57455a3c3ce528fcd47d8e8027d0498add"
 
             -   name: Configure CMake (Windows)
                 if: runner.os == 'Windows'

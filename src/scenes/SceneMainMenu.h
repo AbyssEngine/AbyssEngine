@@ -19,7 +19,7 @@ struct SceneMainMenu {
 
 void *scene_mainmenu_create(void);
 void  scene_mainmenu_render(void *scene_ref);
-void  scene_mainmenu_update(__attribute__((unused)) void *scene_ref, __attribute__((unused)) uint64_t delta);
+void  scene_mainmenu_update(void *scene_ref, uint64_t delta);
 void  scene_mainmenu_free(void *scene_ref);
 
 #endif // ABYSS_SCENE_MAINMENU_H

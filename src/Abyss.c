@@ -11,7 +11,7 @@
 #include "util/Crypto.h"
 #include <libavutil/log.h>
 
-int main(__attribute__((unused)) int argc, __attribute__((unused)) char **argv) {
+int main(int argc, char **argv) {
     log_set_level(LOG_LEVEL_EVERYTHING);
     av_log_set_level(AV_LOG_FATAL);
     LOG_INFO("Abyss Engine");

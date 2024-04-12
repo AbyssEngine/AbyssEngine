@@ -29,7 +29,7 @@ struct Sprite *sprite_load(const char *path, const char *palette_name) {
 
     char *file_ext = get_extension(path);
 
-    if (strcmp(file_ext, "DC6") == 0) {
+    if (strcmp(file_ext, "dc6") == 0) {
         sprite_load_dc6(result, path, palette_name);
     } else {
         LOG_FATAL("Could not load Sprite: '%s' is an unsupported file extension.", file_ext);
