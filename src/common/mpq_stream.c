@@ -1,7 +1,9 @@
 #include "mpq_stream.h"
 
 #include "../util/crypto.h"
+#include "../util/huffman.h"
 #include "../util/implode.h"
+#include "../util/wav_decompress.h"
 #include "log.h"
 #include "zlib.h"
 #include <stdio.h>
@@ -291,16 +293,31 @@ void *mpq_stream_decompress_multi(void *buffer, const uint32_t to_read, const ui
         memset(work_buff, 0, 15000);
         memset(out_buffer, 0, expected_length + 1);
         const int pk_result = explode(explode_read, explode_write, work_buff, &pk_info);
+
         if (pk_result != CMP_NO_ERROR) {
             LOG_FATAL("Failed to decompress using PkWare Explode: %d.", pk_result);
         }
+
+        if (pk_info.out_pos != expected_length) {
+            LOG_FATAL("Decompression failed. Expected %d bytes but got %d instead!", expected_length, pk_info.out_pos);
+        }
+
         free(work_buff);
         free(buffer);
         return out_buffer;
     }
     case COMPRESSION_TYPE_HUFFMAN_THEN_WAV_STEREO: {
-        // TODO:
-        LOG_FATAL("Huffman then WAV Stereo decompression not implemented!");
+        uint32_t huffman_buffer_size = 0;
+        uint8_t *huffman_buffer      = huffman_decompress((uint8_t *)buffer + 1, to_read - 1, &huffman_buffer_size);
+
+        uint32_t wav_size   = 0;
+        uint8_t *wav_buffer = wav_decompress(huffman_buffer, huffman_buffer_size, 2, &wav_size);
+        if (wav_size != expected_length) {
+            LOG_FATAL("Decompression failed: Expected WAV buffer of %d bytes, but got %d instead!", expected_length,
+                      wav_size);
+        }
+        free(huffman_buffer);
+        return wav_buffer;
     }
     default:
         LOG_FATAL("Compression Type $%02X not supported!", compression_type);

@@ -85,9 +85,11 @@ add_executable(AbyssEngine WIN32 MACOSX_BUNDLE
         src/types/mpq_hash.c src/types/mpq_hash.h
         src/types/mpq_header.c src/types/mpq_header.h
         src/types/palette.c src/types/palette.h
+        src/util/bit_reader.c src/util/bit_reader.h
         src/util/crypto.c src/util/crypto.h
-        src/util/implode.c src/util/implode.h
         src/util/huffman.c src/util/huffman.h
+        src/util/implode.c src/util/implode.h
+        src/util/wav_decompress.c src/util/wav_decompress.h
 )
 # if WIN32 then SDL2::SDL2main needs to be linked
 if (WIN32)
