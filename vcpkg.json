@@ -8,6 +8,19 @@
     "dependencies": [
         "sdl2",
         "zlib",
-        "libarchive"
+        "libarchive",
+        {
+            "name": "ffmpeg",
+            "features": [
+                "avcodec",
+                "avdevice",
+                "avfilter",
+                "avformat",
+                "avresample",
+                "swscale",
+                "swresample",
+                "ffmpeg"
+            ]
+        }
     ]
 }
