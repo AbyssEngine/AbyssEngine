@@ -71,6 +71,7 @@ jobs:
                     brew update --preinstall
 
             -   name: Configure Homebrew cache (macOS)
+                if: runner.os == 'MacOS'
                 uses: actions/cache@v2
                 with:
                     path: |
@@ -82,7 +83,7 @@ jobs:
             -   name: Install Dependencies (macOS)
                 if: runner.os == 'MacOS'
                 run: |
-                    env HOMEBREW_NO_AUTO_UPDATE=1 brew install ninja sdl2 ffmpeg libarchive
+                    env HOMEBREW_NO_AUTO_UPDATE=1 brew install ninja sdl2 ffmpeg libarchive || true
 
             -   name: Run VCPKG (Windows/Linux)
                 uses: lukka/run-vcpkg@v10
