@@ -79,7 +79,6 @@ jobs:
                     vcpkgGitCommitId: "ad3bae57455a3c3ce528fcd47d8e8027d0498add"
 
             -   name: Configure CMake
-                if: runner.os == 'Windows'
                 run: >
                     cmake
                     -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
