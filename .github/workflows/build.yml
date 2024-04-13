@@ -69,7 +69,7 @@ jobs:
                 if: runner.os == 'MacOS'
                 run: |
                     brew update
-                    brew install cmake nasm automake autoconf autoconf-archive ninja
+                    brew install nasm automake autoconf autoconf-archive ninja
 
             -   name: Run VCPKG
                 uses: lukka/run-vcpkg@v10
