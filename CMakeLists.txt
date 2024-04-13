@@ -2,12 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
-if (APPLE)
-    set(LANGUAGES C OBJC)
-else ()
-    set(LANGUAGES C)
-endif ()
-project(AbyssEngine ${LANGUAGES})
+project(AbyssEngine)
 
 option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 
