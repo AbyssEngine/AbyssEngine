@@ -52,6 +52,7 @@ jobs:
                 run: >
                     cmake
                     -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
+                    -DVCPKG_TARGET_TRIPLET=x64-linux
                     -DCMAKE_CXX_COMPILER=clang++
                     -DCMAKE_C_COMPILER=clang
                     -DCMAKE_BUILD_TYPE=Release
