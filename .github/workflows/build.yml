@@ -65,11 +65,24 @@ jobs:
                     sudo apt-get update
                     sudo apt-get install -y build-essential cmake ninja-build libsdl2-dev zlib1g-dev libarchive-dev nasm libxext-dev libavcodec-dev libavformat-dev libavdevice-dev libavfilter-dev libegl-dev gperf autoconf-archive libasound2-dev ninja-build
 
-            -   name: Install Dependencies (MacOS)
+            -   name: Update Homebrew (macOS)
                 if: runner.os == 'MacOS'
                 run: |
-                    brew update
-                    brew install automake autoconf-archive ninja sdl2 ffmpeg libarchive
+                    brew update --preinstall
+
+            -   name: Configure Homebrew cache (macOS)
+                uses: actions/cache@v2
+                with:
+                    path: |
+                        ~/Library/Caches/Homebrew/foo--*
+                        ~/Library/Caches/Homebrew/downloads/*--foo-*
+                    key: brew-${{ hashFiles('.github/brew-formulae') }}
+                    restore-keys: brew-
+
+            -   name: Install Dependencies (macOS)
+                if: runner.os == 'MacOS'
+                run: |
+                    env HOMEBREW_NO_AUTO_UPDATE=1 brew install ninja sdl2 ffmpeg libarchive
 
             -   name: Run VCPKG (Windows/Linux)
                 uses: lukka/run-vcpkg@v10
