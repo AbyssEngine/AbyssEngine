@@ -58,8 +58,8 @@ jobs:
                 uses: actions/cache@v2
                 with:
                     path: |
-                        ~/Library/Caches/Homebrew/foo--*
-                        ~/Library/Caches/Homebrew/downloads/*--foo-*
+                        ~/Library/Caches/Homebrew/*
+                        ~/Library/Caches/Homebrew/downloads/*
                     key: brew-${{ hashFiles('.github/brew-formulae') }}
                     restore-keys: brew-
 
