@@ -4,7 +4,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 project(AbyssEngine)
 
-option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
+set(BUILD_SHARED_LIBS OFF)
 
 set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
@@ -57,7 +57,7 @@ include_directories(${FFMPEG_INCLUDE_DIRS})
 #add_compile_options(-fsanitize=address -g)
 #add_link_options(-fsanitize=address)
 
-add_executable(AbyssEngine WIN32 MACOSX_BUNDLE
+add_executable(AbyssEngine WIN32
         src/Abyss.c
         src/audio/AudioManager.c src/audio/AudioManager.h
         src/audio/AudioStream.c src/audio/AudioStream.h
@@ -91,6 +91,17 @@ if (WIN32)
     set(ADDITIONAL_LIBRARIES SDL2::SDL2 SDL2::SDL2main)
 endif ()
 
+if (APPLE)
+    find_library(OSX_VIDEOTOOLBOX VideoToolbox)
+    find_library(OSX_COREMEDIA CoreMedia)
+    find_library(OSX_SECURITY Security)
+    set(ADDITIONAL_LIBRARIES
+            ${OSX_VIDEOTOOLBOX}
+            ${OSX_COREMEDIA}
+            ${OSX_SECURITY}
+    )
+endif ()
+
 target_link_libraries(AbyssEngine
         ${SDL2_LIBRARIES}
         ${ZLIB_LIBRARIES}
@@ -100,19 +111,12 @@ target_link_libraries(AbyssEngine
 )
 
 if (APPLE)
-    find_library(OSX_VIDEOTOOLBOX VideoToolbox)
-    find_library(OSX_COREMEDIA CoreMedia)
-    find_library(OSX_SECURITY Security)
-
     set_target_properties(AbyssEngine PROPERTIES
             MACOSX_BUNDLE_BUNDLE_NAME "Abyss Engine" ,
             MACOSX_BUNDLE_GUI_IDENTIFIER "com.abyss" ,
             MACOSX_BUNDLE_ICON_FILE "icon.icns"
     )
 
-    find_library(OSX_VIDEOTOOLBOX VideoToolbox)
-    find_library(OSX_COREMEDIA CoreMedia)
-    find_library(OSX_SECURITY Security)
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/extra/macos/" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/AbyssEngine.app/Contents/Resources")
     set_target_properties(AbyssEngine PROPERTIES
             MACOSX_BUNDLE TRUE
@@ -134,3 +138,21 @@ else ()
             COMMAND ${CMAKE_COMMAND} -E copy_directory
             ${CMAKE_SOURCE_DIR}/content $<TARGET_FILE_DIR:AbyssEngine>)
 endif ()
+
+#include(InstallRequiredSystemLibraries)
+#
+#install(TARGETS AbyssEngine
+#        RUNTIME DESTINATION dist
+#        BUNDLE DESTINATION ../MacOS
+#)
+#
+#set(CPACK_PACKAGE_NAME "AbyssEngine")
+#set(CPACK_BUNDLE_NAME "AbyssEngine")
+#set(CPACK_BUNDLE_PLIST "${CMAKE_SOURCE_DIR}/extra/macos/MacOSXBundleInfo.plist.in")
+#set(CPACK_BUNDLE_ICON "${CMAKE_SOURCE_DIR}/extra/macos/icon.icns")
+#set(CPACK_PACKAGE_VENDOR "AbyssEngine Developers")
+#set(CPACK_PACKAGE_VERSION_MAJOR 0)
+#set(CPACK_PACKAGE_VERSION_MINOR 1)
+#set(CPACK_PACKAGE_VERSION_PATCH 0)
+#set(CPACK_NSIS_MUI_ICON "@CMake_SOURCE_DIR@/extra/icon.ico")
+#include(CPack)
