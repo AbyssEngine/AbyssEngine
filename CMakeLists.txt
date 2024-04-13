@@ -7,7 +7,7 @@ if (APPLE)
 else ()
     set(LANGUAGES C)
 endif ()
-project(AbyssEngine LANGUAGES ${LANGUAGES})
+project(AbyssEngine ${LANGUAGES})
 
 option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 
