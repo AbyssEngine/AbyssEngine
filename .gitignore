@@ -3,6 +3,7 @@ build/
 .vscode/
 .idea/
 .DS_Store
+.cache/
 cmake-build-*/
 out/
 CMakeSettings.json

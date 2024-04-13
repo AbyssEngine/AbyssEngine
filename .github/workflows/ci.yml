@@ -1,0 +1,136 @@
+# This starter workflow is for a CMake project running on multiple platforms. There is a different starter workflow if you just want a single platform.
+# See: https://github.com/actions/starter-workflows/blob/main/ci/cmake-single-platform.yml
+name: Continuous Integration
+
+on:
+    #    push:
+    #        branches: [ "main" ]
+    pull_request:
+        branches: [ "main" ]
+
+jobs:
+    build:
+        name: ${{ matrix.name }}
+        runs-on: ${{ matrix.os }}
+
+        strategy:
+            fail-fast: false
+
+            matrix:
+                include:
+                    -   name: Windows (MSVC)
+                        os: windows-latest
+                        c_compiler: cl
+                        cpp_compiler: cl
+                        triplet: x64-windows
+                    -   name: Ubuntu (GCC)
+                        os: ubuntu-latest
+                        c_compiler: gcc
+                        cpp_compiler: g++
+                        triplet: x64-linux
+                    -   name: MacOS (Clang)
+                        os: macos-13
+                        c_compiler: clang
+                        cpp_compiler: clang++
+                        triplet: arm64-osx
+
+        steps:
+            -   name: Checkout
+                uses: actions/checkout@v3
+                with:
+                    submodules: recursive
+
+            -   name: Set reusable strings
+                id: strings
+                shell: bash
+                run: |
+                    echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+
+            -   name: Export GitHub Actions cache environment variables
+                uses: actions/github-script@v6
+                with:
+                    script: |
+                        core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+                        core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
+            -   name: Configure Homebrew cache (macOS)
+                if: runner.os == 'MacOS'
+                uses: actions/cache@v2
+                with:
+                    path: |
+                        ~/Library/Caches/Homebrew/*
+                        ~/Library/Caches/Homebrew/downloads/*
+                    key: brew-${{ hashFiles('.github/brew-formulae') }}
+                    restore-keys: brew-
+
+            -   name: Update Homebrew (macOS)
+                if: runner.os == 'MacOS'
+                run: |
+                    brew update --preinstall
+
+            -   name: Install Deps (Windows)
+                if: runner.os == 'Windows'
+                uses: crazy-max/ghaction-chocolatey@v1
+                with:
+                    args: install nasm ninja
+
+            -   name: Install Dependencies (Linux)
+                if: runner.os == 'Linux'
+                run: |
+                    sudo apt-get update
+                    sudo apt-get install -y build-essential cmake ninja-build libsdl2-dev zlib1g-dev libarchive-dev nasm libxext-dev libavcodec-dev libavformat-dev libavdevice-dev libavfilter-dev libegl-dev gperf autoconf-archive libasound2-dev ninja-build
+
+            -   name: Install Dependencies (macOS)
+                if: runner.os == 'MacOS'
+                run: |
+                    env HOMEBREW_NO_AUTO_UPDATE=1 brew install make ninja sdl2 ffmpeg libarchive || exit 0
+
+            -   name: Run VCPKG (Windows/Linux)
+                uses: lukka/run-vcpkg@v10
+                if: runner.os != 'MacOS'
+                with:
+                    vcpkgJsonGlob: "**/vcpkg.json"
+                    vcpkgDirectory: "${{ github.workspace }}/vcpkg"
+                    vcpkgGitCommitId: "ad3bae57455a3c3ce528fcd47d8e8027d0498add"
+
+            -   name: Configure CMake (Windows/Linux)
+                if: runner.os != 'MacOS'
+                run: >
+                    cmake
+                    -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
+                    -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }}
+                    -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+                    -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
+                    -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+                    _DABYSS_VERSION_TEXT="${{ github.sha }}"
+                    -S ${{ github.workspace }}
+                    -B ${{ steps.strings.outputs.build-output-dir }}
+
+            -   name: Configure CMake (macOS)
+                if: runner.os == 'MacOS'
+                run: >
+                    cmake
+                    -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }}
+                    -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+                    -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
+                    -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+                    _DABYSS_VERSION_TEXT="${{ github.sha }}"
+                    -S ${{ github.workspace }}
+                    -B ${{ steps.strings.outputs.build-output-dir }}
+
+            -   name: Build
+                run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config Release
+
+            -   name: Upload Artifacts
+                if: github.ref == 'refs/heads/main'
+                uses: actions/upload-artifact@v4
+                with:
+                    name: unstable-${{ runner.os }}
+                    path: ${{ steps.strings.outputs.build-output-dir }}
+                    if-no-files-found: error
+                    overwrite: true
+
+        env:
+            VCPKG_DEFAULT_TRIPLET: ${{ matrix.triplet }}
+            VCPKG_DEFAULT_HOST_TRIPLET: ${{ matrix.triplet }}
+

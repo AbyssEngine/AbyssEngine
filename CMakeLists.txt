@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+
 project(AbyssEngine)
 
 option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
@@ -8,6 +10,26 @@ set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_C_STANDARD 99)
+set(CMAKE_DISABLE_SOURCE_CHANGES ON)
+set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
+
+if (NOT CMAKE_BUILD_TYPE)
+    message(STATUS "No build type selected, defaulting to Release")
+    set(CMAKE_BUILD_TYPE Release)
+endif ()
+
+#turn on all warnings
+if (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wpedantic")
+endif ()
+
+if (CMAKE_C_COMPILER_ID MATCHES "MSVC")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W4")
+endif ()
+
+if (CMAKE_C_COMPILER_ID MATCHES "Clang")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-gnu-zero-variadic-macro-arguments")
+endif ()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     # Homebrew ships libarchive keg only, include dirs have to be set manually
@@ -29,52 +51,40 @@ include_directories(${ZLIB_INCLUDE_DIRS})
 find_package(LibArchive REQUIRED)
 include_directories(${LibArchive_INCLUDE_DIR})
 
+find_package(FFMPEG COMPONENTS AVCODEC AVFORMAT AVUTIL SWSCALE SWRESAMPLE REQUIRED)
+include_directories(${FFMPEG_INCLUDE_DIRS})
+
 #add_compile_options(-fsanitize=address -g)
 #add_link_options(-fsanitize=address)
 
-# Ensures that we do an out of source build
-MACRO(MACRO_ENSURE_OUT_OF_SOURCE_BUILD MSG)
-    STRING(COMPARE EQUAL "${CMAKE_SOURCE_DIR}"
-            "${CMAKE_BINARY_DIR}" insource)
-    GET_FILENAME_COMPONENT(PARENTDIR ${CMAKE_SOURCE_DIR} PATH)
-    STRING(COMPARE EQUAL "${CMAKE_SOURCE_DIR}"
-            "${PARENTDIR}" insourcesubdir)
-    IF (insource OR insourcesubdir)
-        MESSAGE(FATAL_ERROR "${MSG}")
-    ENDIF (insource OR insourcesubdir)
-ENDMACRO(MACRO_ENSURE_OUT_OF_SOURCE_BUILD)
-MACRO_ENSURE_OUT_OF_SOURCE_BUILD(
-        "${CMAKE_PROJECT_NAME} requires an out of source build."
-)
-
-if (NOT CMAKE_BUILD_TYPE)
-    message(STATUS "No build type selected, defaulting to Release")
-    set(CMAKE_BUILD_TYPE Release)
-endif ()
-
 add_executable(AbyssEngine WIN32 MACOSX_BUNDLE
-        src/abyss.c
-        src/common/resource_paths.h
-        src/common/globals.c src/common/globals.h
-        src/common/log.c src/common/log.h
-        src/common/config.c src/common/config.h
-        src/types/mpq.c src/types/mpq.h
-        src/types/mpq_hash.c src/types/mpq_hash.h
-        src/types/mpq_header.c src/types/mpq_header.h
-        src/types/mpq_block.c src/types/mpq_block.h
-        src/common/mpq_stream.c src/common/mpq_stream.h
-        src/util/crypto.c src/util/crypto.h
-        src/common/fileman.c src/common/fileman.h
-        src/util/implode.c src/util/implode.h
-        src/types/palette.c src/types/palette.h
-        src/types/dc6.c src/types/dc6.h
-        src/drawing/sprite.c src/drawing/sprite.h
-        src/drawing/cursor.c src/drawing/cursor.h
-        src/types/font.c src/types/font.h
-        src/scenes/scene.c src/scenes/scene.h
-        src/scenes/scene_mainmenu.c src/scenes/scene_mainmenu.h
-        src/types/font.c src/types/font.h
-        src/drawing/label.c src/drawing/label.h
+        src/Abyss.c
+        src/audio/AudioManager.c src/audio/AudioManager.h
+        src/audio/AudioStream.c src/audio/AudioStream.h
+        src/common/AbyssConfiguration.c src/common/AbyssConfiguration.h
+        src/common/FileManager.c src/common/FileManager.h
+        src/common/Globals.c src/common/Globals.h
+        src/common/Logging.c src/common/Logging.h
+        src/common/MpqStream.c src/common/MpqStream.h
+        src/common/ResourcePaths.h
+        src/common/RingBuffer.c src/common/RingBuffer.h
+        src/drawing/Cursor.c src/drawing/Cursor.h
+        src/drawing/Label.c src/drawing/Label.h
+        src/drawing/Sprite.c src/drawing/Sprite.h
+        src/scenes/Scene.c src/scenes/Scene.h
+        src/scenes/SceneMainMenu.c src/scenes/SceneMainMenu.h
+        src/types/DC6.c src/types/DC6.h
+        src/types/Font.c src/types/Font.h
+        src/types/MPQ.c src/types/MPQ.h
+        src/types/MPQBlock.c src/types/MPQBlock.h
+        src/types/MPQHash.c src/types/MPQHash.h
+        src/types/MPQHeader.c src/types/MPQHeader.h
+        src/types/Palette.c src/types/Palette.h
+        src/util/BitReader.c src/util/BitReader.h
+        src/util/Crypto.c src/util/Crypto.h
+        src/util/Huffman.c src/util/Huffman.h
+        src/util/Implode.c src/util/Implode.h
+        src/util/WavDecompress.c src/util/WavDecompress.h
 )
 # if WIN32 then SDL2::SDL2main needs to be linked
 if (WIN32)
@@ -85,10 +95,15 @@ target_link_libraries(AbyssEngine
         ${SDL2_LIBRARIES}
         ${ZLIB_LIBRARIES}
         ${LibArchive_LIBRARIES}
+        ${FFMPEG_LIBRARIES}
         ${ADDITIONAL_LIBRARIES}
 )
 
 if (APPLE)
+    find_library(OSX_VIDEOTOOLBOX VideoToolbox)
+    find_library(OSX_COREMEDIA CoreMedia)
+    find_library(OSX_SECURITY Security)
+
     set_target_properties(AbyssEngine PROPERTIES
             MACOSX_BUNDLE_BUNDLE_NAME "Abyss Engine" ,
             MACOSX_BUNDLE_GUI_IDENTIFIER "com.abyss" ,

@@ -97,7 +97,7 @@ In order for Abyss Engine to run, it needs to load abyss.ini. A template of this
 based on the platform:
 
 - Windows: `%APPDATA%/abyss/abyss.ini`
-- Linux: `~/.config/abyss/abyss.ini`
+- Linux: `~/.AbyssConfiguration/abyss/abyss.ini`
 - MacOS: `~/Library/Application Support/abyss/abyss.ini`
 
 Please make sure that you have copied the template file into that location, and updated it to match your system.
