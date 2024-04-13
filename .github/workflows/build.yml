@@ -69,7 +69,7 @@ jobs:
                 if: runner.os == 'MacOS'
                 run: |
                     brew update
-                    brew install automake autoconf autoconf-archive ninja pkgconfig sdl2 ffmpeg libarchive zlib
+                    brew install automake autoconf-archive ninja sdl2 ffmpeg libarchive
 
             -   name: Run VCPKG (Windows/Linux)
                 uses: lukka/run-vcpkg@v10
