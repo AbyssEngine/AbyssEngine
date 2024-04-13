@@ -23,13 +23,11 @@ jobs:
                         c_compiler: cl
                         cpp_compiler: cl
                         triplet: x64-windows
-                        toolchain: ${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
                     -   name: Ubuntu (GCC)
                         os: ubuntu-latest
                         c_compiler: gcc
                         cpp_compiler: g++
                         triplet: x64-linux
-                        toolchain: ${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
                     -   name: MacOS (Clang)
                         os: macos-13
                         c_compiler: clang
@@ -95,10 +93,23 @@ jobs:
                     vcpkgDirectory: "${{ github.workspace }}/vcpkg"
                     vcpkgGitCommitId: "ad3bae57455a3c3ce528fcd47d8e8027d0498add"
 
-            -   name: Configure CMake
+            -   name: Configure CMake (Windows/Linux)
+                if: runner.os != 'MacOS'
                 run: >
                     cmake
-                    -DCMAKE_TOOLCHAIN_FILE=${{ matrix.toolchain }}
+                    -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
+                    -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }}
+                    -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+                    -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
+                    -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+                    _DABYSS_VERSION_TEXT="${{ github.sha }}"
+                    -S ${{ github.workspace }}
+                    -B ${{ steps.strings.outputs.build-output-dir }}
+
+            -   name: Configure CMake (macOS)
+                if: runner.os == 'MacOS'
+                run: >
+                    cmake
                     -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }}
                     -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
                     -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
