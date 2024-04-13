@@ -23,7 +23,7 @@ jobs:
                         c_compiler: cl
                         cpp_compiler: cl
                         triplet: x64-windows
-                    -   name: Ubuntu GCC
+                    -   name: Ubuntu (GCC)
                         os: ubuntu-latest
                         c_compiler: gcc
                         cpp_compiler: g++
@@ -69,10 +69,11 @@ jobs:
                 if: runner.os == 'MacOS'
                 run: |
                     brew update
-                    brew install nasm automake autoconf autoconf-archive ninja pkgconfig
+                    brew install automake autoconf autoconf-archive ninja pkgconfig sdl2 ffmpeg libarchive zlib
 
-            -   name: Run VCPKG
+            -   name: Run VCPKG (Windows/Linux)
                 uses: lukka/run-vcpkg@v10
+                if: runner.os != 'MacOS'
                 with:
                     vcpkgJsonGlob: "**/vcpkg.json"
                     vcpkgDirectory: "${{ github.workspace }}/vcpkg"
