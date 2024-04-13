@@ -80,5 +80,5 @@ jobs:
                 with:
                     category: "/language:${{matrix.language}}"
         env:
-            VCPKG_DEFAULT_TRIPLET: ${{ matrix.triplet }}
-            VCPKG_DEFAULT_HOST_TRIPLET: ${{ matrix.triplet }}
+            VCPKG_DEFAULT_TRIPLET: x64-linux
+            VCPKG_DEFAULT_HOST_TRIPLET: x64-linux
