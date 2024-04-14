@@ -1,5 +1,5 @@
 #include "SceneMainMenu.h"
-#include "../audio/AudioStream.h"
+#include "../audio/AudioManager.h"
 #include "../common/Globals.h"
 #include "../common/Logging.h"
 #include <stdlib.h>
@@ -13,8 +13,7 @@ struct Scene scene_main_menu = {scene_mainmenu_create, scene_mainmenu_render, sc
                                 scene_mainmenu_free};
 
 void *scene_mainmenu_create(void) {
-    struct AudioStream *stream = audio_stream_create(MUSIC_TITLE);
-    audio_stream_free(stream);
+    audio_manager_play_bgm(MUSIC_TITLE, true);
 
     struct SceneMainMenu *result = malloc(sizeof(struct SceneMainMenu));
     FAIL_IF_NULL(result);
