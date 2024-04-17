@@ -104,7 +104,7 @@ jobs:
                     -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
                     -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
                     -DABYSS_VERSION_TEXT="${{ github.sha }}"
-                    -DGITHUB_ACTIONS
+                    -DGITHUB_ACTIONS=1
                     -S ${{ github.workspace }}
                     -B ${{ steps.strings.outputs.build-output-dir }}
 
