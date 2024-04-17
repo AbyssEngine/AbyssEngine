@@ -91,12 +91,11 @@ jobs:
                 with:
                     vcpkgJsonGlob: "**/vcpkg.json"
                     vcpkgDirectory: "${{ github.workspace }}/vcpkg"
-                    vcpkgGitCommitId: "ad3bae57455a3c3ce528fcd47d8e8027d0498add"
+                    vcpkgGitCommitId: "b4a3d89125e45bc8f80fb94bef9761d4f4e14fb9"
 
             -   name: Configure CMake (Windows/Linux)
                 if: runner.os != 'MacOS'
                 run: >
-                    git -C ${{ github.workspace }}/vcpkg/ fetch &&
                     cmake
                     -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
                     -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }}
