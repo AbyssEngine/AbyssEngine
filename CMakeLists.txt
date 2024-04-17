@@ -126,9 +126,10 @@ if (NOT DEFINED GITHUB_ACTIONS)
 endif ()
 
 if (APPLE)
-    # Add the clang-format target as a dependency for Xcode
-    add_dependencies(${PROJECT_NAME} clang-format)
-
+    if (NOT DEFINED GITHUB_ACTIONS)
+        # Add the clang-format target as a dependency for Xcode
+        add_dependencies(${PROJECT_NAME} clang-format)
+    endif ()
 
     file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/extra/macos/" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/AbyssEngine.app/Contents/Resources")
     set_target_properties(AbyssEngine PROPERTIES

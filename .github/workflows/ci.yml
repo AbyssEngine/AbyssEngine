@@ -23,16 +23,19 @@ jobs:
                         c_compiler: cl
                         cpp_compiler: cl
                         triplet: x64-windows
+                        build_type: Release
                     -   name: Ubuntu (GCC)
                         os: ubuntu-latest
                         c_compiler: gcc
                         cpp_compiler: g++
                         triplet: x64-linux
+                        build_type: Release
                     -   name: MacOS (Clang)
                         os: macos-13
                         c_compiler: clang
                         cpp_compiler: clang++
                         triplet: arm64-osx
+                        build_type: Release
 
         steps:
             -   name: Checkout
