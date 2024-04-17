@@ -73,7 +73,7 @@ include_directories(${FFMPEG_INCLUDE_DIRS})
 #add_link_options(-fsanitize=address)
 
 add_executable(${PROJECT_NAME} WIN32)
-target_sources(${PROJECT_NAME} PRIVATE src/Abyss.c)
+target_sources(${PROJECT_NAME} PRIVATE src/AbyssEngine.c)
 add_subdirectory(src)
 setup_source_groups(src)
 
@@ -102,7 +102,7 @@ target_link_libraries(AbyssEngine
         ${ADDITIONAL_LIBRARIES}
 )
 
-if (NOT DEFINED ENV{GITHUB_ACTIONS})
+if (NOT DEFINED GITHUB_ACTIONS)
     if (UNIX)
         # Find clang-format executable
         find_program(CLANG_FORMAT_EXECUTABLE NAMES clang-format)
