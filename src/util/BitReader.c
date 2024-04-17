@@ -4,13 +4,13 @@
 #include <string.h>
 
 struct BitReader *bit_reader_init(uint8_t *data_buffer, uint32_t buffer_len) {
-    struct BitReader *BitReader = malloc(sizeof(struct BitReader));
-    memset(BitReader, 0, sizeof(struct BitReader));
-    FAIL_IF_NULL(BitReader);
+    struct BitReader *bit_reader = malloc(sizeof(struct BitReader));
+    memset(bit_reader, 0, sizeof(struct BitReader));
+    FAIL_IF_NULL(bit_reader);
 
-    BitReader->data_buffer = data_buffer;
-    BitReader->buffer_len  = buffer_len;
-    return BitReader;
+    bit_reader->data_buffer = data_buffer;
+    bit_reader->buffer_len  = buffer_len;
+    return bit_reader;
 }
 
 void bit_reader_free(struct BitReader *br) { free(br); }

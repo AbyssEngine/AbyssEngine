@@ -97,40 +97,42 @@ struct MpqStream *mpq_stream_create(struct MPQ *mpq, const char *file_name) {
     return result;
 }
 
-void mpq_stream_load_block_offset(struct MpqStream *MpqStream) {
-    fseek(MpqStream->mpq->file, MpqStream->block->file_position, SEEK_SET);
+void mpq_stream_load_block_offset(struct MpqStream *mpq_stream) {
+    fseek(mpq_stream->mpq->file, mpq_stream->block->file_position, SEEK_SET);
 
-    MpqStream->block_offset_count = ((MpqStream->block->size_uncompressed + MpqStream->size - 1) / MpqStream->size) + 1;
+    mpq_stream->block_offset_count =
+        (uint32_t)((mpq_stream->block->size_uncompressed + mpq_stream->size - 1) / mpq_stream->size) + 1;
 
-    const uint32_t offset_file_load_size = sizeof(uint32_t) * MpqStream->block_offset_count;
+    const uint32_t offset_file_load_size = sizeof(uint32_t) * mpq_stream->block_offset_count;
 
-    MpqStream->block_offsets = malloc(offset_file_load_size);
-    FAIL_IF_NULL(MpqStream->block_offsets);
+    mpq_stream->block_offsets = malloc(offset_file_load_size);
+    FAIL_IF_NULL(mpq_stream->block_offsets);
 
-    memset(MpqStream->block_offsets, 0, offset_file_load_size);
+    memset(mpq_stream->block_offsets, 0, offset_file_load_size);
 
-    if (fread(MpqStream->block_offsets, sizeof(uint32_t), MpqStream->block_offset_count, MpqStream->mpq->file) !=
-        MpqStream->block_offset_count) {
-        LOG_FATAL("Failed to load block offsets for '%s'", MpqStream->file_name);
+    if (fread(mpq_stream->block_offsets, sizeof(uint32_t), mpq_stream->block_offset_count, mpq_stream->mpq->file) !=
+        mpq_stream->block_offset_count) {
+        LOG_FATAL("Failed to load block offsets for '%s'", mpq_stream->file_name);
     }
 
-    if (MpqStream->block->flags & FILE_FLAG_ENCRYPTED) {
-        crypto_decrypt(MpqStream->block_offsets, MpqStream->block_offset_count, MpqStream->block->encryption_seed - 1);
+    if (mpq_stream->block->flags & FILE_FLAG_ENCRYPTED) {
+        crypto_decrypt(mpq_stream->block_offsets, mpq_stream->block_offset_count,
+                       mpq_stream->block->encryption_seed - 1);
 
-        uint64_t block_pos_size = MpqStream->block_offset_count << 2;
+        uint64_t block_pos_size = mpq_stream->block_offset_count << 2;
 
-        if (MpqStream->block_offsets[0] != block_pos_size) {
+        if (mpq_stream->block_offsets[0] != block_pos_size) {
             LOG_FATAL("Decryption of MPQ failed");
         }
 
-        if (MpqStream->block_offsets[1] > MpqStream->block->size_uncompressed + block_pos_size) {
+        if (mpq_stream->block_offsets[1] > mpq_stream->block->size_uncompressed + block_pos_size) {
             LOG_FATAL("Decryption of MPQ failed");
         }
     }
 }
 
-uint32_t mpq_stream_read(struct MpqStream *MpqStream, void *buffer, uint32_t offset, const uint32_t size) {
-    if (MpqStream->block->flags & FILE_FLAG_SINGLE_UNIT) {
+uint32_t mpq_stream_read(struct MpqStream *mpq_stream, void *buffer, uint32_t offset, const uint32_t size) {
+    if (mpq_stream->block->flags & FILE_FLAG_SINGLE_UNIT) {
         LOG_FATAL("TODO: Single unit loads");
     }
 
@@ -138,108 +140,108 @@ uint32_t mpq_stream_read(struct MpqStream *MpqStream, void *buffer, uint32_t off
     uint32_t read_total = 0;
 
     while (to_read > 0) {
-        const uint32_t read = mpq_stream_read_internal(MpqStream, buffer, offset, to_read);
+        const uint32_t read = mpq_stream_read_internal(mpq_stream, (char *)buffer, offset, to_read);
         if (read == 0) {
             break;
         }
 
         read_total += read;
-        offset     += read;
         to_read    -= read;
+        offset     += read;
     }
 
     return read_total;
 }
 
-uint32_t mpq_stream_read_internal(struct MpqStream *MpqStream, void *buffer, const uint32_t offset,
+uint32_t mpq_stream_read_internal(struct MpqStream *mpq_stream, void *buffer, const uint32_t offset,
                                   const uint32_t to_read) {
-    mpq_stream_buffer_data(MpqStream);
-    const uint32_t local_position = MpqStream->position % MpqStream->size;
-    return mpq_stream_copy(MpqStream, buffer, offset, local_position, to_read);
+    mpq_stream_buffer_data(mpq_stream);
+    const uint32_t local_position = mpq_stream->position % mpq_stream->size;
+    return mpq_stream_copy(mpq_stream, buffer, offset, local_position, to_read);
 }
 
-void mpq_stream_buffer_data(struct MpqStream *MpqStream) {
-    const uint32_t block_index = MpqStream->position / MpqStream->size;
+void mpq_stream_buffer_data(struct MpqStream *mpq_stream) {
+    const uint32_t block_index = mpq_stream->position / mpq_stream->size;
 
-    if (block_index == MpqStream->block_index) {
+    if (block_index == mpq_stream->block_index) {
         return;
     }
 
-    if (MpqStream->data_buffer != NULL) {
-        free(MpqStream->data_buffer);
+    if (mpq_stream->data_buffer != NULL) {
+        free(mpq_stream->data_buffer);
     }
 
-    const uint32_t expected_length =
-        MIN((uint64_t)MpqStream->block->size_uncompressed - (block_index * MpqStream->size), MpqStream->size);
-    MpqStream->data_buffer      = mpq_stream_load_block(MpqStream, block_index, expected_length);
-    MpqStream->data_buffer_size = expected_length;
-    MpqStream->block_index      = block_index;
+    const uint32_t expected_length = (uint32_t)MIN(
+        (uint64_t)mpq_stream->block->size_uncompressed - (block_index * mpq_stream->size), mpq_stream->size);
+    mpq_stream->data_buffer      = mpq_stream_load_block(mpq_stream, block_index, expected_length);
+    mpq_stream->data_buffer_size = expected_length;
+    mpq_stream->block_index      = block_index;
 }
 
-void mpq_stream_free(struct MpqStream *MpqStream) {
-    if (MpqStream->block_offsets != NULL) {
-        free(MpqStream->block_offsets);
+void mpq_stream_free(struct MpqStream *mpq_stream) {
+    if (mpq_stream->block_offsets != NULL) {
+        free(mpq_stream->block_offsets);
     }
-    if (MpqStream->data_buffer != NULL) {
-        free(MpqStream->data_buffer);
+    if (mpq_stream->data_buffer != NULL) {
+        free(mpq_stream->data_buffer);
     }
-    free(MpqStream->file_name);
-    free(MpqStream);
+    free(mpq_stream->file_name);
+    free(mpq_stream);
 }
 
-uint32_t mpq_stream_copy(struct MpqStream *MpqStream, void *buffer, const uint32_t offset, const uint32_t position,
+uint32_t mpq_stream_copy(struct MpqStream *mpq_stream, void *buffer, const uint32_t offset, const uint32_t position,
                          const uint32_t count) {
-    const uint32_t bytes_to_copy = MIN(MpqStream->data_buffer_size - position, count);
+    const uint32_t bytes_to_copy = MIN(mpq_stream->data_buffer_size - position, count);
     if (bytes_to_copy <= 0) {
         // LOG_FATAL("Tried reading past end of stream!");
         return 0;
     }
 
-    memcpy((char *)buffer + offset, (char *)MpqStream->data_buffer + position, bytes_to_copy);
-    MpqStream->position += bytes_to_copy;
+    memcpy((char *)buffer + offset, (char *)mpq_stream->data_buffer + position, bytes_to_copy);
+    mpq_stream->position += bytes_to_copy;
 
     return bytes_to_copy;
 }
 
-void *mpq_stream_load_block(struct MpqStream *MpqStream, const uint32_t block_index, const uint32_t expected_length) {
+void *mpq_stream_load_block(struct MpqStream *mpq_stream, const uint32_t block_index, const uint32_t expected_length) {
     uint32_t offset;
     uint32_t to_read;
 
-    if ((MpqStream->block->flags & FILE_FLAG_COMPRESS) || (MpqStream->block->flags & FILE_FLAG_IMPLODE)) {
-        offset  = MpqStream->block_offsets[block_index];
-        to_read = MpqStream->block_offsets[block_index + 1] - offset;
+    if ((mpq_stream->block->flags & FILE_FLAG_COMPRESS) || (mpq_stream->block->flags & FILE_FLAG_IMPLODE)) {
+        offset  = mpq_stream->block_offsets[block_index];
+        to_read = mpq_stream->block_offsets[block_index + 1] - offset;
     } else {
-        offset  = block_index * MpqStream->size;
+        offset  = block_index * (uint32_t)mpq_stream->size;
         to_read = expected_length;
     }
 
-    offset += MpqStream->block->file_position;
+    offset += mpq_stream->block->file_position;
 
     void *data = malloc(to_read);
     FAIL_IF_NULL(data);
 
-    fseek(MpqStream->mpq->file, offset, SEEK_SET);
-    if (fread(data, to_read, 1, MpqStream->mpq->file) != 1) {
+    fseek(mpq_stream->mpq->file, offset, SEEK_SET);
+    if (fread(data, to_read, 1, mpq_stream->mpq->file) != 1) {
         LOG_FATAL("Error loading file block data.");
     }
 
-    if ((MpqStream->block->flags & FILE_FLAG_ENCRYPTED) && MpqStream->block->size_uncompressed > 3) {
-        if (MpqStream->block->encryption_seed == 0) {
+    if ((mpq_stream->block->flags & FILE_FLAG_ENCRYPTED) && mpq_stream->block->size_uncompressed > 3) {
+        if (mpq_stream->block->encryption_seed == 0) {
             LOG_FATAL("Unable to determine encryption key for file block load.");
         }
 
-        crypto_decrypt_bytes(data, to_read, block_index + MpqStream->block->encryption_seed);
+        crypto_decrypt_bytes(data, to_read, block_index + mpq_stream->block->encryption_seed);
     }
 
-    if ((MpqStream->block->flags & FILE_FLAG_COMPRESS) && (to_read != expected_length)) {
-        if (MpqStream->block->flags & FILE_FLAG_SINGLE_UNIT) {
+    if ((mpq_stream->block->flags & FILE_FLAG_COMPRESS) && (to_read != expected_length)) {
+        if (mpq_stream->block->flags & FILE_FLAG_SINGLE_UNIT) {
             LOG_FATAL("TODO: PK Decompression");
         }
 
         return mpq_stream_decompress_multi(data, to_read, expected_length);
     }
 
-    if ((MpqStream->block->flags & FILE_FLAG_IMPLODE) && (to_read != expected_length)) {
+    if ((mpq_stream->block->flags & FILE_FLAG_IMPLODE) && (to_read != expected_length)) {
         LOG_FATAL("TODO: PK decompress");
     }
 
@@ -304,6 +306,19 @@ void *mpq_stream_decompress_multi(void *buffer, const uint32_t to_read, const ui
         free(buffer);
         return out_buffer;
     }
+    case COMPRESSION_TYPE_HUFFMAN_THEN_ADPCM_MONO: {
+        uint32_t huffman_buffer_size = 0;
+        uint8_t *huffman_buffer      = huffman_decompress((uint8_t *)buffer + 1, to_read - 1, &huffman_buffer_size);
+
+        uint32_t wav_size   = 0;
+        uint8_t *wav_buffer = wav_decompress(huffman_buffer, huffman_buffer_size, 1, &wav_size);
+        if (wav_size != expected_length) {
+            LOG_FATAL("Decompression failed: Expected WAV buffer of %d bytes, but got %d instead!", expected_length,
+                      wav_size);
+        }
+        free(huffman_buffer);
+        return wav_buffer;
+    }
     case COMPRESSION_TYPE_HUFFMAN_THEN_WAV_STEREO: {
         uint32_t huffman_buffer_size = 0;
         uint8_t *huffman_buffer      = huffman_decompress((uint8_t *)buffer + 1, to_read - 1, &huffman_buffer_size);
@@ -328,28 +343,28 @@ bool mpq_stream_eof(const struct MpqStream *MpqStream) {
     return MpqStream->position >= MpqStream->block->size_uncompressed;
 }
 
-void mpq_stream_seek(struct MpqStream *MpqStream, int64_t position, int32_t origin) {
+void mpq_stream_seek(struct MpqStream *mpq_stream, int64_t position, int32_t origin) {
     switch (origin) {
     case SEEK_SET:
-        MpqStream->position = position;
+        mpq_stream->position = (uint32_t)position;
         break;
     case SEEK_CUR:
-        MpqStream->position += position;
+        mpq_stream->position += (uint32_t)position;
         break;
     case SEEK_END:
-        MpqStream->position = MpqStream->block->size_uncompressed + position;
+        mpq_stream->position = mpq_stream->block->size_uncompressed + (uint32_t)position;
         break;
     default:
         LOG_FATAL("Invalid origin for seek: %d", origin);
     }
 
-    if (MpqStream->position < 0) {
-        MpqStream->position = 0;
+    if (mpq_stream->position < 0) {
+        mpq_stream->position = 0;
     }
 
-    if (MpqStream->position >= MpqStream->block->size_uncompressed) {
-        MpqStream->position = MpqStream->block->size_uncompressed;
+    if (mpq_stream->position >= mpq_stream->block->size_uncompressed) {
+        mpq_stream->position = mpq_stream->block->size_uncompressed;
     }
 }
 
-uint32_t mpq_stream_tell(const struct MpqStream *MpqStream) { return MpqStream->position; }
+uint32_t mpq_stream_tell(const struct MpqStream *mpq_stream) { return mpq_stream->position; }

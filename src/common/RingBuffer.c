@@ -1,25 +1,40 @@
 #include "RingBuffer.h"
-#include "Logging.h"
+#include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef NO_LOGGING
+#undef FAIL_IF_NULL
+#define FAIL_IF_NULL(ptr)                                                                                              \
+    if (ptr == NULL) {                                                                                                 \
+        LOG_FATAL("Failed to allocate memory.");                                                                       \
+    }
+#define LOG_FATAL(...) assert(0)
+#else
+#include "Logging.h"
+#endif
+
 struct RingBuffer *ring_buffer_create(uint32_t size) {
     struct RingBuffer *result = malloc(sizeof(struct RingBuffer));
-    FAIL_IF_NULL(result);
+
     result->size               = size;
     result->read_position      = 0;
     result->write_position     = 0;
     result->remaining_to_read  = 0;
     result->remaining_to_write = size;
     result->buffer             = malloc(size);
+
+    memset(result->buffer, 0, size);
+
     FAIL_IF_NULL(result->buffer);
     return result;
 }
 
-void ring_buffer_free(struct RingBuffer *ring_buffer) {
-    free(ring_buffer->buffer);
-    free(ring_buffer);
+void ring_buffer_free(struct RingBuffer **ring_buffer) {
+    free((*ring_buffer)->buffer);
+    free(*ring_buffer);
+    *ring_buffer = NULL;
 }
 
 void ring_buffer_write(struct RingBuffer *ring_buffer, const char *data, uint32_t length) {
@@ -62,9 +77,11 @@ uint32_t ring_buffer_read(struct RingBuffer *ring_buffer, char *buffer, uint32_t
     ring_buffer->read_position       = (read_position + length) % size;
     ring_buffer->remaining_to_read  -= length;
     ring_buffer->remaining_to_write += length;
+
     return length;
 }
 
-double ring_buffer_get_fill_percentage(const struct RingBuffer *RingBuffer) {
-    return (double)RingBuffer->remaining_to_read / RingBuffer->size;
+double ring_buffer_get_fill_percentage(const struct RingBuffer *ring_buffer) {
+    double result = (double)ring_buffer->remaining_to_read / ring_buffer->size;
+    return result;
 }

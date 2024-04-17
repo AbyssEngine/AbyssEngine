@@ -6,11 +6,12 @@
 #include <stdbool.h>
 
 struct AudioManager {
-    bool              audio_available;
-    bool              audio_mute;
-    SDL_AudioDeviceID audio_device_id;
-    SDL_AudioSpec     audio_spec;
-
+    bool                audio_available;
+    bool                audio_mute;
+    SDL_AudioDeviceID   audio_device_id;
+    SDL_AudioSpec       audio_spec;
+    enum AVSampleFormat out_sample_format;
+    AVChannelLayout     channel_layout;
     struct AudioStream *background_music;
 };
 

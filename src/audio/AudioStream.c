@@ -3,10 +3,12 @@
 #include "../common/Logging.h"
 #include "AudioManager.h"
 
+#include <stdio.h>
+
 int audio_stream_read_callback(void *opaque, unsigned char *buffer, const int size) {
     struct AudioStream *audio_stream = (struct AudioStream *)opaque;
-
-    return (int)mpq_stream_read(audio_stream->stream, buffer, 0, size);
+    int                 result       = (int)mpq_stream_read(audio_stream->stream, buffer, 0, (uint32_t)size);
+    return result;
 }
 
 int64_t audio_stream_seek_callback(void *opaque, const int64_t offset, const int whence) {
@@ -23,25 +25,20 @@ struct AudioStream *audio_stream_create(const char *path) {
     struct AudioStream *result = malloc(sizeof(struct AudioStream));
     memset(result, 0, sizeof(struct AudioStream));
 
+    result->ring_buffer = ring_buffer_create(AUDIO_RING_BUFFER_SIZE);
     result->stream      = file_manager_load(path);
-    result->ring_buffer = ring_buffer_create(AUDIO_STREAM_DECODE_BUFFER_SIZE);
 
     const uint32_t stream_size = mpq_stream_get_size(result->stream);
-    const uint32_t decode_buffer_size =
-        stream_size < AUDIO_STREAM_DECODE_BUFFER_SIZE ? stream_size : AUDIO_STREAM_DECODE_BUFFER_SIZE;
 
-    result->av_buffer = av_malloc(decode_buffer_size);
-    memset(result->av_buffer, 0, decode_buffer_size);
+    size_t decode_buffer_size = stream_size < AUDIO_STREAM_MAX_BUFF_SIZE ? stream_size : AUDIO_STREAM_MAX_BUFF_SIZE;
 
-    result->avio_context = avio_alloc_context(result->av_buffer, (int)decode_buffer_size, 0, result->ring_buffer,
+    result->av_buffer    = av_malloc(decode_buffer_size);
+    result->avio_context = avio_alloc_context(result->av_buffer, (int)decode_buffer_size, 0, result,
                                               audio_stream_read_callback, NULL, audio_stream_seek_callback);
 
-    result->avio_context->opaque = result;
-
-    result->av_format_context          = avformat_alloc_context();
-    result->av_format_context->opaque  = result;
-    result->av_format_context->pb      = result->avio_context;
-    result->av_format_context->flags  |= AVFMT_FLAG_CUSTOM_IO;
+    result->av_format_context         = avformat_alloc_context();
+    result->av_format_context->pb     = result->avio_context;
+    result->av_format_context->flags |= AVFMT_FLAG_CUSTOM_IO;
 
     int av_error;
 
@@ -67,7 +64,7 @@ struct AudioStream *audio_stream_create(const char *path) {
         LOG_FATAL("No audio stream found for '%s'!", path);
     }
 
-    struct AVCodecParameters *audio_codec_par =
+    const struct AVCodecParameters *audio_codec_par =
         result->av_format_context->streams[result->audio_stream_index]->codecpar;
 
     const struct AVCodec *audio_decoder = avcodec_find_decoder(audio_codec_par->codec_id);
@@ -76,50 +73,27 @@ struct AudioStream *audio_stream_create(const char *path) {
         LOG_FATAL("Missing audio codec for '%s'!", path);
     }
 
-    result->av_codec_context = avcodec_alloc_context3(audio_decoder);
-    if ((av_error = avcodec_parameters_to_context(result->av_codec_context, audio_codec_par)) < 0) {
+    LOG_DEBUG("Using %s to decode %s", audio_decoder->long_name, path);
+
+    result->audio_codec_context = avcodec_alloc_context3(audio_decoder);
+    if ((av_error = avcodec_parameters_to_context(result->audio_codec_context, audio_codec_par)) < 0) {
         LOG_FATAL("Failed to copy codec parameters to decoder context: %s", av_err2str(av_error));
     }
 
-    if ((av_error = avcodec_open2(result->av_codec_context, audio_decoder, NULL)) < 0) {
+    if ((av_error = avcodec_open2(result->audio_codec_context, audio_decoder, NULL)) < 0) {
         LOG_FATAL("Failed to open the audio codec: ", av_err2str(av_error));
     }
 
-    AVChannelLayout layout_in;
-    av_channel_layout_default(&layout_in, audio_codec_par->ch_layout.nb_channels);
-
-    AVChannelLayout layout_out;
-    av_channel_layout_default(&layout_out, audio_manager->audio_spec.channels);
-
-    enum AVSampleFormat sample_format;
-    switch (audio_manager->audio_spec.format) {
-    case AUDIO_U8:
-        sample_format = AV_SAMPLE_FMT_U8;
-        break;
-    case AUDIO_S16SYS:
-        sample_format = AV_SAMPLE_FMT_S16;
-        break;
-    case AUDIO_S32SYS:
-        sample_format = AV_SAMPLE_FMT_S32;
-        break;
-    default:
-        LOG_FATAL("Invalid audio spec format: %i", audio_manager->audio_spec.format);
-    }
-
     result->av_resample_context = swr_alloc();
+    av_opt_set_int(result->av_resample_context, "in_sample_rate", audio_codec_par->sample_rate, 0);
+    av_opt_set_chlayout(result->av_resample_context, "in_chlayout", &result->audio_codec_context->ch_layout, 0);
+    av_opt_set_sample_fmt(result->av_resample_context, "in_sample_fmt", audio_codec_par->format, 0);
 
-    av_error = swr_alloc_set_opts2(&result->av_resample_context,
-                                   &layout_out,                    // output channel layout (e. g. AV_CHANNEL_LAYOUT_*)
-                                   sample_format,                  // output sample format (AV_SAMPLE_FMT_*).
-                                   audio_manager->audio_spec.freq, // output sample rate (frequency in Hz)
-                                   &layout_in,                     // input channel layout (e. g. AV_CHANNEL_LAYOUT_*)
-                                   audio_codec_par->format,        // input sample format (AV_SAMPLE_FMT_*).
-                                   audio_codec_par->sample_rate,   // input sample rate (frequency in Hz)
-                                   0,                              // logging level offset
-                                   NULL                            // log_ctx
-    );
+    av_opt_set_int(result->av_resample_context, "out_sample_rate", audio_manager->audio_spec.freq, 0);
+    av_opt_set_chlayout(result->av_resample_context, "out_chlayout", &audio_manager->channel_layout, 0);
+    av_opt_set_sample_fmt(result->av_resample_context, "out_sample_fmt", audio_manager->out_sample_format, 0);
 
-    if (av_error < 0) {
+    if ((av_error = swr_init(result->av_resample_context)) < 0) {
         LOG_FATAL("Failed to set re-sampler options: %s", av_err2str(av_error));
     }
 
@@ -132,36 +106,29 @@ struct AudioStream *audio_stream_create(const char *path) {
     return result;
 }
 
-void audio_stream_free(struct AudioStream *audio_stream) {
-    av_free(audio_stream->avio_context->buffer);
-    avio_context_free(&audio_stream->avio_context);
+void audio_stream_free(struct AudioStream **audio_stream) {
+    ring_buffer_free(&(*audio_stream)->ring_buffer);
+    av_free((*audio_stream)->avio_context->buffer);
+    avio_context_free(&(*audio_stream)->avio_context);
 
-    if (audio_stream->audio_stream_index >= 0) {
-        avcodec_free_context(&audio_stream->av_codec_context);
-        swr_free(&audio_stream->av_resample_context);
+    if ((*audio_stream)->audio_stream_index >= 0) {
+        avcodec_free_context(&(*audio_stream)->audio_codec_context);
+        swr_free(&(*audio_stream)->av_resample_context);
     }
 
-    av_frame_free(&audio_stream->av_frame);
+    av_frame_free(&(*audio_stream)->av_frame);
 
-    avformat_close_input(&audio_stream->av_format_context);
-    avformat_free_context(audio_stream->av_format_context);
+    avformat_close_input(&(*audio_stream)->av_format_context);
+    avformat_free_context((*audio_stream)->av_format_context);
 
-    ring_buffer_free(audio_stream->ring_buffer);
-    mpq_stream_free(audio_stream->stream);
+    mpq_stream_free((*audio_stream)->stream);
 
-    free(audio_stream);
+    free((*audio_stream));
+    audio_stream = NULL;
 }
 
-void audio_stream_fill(struct AudioStream *audio_stream) {
+void audio_stream_read_frame(struct AudioStream *audio_stream) {
     if (audio_stream->av_format_context == NULL) {
-        return;
-    }
-
-    if (!audio_stream->is_playing || audio_stream->is_paused) {
-        return;
-    }
-
-    if (mpq_stream_eof(audio_stream->stream)) {
         return;
     }
 
@@ -185,9 +152,10 @@ void audio_stream_fill(struct AudioStream *audio_stream) {
         return;
     }
 
-    if (avcodec_send_packet(audio_stream->av_codec_context, packet) < 0) {
-        avcodec_flush_buffers(audio_stream->av_codec_context);
+    if (avcodec_send_packet(audio_stream->audio_codec_context, packet) < 0) {
+        avcodec_flush_buffers(audio_stream->audio_codec_context);
         avformat_flush(audio_stream->av_format_context);
+        av_seek_frame(audio_stream->av_format_context, audio_stream->audio_stream_index, 0, AVSEEK_FLAG_FRAME);
 
         if (!audio_stream->loop) {
             audio_stream->is_playing = false;
@@ -196,28 +164,85 @@ void audio_stream_fill(struct AudioStream *audio_stream) {
         }
     }
 
-    while (ring_buffer_get_fill_percentage(audio_stream->ring_buffer) < AUDIO_STREAM_WANTED_BUFFER_FILL) {
-        int av_error = avcodec_receive_frame(audio_stream->av_codec_context, audio_stream->av_frame);
-        if (av_error < 0) {
-            if (av_error == AVERROR(EAGAIN)) {
-                av_packet_free(&packet);
+    while (true) {
+        int av_error;
+        if ((av_error = avcodec_receive_frame(audio_stream->audio_codec_context, audio_stream->av_frame)) < 0) {
+            if (av_error == AVERROR(EAGAIN) || av_error == AVERROR_EOF)
                 return;
-            }
 
-            LOG_FATAL("Failed to receive frame: ", av_err2str(av_error));
+            LOG_FATAL("Failed to recieve frame: ", av_err2str(av_error));
         }
 
-        int       line_size;
+        int       _lineSize;
         const int out_samples =
             swr_get_out_samples(audio_stream->av_resample_context, audio_stream->av_frame->nb_samples);
-        const int audio_out_size = av_samples_get_buffer_size(&line_size, audio_manager->audio_spec.channels,
-                                                              out_samples, AV_SAMPLE_FMT_S16, 0);
-        uint8_t  *ptr[1]         = {audio_stream->audio_out_buffer};
+        const int audio_out_size = av_samples_get_buffer_size(&_lineSize, 2, out_samples, AV_SAMPLE_FMT_S16, 0);
+
+        uint8_t *audio_out_buffer = malloc(audio_out_size);
+
+        uint8_t  *ptr[1] = {audio_out_buffer};
         const int result =
             swr_convert(audio_stream->av_resample_context, ptr, audio_out_size,
                         (const uint8_t **)audio_stream->av_frame->data, audio_stream->av_frame->nb_samples);
-        ring_buffer_write(audio_stream->ring_buffer, (const char *)audio_stream->audio_out_buffer, result);
+        ring_buffer_write(audio_stream->ring_buffer, (char *)audio_out_buffer, result * 4);
+        free(audio_out_buffer);
     }
 
-    av_packet_free(&packet);
+    //    int av_error;
+    //    if ((av_error = avcodec_receive_frame(audio_stream->audio_codec_context, audio_stream->av_frame)) < 0) {
+    //        if (av_error == AVERROR(EAGAIN) || av_error == AVERROR_EOF) {
+    //            return -1;
+    //        }
+    //
+    //        LOG_FATAL("Failed to receive frame: ", av_err2str(av_error));
+    //    }
+    //
+    //    // const int out_samples = swr_get_out_samples(audio_stream->av_resample_context,
+    //    // audio_stream->av_frame->nb_samples);
+    //
+    //    const int audio_out_size = av_samples_get_buffer_size(NULL, audio_manager->audio_spec.channels,
+    //    AV_DECODE_SAMPLES,
+    //                                                          audio_manager->out_sample_format, 0);
+    //
+    //    if (audio_out_size > audio_stream->decode_buffer_size) {
+    //        LOG_FATAL("Audio decode failed due to max stream buffer size being too small!");
+    //    }
+    //
+    //    uint8_t *ptr[2] = {audio_stream->av_buffer};
+    //
+    //    const int result = swr_convert(audio_stream->av_resample_context, ptr, AV_DECODE_SAMPLES,
+    //                                   (const uint8_t **)audio_stream->av_frame->data, AV_DECODE_SAMPLES);
+    //
+    //    if (result < 0) {
+    //        LOG_FATAL("Error converting audio.");
+    //    }
+    //
+    //    int bytes_written =
+    //        av_get_bytes_per_sample(audio_manager->out_sample_format) * audio_manager->channel_layout.nb_channels *
+    //        result;
+    //
+    //    audio_stream->audio_buffer_written += bytes_written;
+    //
+    //    av_packet_free(&packet);
+    //
+    //    return bytes_written;
+}
+
+int16_t audio_stream_get_sample(struct AudioStream *audio_stream) {
+    if (!audio_stream->is_playing || audio_stream->is_paused) {
+        return 0;
+    }
+
+    if (audio_stream->ring_buffer->remaining_to_read < 2) {
+        audio_stream_read_frame(audio_stream);
+    }
+
+    if (audio_stream->ring_buffer->remaining_to_read < 2) {
+        return 0;
+    }
+
+    uint8_t sample[2];
+    ring_buffer_read(audio_stream->ring_buffer, (char *)&sample, sizeof(int8_t) * 2);
+
+    return (int16_t)sample[0] | ((int16_t)sample[1] << 8);
 }

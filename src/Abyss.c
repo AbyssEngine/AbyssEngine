@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
     sdl_window = SDL_CreateWindow("Abyss Engine", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                                   (int)((float)800 * abyss_configuration.graphics.initial_scale),
                                   (int)((float)600 * abyss_configuration.graphics.initial_scale),
-                                  SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+                                  SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 
     if (sdl_window == NULL) {
         FATAL(SDL_GetError());

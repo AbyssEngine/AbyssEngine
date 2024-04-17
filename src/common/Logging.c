@@ -47,6 +47,7 @@ void log_message(enum LogLevel level, const char *file, int line, const char *fo
         va_start(args, format);
         vsnprintf(msg, MAX_LOG_LINE_LENGTH, format, args);
         va_end(args);
+
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", msg, sdl_window);
         exit(-1);
     }

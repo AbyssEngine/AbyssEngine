@@ -1,0 +1,6 @@
+add_subdirectory(audio)
+add_subdirectory(common)
+add_subdirectory(drawing)
+add_subdirectory(scenes)
+add_subdirectory(types)
+add_subdirectory(util)

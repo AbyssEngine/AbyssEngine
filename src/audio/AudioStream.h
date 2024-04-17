@@ -8,8 +8,11 @@
 #include <libavutil/opt.h>
 #include <libswresample/swresample.h>
 
-#define AUDIO_STREAM_DECODE_BUFFER_SIZE (1024 * 32)
-#define AUDIO_STREAM_WANTED_BUFFER_FILL 0.75
+// #define AUDIO_STREAM_DECODE_BUFFER_SIZE (1024 * 8)
+// #define AUDIO_STREAM_WANTED_BUFFER_FILL 0.75
+#define AUDIO_STREAM_MAX_BUFF_SIZE (1024 * 1024)
+// #define AV_DECODE_SAMPLES         4096
+#define AUDIO_RING_BUFFER_SIZE (1024 * 1024)
 
 struct AudioStream {
     bool                    is_playing;
@@ -20,15 +23,15 @@ struct AudioStream {
     unsigned char          *av_buffer;
     struct AVIOContext     *avio_context;
     struct AVFormatContext *av_format_context;
-    struct AVCodecContext  *av_codec_context;
+    struct AVCodecContext  *audio_codec_context;
     struct SwrContext      *av_resample_context;
     struct AVFrame         *av_frame;
     struct RingBuffer      *ring_buffer;
-    uint8_t                 audio_out_buffer[1024 * 16];
 };
 
 struct AudioStream *audio_stream_create(const char *path);
-void                audio_stream_free(struct AudioStream *audio_stream);
-void                audio_stream_fill(struct AudioStream *audio_stream);
+void                audio_stream_free(struct AudioStream **audio_stream);
+void                audio_stream_read_frame(struct AudioStream *audio_stream);
+int16_t             audio_stream_get_sample(struct AudioStream *audio_stream);
 
 #endif // ABYSS_AUDIO_STREAM_H

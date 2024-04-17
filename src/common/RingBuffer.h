@@ -13,7 +13,7 @@ struct RingBuffer {
 };
 
 struct RingBuffer *ring_buffer_create(uint32_t size);
-void               ring_buffer_free(struct RingBuffer *ring_buffer);
+void               ring_buffer_free(struct RingBuffer **ring_buffer);
 void               ring_buffer_write(struct RingBuffer *ring_buffer, const char *data, uint32_t length);
 uint32_t           ring_buffer_read(struct RingBuffer *ring_buffer, char *buffer, uint32_t length);
 double             ring_buffer_get_fill_percentage(const struct RingBuffer *ring_buffer);

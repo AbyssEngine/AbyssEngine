@@ -1,6 +1,7 @@
 #include "WavDecompress.h"
 
 #include "../common/Logging.h"
+#include "../common/MemoryStream.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -16,39 +17,30 @@ const int lookup[] = {0x0007, 0x0008, 0x0009, 0x000A, 0x000B, 0x000C, 0x000D, 0x
 const int lookup2[] = {-1, 0, -1, 4, -1, 2, -1, 6, -1, 1, -1, 5, -1, 3, -1, 7,
                        -1, 1, -1, 5, -1, 3, -1, 7, -1, 2, -1, 4, -1, 6, -1, 8};
 
-uint8_t *wav_decompress(uint8_t *data, uint32_t buffer_len, uint8_t channel_count, uint32_t *result_size) {
+uint8_t *wav_decompress(uint8_t *data, uint32_t buffer_len, int channel_count, uint32_t *result_size) {
     int  array1[] = {0x2C, 0x2C};
     int *array2   = malloc(sizeof(int) * channel_count);
     FAIL_IF_NULL(array2);
     memset(array2, 0, sizeof(int) * channel_count);
 
-    uint8_t *result = calloc(0, sizeof(uint8_t));
+    struct MemoryStream *memory_stream_in  = memory_stream_create_from_existing_buffer(data, buffer_len);
+    struct MemoryStream *memory_stream_out = memory_stream_create(true);
 
     // Skip the first byte
-    data++;
-    buffer_len--;
+    memory_stream_read_skip_bytes(memory_stream_in, 1);
 
-    uint8_t shift = *data;
-    data++;
-    buffer_len--;
+    uint8_t shift = memory_stream_read_uint8(memory_stream_in);
 
-    for (uint8_t i = 0; i < channel_count; i++) {
-        array2[i] = (int)*(int16_t *)data;
-
-        *result_size                          += 2;
-        result                                 = realloc(result, *result_size);
-        *(int16_t *)&result[*result_size - 2]  = *(int16_t *)data;
-
-        data       += 2;
-        buffer_len -= 2;
+    for (int i = 0; i < channel_count; i++) {
+        int16_t temp = memory_stream_read_int16(memory_stream_in);
+        array2[i]    = (int)temp;
+        memory_stream_write_int16(memory_stream_out, temp);
     }
 
-    uint8_t channel = channel_count - 1;
+    int channel = channel_count - 1;
 
-    while (buffer_len > 0) {
-        uint8_t value = *data;
-        data++;
-        buffer_len--;
+    while (memory_stream_get_read_remaining(memory_stream_in)) {
+        uint8_t value = memory_stream_read_uint8(memory_stream_in);
 
         if (channel_count == 2) {
             channel = 1 - channel;
@@ -60,11 +52,7 @@ uint8_t *wav_decompress(uint8_t *data, uint32_t buffer_len, uint8_t channel_coun
                 if (array1[channel] != 0) {
                     array1[channel]--;
                 }
-
-                *result_size                          += 2;
-                result                                 = realloc(result, *result_size);
-                *(int16_t *)&result[*result_size - 2]  = (int16_t)array2[channel];
-
+                memory_stream_write_int16(memory_stream_out, (int16_t)array2[channel]);
                 break;
             case 1:
                 array1[channel] += 8;
@@ -80,7 +68,6 @@ uint8_t *wav_decompress(uint8_t *data, uint32_t buffer_len, uint8_t channel_coun
                 array1[channel] -= 8;
                 if (array1[channel] < 0) {
                     array1[channel] = 0;
-                    ;
                 }
 
                 if (channel_count == 2) {
@@ -91,6 +78,9 @@ uint8_t *wav_decompress(uint8_t *data, uint32_t buffer_len, uint8_t channel_coun
             continue;
         }
 
+        if ((unsigned long)array1[channel] >= sizeof(lookup)) {
+            LOG_FATAL("Failure decoding WAV: Attempted lookup outside of range!");
+        }
         int temp1 = lookup[array1[channel]];
         int temp2 = temp1 >> shift;
 
@@ -106,32 +96,28 @@ uint8_t *wav_decompress(uint8_t *data, uint32_t buffer_len, uint8_t channel_coun
         if ((value & 8) != 0) {
             temp2 += temp1 >> 3;
         }
-        if ((value & 10) != 0) {
+        if ((value & 0x10) != 0) {
             temp2 += temp1 >> 4;
         }
-        if ((value & 20) != 0) {
+        if ((value & 0x20) != 0) {
             temp2 += temp1 >> 5;
         }
 
         int temp3 = array2[channel];
         if ((value & 0x40) != 0) {
             temp3 -= temp2;
-            if (temp3 <= -32768) {
+            if (temp3 < -32768) {
                 temp3 = -32768;
             }
         } else {
             temp3 += temp2;
-            if (temp3 >= 32767) {
+            if (temp3 > 32767) {
                 temp3 = 32767;
             }
         }
 
         array2[channel] = temp3;
-
-        *result_size                          += 2;
-        result                                 = realloc(result, *result_size);
-        *(int16_t *)&result[*result_size - 2]  = (int16_t)temp3;
-
+        memory_stream_write_int16(memory_stream_out, (int16_t)temp3);
         array1[channel] += lookup2[value & 0x1F];
 
         if (array1[channel] < 0) {
@@ -143,5 +129,10 @@ uint8_t *wav_decompress(uint8_t *data, uint32_t buffer_len, uint8_t channel_coun
 
     free(array2);
 
-    return result;
+    uint8_t *result_buffer = memory_stream_out->buffer;
+    *result_size           = (uint32_t)memory_stream_out->write_position;
+
+    memory_stream_free(memory_stream_in);
+    memory_stream_free(memory_stream_out);
+    return result_buffer;
 }

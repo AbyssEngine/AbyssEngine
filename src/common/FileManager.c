@@ -17,7 +17,7 @@ char *fix_path(const char *path) {
     }
 
     if (result[0] == '\\') {
-        const int len = strlen(result);
+        const int len = (int)strlen(result);
         for (int i = 0; i < len - 1; i++) {
             result[i] = result[i + 1];
         }
