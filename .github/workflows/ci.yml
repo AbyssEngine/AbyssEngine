@@ -96,7 +96,7 @@ jobs:
             -   name: Configure CMake (Windows/Linux)
                 if: runner.os != 'MacOS'
                 run: >
-                    git -C ${{ github.workspace }}/vcpkg/ fetch
+                    git -C ${{ github.workspace }}/vcpkg/ fetch &&
                     cmake
                     -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
                     -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }}
