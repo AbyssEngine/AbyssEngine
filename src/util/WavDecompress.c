@@ -63,6 +63,7 @@ uint8_t *wav_decompress(uint8_t *data, uint32_t buffer_len, int channel_count, u
                 if (channel_count == 2) {
                     channel = 1 - channel;
                 }
+                break; // <-- It took 3 full afternoons to figure out I forgot this break...
             case 2:
             default:
                 array1[channel] -= 8;
@@ -84,27 +85,27 @@ uint8_t *wav_decompress(uint8_t *data, uint32_t buffer_len, int channel_count, u
         int temp1 = lookup[array1[channel]];
         int temp2 = temp1 >> shift;
 
-        if ((value & 1) != 0) {
+        if (value & 1) {
             temp2 += temp1 >> 0;
         }
-        if ((value & 2) != 0) {
+        if (value & 2) {
             temp2 += temp1 >> 1;
         }
-        if ((value & 4) != 0) {
+        if (value & 4) {
             temp2 += temp1 >> 2;
         }
-        if ((value & 8) != 0) {
+        if (value & 8) {
             temp2 += temp1 >> 3;
         }
-        if ((value & 0x10) != 0) {
+        if (value & 0x10) {
             temp2 += temp1 >> 4;
         }
-        if ((value & 0x20) != 0) {
+        if (value & 0x20) {
             temp2 += temp1 >> 5;
         }
 
         int temp3 = array2[channel];
-        if ((value & 0x40) != 0) {
+        if (value & 0x40) {
             temp3 -= temp2;
             if (temp3 < -32768) {
                 temp3 = -32768;

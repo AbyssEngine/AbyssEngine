@@ -146,8 +146,8 @@ uint32_t mpq_stream_read(struct MpqStream *mpq_stream, void *buffer, uint32_t of
         }
 
         read_total += read;
-        to_read    -= read;
         offset     += read;
+        to_read    -= read;
     }
 
     return read_total;
@@ -193,7 +193,7 @@ uint32_t mpq_stream_copy(struct MpqStream *mpq_stream, void *buffer, const uint3
                          const uint32_t count) {
     const uint32_t bytes_to_copy = MIN(mpq_stream->data_buffer_size - position, count);
     if (bytes_to_copy <= 0) {
-        // LOG_FATAL("Tried reading past end of stream!");
+        //        LOG_FATAL("Tried reading past end of stream!");
         return 0;
     }
 
@@ -317,6 +317,7 @@ void *mpq_stream_decompress_multi(void *buffer, const uint32_t to_read, const ui
                       wav_size);
         }
         free(huffman_buffer);
+        free(buffer);
         return wav_buffer;
     }
     case COMPRESSION_TYPE_HUFFMAN_THEN_WAV_STEREO: {
@@ -330,6 +331,7 @@ void *mpq_stream_decompress_multi(void *buffer, const uint32_t to_read, const ui
                       wav_size);
         }
         free(huffman_buffer);
+        free(buffer);
         return wav_buffer;
     }
     default:

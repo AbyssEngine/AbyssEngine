@@ -164,6 +164,8 @@ void audio_stream_read_frame(struct AudioStream *audio_stream) {
         }
     }
 
+    av_packet_free(&packet);
+
     while (true) {
         int av_error;
         if ((av_error = avcodec_receive_frame(audio_stream->audio_codec_context, audio_stream->av_frame)) < 0) {
@@ -187,45 +189,6 @@ void audio_stream_read_frame(struct AudioStream *audio_stream) {
         ring_buffer_write(audio_stream->ring_buffer, (char *)audio_out_buffer, result * 4);
         free(audio_out_buffer);
     }
-
-    //    int av_error;
-    //    if ((av_error = avcodec_receive_frame(audio_stream->audio_codec_context, audio_stream->av_frame)) < 0) {
-    //        if (av_error == AVERROR(EAGAIN) || av_error == AVERROR_EOF) {
-    //            return -1;
-    //        }
-    //
-    //        LOG_FATAL("Failed to receive frame: ", av_err2str(av_error));
-    //    }
-    //
-    //    // const int out_samples = swr_get_out_samples(audio_stream->av_resample_context,
-    //    // audio_stream->av_frame->nb_samples);
-    //
-    //    const int audio_out_size = av_samples_get_buffer_size(NULL, audio_manager->audio_spec.channels,
-    //    AV_DECODE_SAMPLES,
-    //                                                          audio_manager->out_sample_format, 0);
-    //
-    //    if (audio_out_size > audio_stream->decode_buffer_size) {
-    //        LOG_FATAL("Audio decode failed due to max stream buffer size being too small!");
-    //    }
-    //
-    //    uint8_t *ptr[2] = {audio_stream->av_buffer};
-    //
-    //    const int result = swr_convert(audio_stream->av_resample_context, ptr, AV_DECODE_SAMPLES,
-    //                                   (const uint8_t **)audio_stream->av_frame->data, AV_DECODE_SAMPLES);
-    //
-    //    if (result < 0) {
-    //        LOG_FATAL("Error converting audio.");
-    //    }
-    //
-    //    int bytes_written =
-    //        av_get_bytes_per_sample(audio_manager->out_sample_format) * audio_manager->channel_layout.nb_channels *
-    //        result;
-    //
-    //    audio_stream->audio_buffer_written += bytes_written;
-    //
-    //    av_packet_free(&packet);
-    //
-    //    return bytes_written;
 }
 
 int16_t audio_stream_get_sample(struct AudioStream *audio_stream) {
@@ -244,5 +207,5 @@ int16_t audio_stream_get_sample(struct AudioStream *audio_stream) {
     uint8_t sample[2];
     ring_buffer_read(audio_stream->ring_buffer, (char *)&sample, sizeof(int8_t) * 2);
 
-    return (int16_t)sample[0] | ((int16_t)sample[1] << 8);
+    return (int16_t)((int16_t)sample[0] | ((int16_t)sample[1] << 8));
 }

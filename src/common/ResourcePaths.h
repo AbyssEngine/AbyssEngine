@@ -11,6 +11,10 @@
 #define D2LOGO_FIRE_LEFT   "/data/global/ui/FrontEnd/D2logoFireLeft.DC6"
 #define D2LOGO_FIRE_RIGHT  "/data/global/ui/FrontEnd/D2logoFireRight.DC6"
 
+// --- Credits ---
+
+#define RESOURCE_PATH_CREDITS_TEXT = "/data/local/ui/%s/ExpansionCredits.txt"
+
 // --
 
 #define LOADING_SCREEN "/data/global/ui/loading/loadingscreen.DC6"

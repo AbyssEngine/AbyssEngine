@@ -1,26 +1,21 @@
 {
-    "name": "abyssengine",
-    "version": "0.0.1",
-    "description": "An open-source implementation of Diablo 2:LOD",
-    "license": "MIT",
-    "builtin-baseline": "b4a3d89125e45bc8f80fb94bef9761d4f4e14fb9",
-    "overrides": [],
-    "dependencies": [
-        {
-            "name": "libarchive",
-            "version>=": "3.6.2"
-        },
-        {
-            "name": "zlib",
-            "version>=": "1.3"
-        },
-        {
-            "name": "ffmpeg",
-            "version>=": "6.1#2"
-        },
-        {
-            "name": "sdl2",
-            "version>=": "2.30.1"
-        }
-    ]
+  "name" : "abyssengine",
+  "version" : "0.0.1",
+  "description" : "An open-source implementation of Diablo 2:LOD",
+  "license" : "MIT",
+  "builtin-baseline" : "b4a3d89125e45bc8f80fb94bef9761d4f4e14fb9",
+  "overrides" : [ ],
+  "dependencies" : [ {
+    "name" : "libarchive",
+    "version>=" : "3.6.2"
+  }, {
+    "name" : "zlib",
+    "version>=" : "1.3"
+  }, {
+    "name" : "ffmpeg",
+    "version>=" : "6.1#2"
+  }, {
+    "name" : "sdl2",
+    "version>=" : "2.30.1"
+  } ]
 }
