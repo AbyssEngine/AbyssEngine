@@ -96,13 +96,15 @@ jobs:
             -   name: Configure CMake (Windows/Linux)
                 if: runner.os != 'MacOS'
                 run: >
+                    run: git -C ${{ github.workspace }}/vcpkg/ fetch
                     cmake
                     -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
                     -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }}
                     -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
                     -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
                     -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-                    _DABYSS_VERSION_TEXT="${{ github.sha }}"
+                    -DABYSS_VERSION_TEXT="${{ github.sha }}"
+                    -DGITHUB_ACTIONS
                     -S ${{ github.workspace }}
                     -B ${{ steps.strings.outputs.build-output-dir }}
 
@@ -114,7 +116,8 @@ jobs:
                     -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
                     -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
                     -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-                    _DABYSS_VERSION_TEXT="${{ github.sha }}"
+                    -DABYSS_VERSION_TEXT="${{ github.sha }}"
+                    -DGITHUB_ACTIONS
                     -S ${{ github.workspace }}
                     -B ${{ steps.strings.outputs.build-output-dir }}
 
