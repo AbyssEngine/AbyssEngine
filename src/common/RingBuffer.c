@@ -15,8 +15,20 @@
 #include "Logging.h"
 #endif
 
-struct RingBuffer *ring_buffer_create(uint32_t size) {
-    struct RingBuffer *result = malloc(sizeof(struct RingBuffer));
+struct RingBuffer {
+    uint32_t      size;
+    uint32_t      read_position;
+    uint32_t      write_position;
+    uint32_t      remaining_to_read;
+    uint32_t      remaining_to_write;
+    char         *buffer;
+    struct Mutex *mutex;
+};
+
+RingBuffer *RingBuffer_Create(uint32_t size) {
+    assert(size > 0);
+
+    RingBuffer *result = malloc(sizeof(RingBuffer));
 
     result->size               = size;
     result->read_position      = 0;
@@ -24,6 +36,7 @@ struct RingBuffer *ring_buffer_create(uint32_t size) {
     result->remaining_to_read  = 0;
     result->remaining_to_write = size;
     result->buffer             = malloc(size);
+    result->mutex              = mutex_create();
 
     memset(result->buffer, 0, size);
 
@@ -31,13 +44,22 @@ struct RingBuffer *ring_buffer_create(uint32_t size) {
     return result;
 }
 
-void ring_buffer_free(struct RingBuffer **ring_buffer) {
+void RingBuffer_Free(RingBuffer **ring_buffer) {
+    assert(*ring_buffer != NULL);
+
+    mutex_destroy(&(*ring_buffer)->mutex);
     free((*ring_buffer)->buffer);
     free(*ring_buffer);
+
     *ring_buffer = NULL;
 }
 
-void ring_buffer_write(struct RingBuffer *ring_buffer, const char *data, uint32_t length) {
+void RingBuffer_Write(RingBuffer *ring_buffer, const char *data, uint32_t length) {
+    assert(ring_buffer != NULL);
+    assert(data != NULL);
+    assert(length > 0);
+
+    mutex_lock(ring_buffer->mutex);
     if (ring_buffer->remaining_to_write < length) {
         LOG_FATAL("Not enough space in ring buffer to write %d bytes", length);
     }
@@ -56,9 +78,15 @@ void ring_buffer_write(struct RingBuffer *ring_buffer, const char *data, uint32_
     ring_buffer->write_position      = (write_position + length) % size;
     ring_buffer->remaining_to_read  += length;
     ring_buffer->remaining_to_write -= length;
+    mutex_unlock(ring_buffer->mutex);
 }
 
-uint32_t ring_buffer_read(struct RingBuffer *ring_buffer, char *buffer, uint32_t length) {
+uint32_t RingBuffer_Read(RingBuffer *ring_buffer, char *buffer, uint32_t length) {
+    assert(ring_buffer != NULL);
+    assert(buffer != NULL);
+    assert(length > 0);
+
+    mutex_lock(ring_buffer->mutex);
     if (ring_buffer->remaining_to_read < length) {
         LOG_FATAL("Not enough data in ring buffer to read %d bytes", length);
     }
@@ -78,10 +106,15 @@ uint32_t ring_buffer_read(struct RingBuffer *ring_buffer, char *buffer, uint32_t
     ring_buffer->remaining_to_read  -= length;
     ring_buffer->remaining_to_write += length;
 
+    mutex_unlock(ring_buffer->mutex);
     return length;
 }
+size_t RingBuffer_GetRemainingToRead(RingBuffer *ring_buffer) {
+    assert(ring_buffer != NULL);
 
-double ring_buffer_get_fill_percentage(const struct RingBuffer *ring_buffer) {
-    double result = (double)ring_buffer->remaining_to_read / ring_buffer->size;
+    mutex_lock(ring_buffer->mutex);
+    size_t result = ring_buffer->remaining_to_read;
+    mutex_unlock(ring_buffer->mutex);
+
     return result;
 }

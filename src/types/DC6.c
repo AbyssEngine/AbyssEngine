@@ -9,30 +9,30 @@ struct DC6 *dc6_load(const char *path) {
     struct DC6 *result = malloc(sizeof(struct DC6));
     FAIL_IF_NULL(result);
 
-    struct MpqStream *stream = file_manager_load(path);
-    mpq_stream_read(stream, &result->header, 0, sizeof(struct DC6Header));
+    struct MpqStream *stream = FileManager_OpenFile(path);
+    MpqStream_Read(stream, &result->header, 0, sizeof(struct DC6Header));
 
     const uint32_t total_frames = result->header.directions * result->header.frames_per_direction;
     result->frame_pointers      = malloc(sizeof(uint32_t) * total_frames);
 
     FAIL_IF_NULL(result->frame_pointers);
 
-    mpq_stream_read(stream, result->frame_pointers, 0, sizeof(uint32_t) * total_frames);
+    MpqStream_Read(stream, result->frame_pointers, 0, sizeof(uint32_t) * total_frames);
 
     result->frames = malloc(sizeof(struct DC6Frame) * total_frames);
     FAIL_IF_NULL(result->frames);
 
     for (uint32_t i = 0; i < total_frames; i++) {
         struct DC6Frame *frame = &result->frames[i];
-        mpq_stream_read(stream, &frame->header, 0, sizeof(struct DC6FrameHeader));
+        MpqStream_Read(stream, &frame->header, 0, sizeof(struct DC6FrameHeader));
         frame->frame_data = malloc(frame->header.data_length);
         FAIL_IF_NULL(frame->frame_data);
-        mpq_stream_read(stream, frame->frame_data, 0, frame->header.data_length);
-        mpq_stream_read(stream, frame->terminator, 0, 3);
+        MpqStream_Read(stream, frame->frame_data, 0, frame->header.data_length);
+        MpqStream_Read(stream, frame->terminator, 0, 3);
         dc6_decode_frame(result, i);
     }
 
-    mpq_stream_free(stream);
+    MpqStream_Destroy(&stream);
 
     return result;
 }

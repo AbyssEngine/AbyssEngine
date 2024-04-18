@@ -12,9 +12,9 @@ enum LogLevel log_level = LOG_LEVEL_ERROR;
 
 static const char *log_level_strings[] = {"", "DEBUG", "INFO ", "WARN ", "ERROR", "FATAL"};
 
-void log_set_level(const enum LogLevel level) { log_level = level; }
+void Log_SetLevel(const enum LogLevel level) { log_level = level; }
 
-void log_message(enum LogLevel level, const char *file, int line, const char *format, ...) {
+void Log_Message(enum LogLevel level, const char *file, const int line, const char *format, ...) {
     char    msg[MAX_LOG_LINE_LENGTH];
     va_list args;
 

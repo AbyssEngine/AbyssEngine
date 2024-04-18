@@ -3,35 +3,20 @@
 
 #include "../common/MpqStream.h"
 #include "../common/RingBuffer.h"
+#include "../util/Mutex.h"
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
-#include <libavutil/opt.h>
 #include <libswresample/swresample.h>
 
-// #define AUDIO_STREAM_DECODE_BUFFER_SIZE (1024 * 8)
-// #define AUDIO_STREAM_WANTED_BUFFER_FILL 0.75
-#define AUDIO_STREAM_MAX_BUFF_SIZE (1024 * 10)
-// #define AV_DECODE_SAMPLES         4096
-#define AUDIO_RING_BUFFER_SIZE (1024 * 1024)
+typedef struct AudioStream AudioStream;
 
-struct AudioStream {
-    bool                    is_playing;
-    bool                    is_paused;
-    bool                    loop;
-    int                     audio_stream_index;
-    struct MpqStream       *stream;
-    unsigned char          *av_buffer;
-    struct AVIOContext     *avio_context;
-    struct AVFormatContext *av_format_context;
-    struct AVCodecContext  *audio_codec_context;
-    struct SwrContext      *av_resample_context;
-    struct AVFrame         *av_frame;
-    struct RingBuffer      *ring_buffer;
-};
-
-struct AudioStream *audio_stream_create(const char *path);
-void                audio_stream_free(struct AudioStream **audio_stream);
-void                audio_stream_read_frame(struct AudioStream *audio_stream);
-int16_t             audio_stream_get_sample(struct AudioStream *audio_stream);
+AudioStream *AudioStream_Create(const char *path);
+void         AudioStream_Destroy(AudioStream **audio_stream);
+int16_t      AudioStream_GetSample(AudioStream *audio_stream);
+bool         AudioStream_IsLooping(const AudioStream *audio_stream);
+void         AudioStream_SetLoop(AudioStream *audio_stream, bool loop);
+void         AudioStream_Play(AudioStream *audio_stream);
+bool         AudioStream_IsPlaying(const AudioStream *audio_stream);
+void         AudioStream_Stop(AudioStream *audio_stream);
 
 #endif // ABYSS_AUDIO_STREAM_H

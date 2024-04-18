@@ -40,22 +40,22 @@ struct Palette *palette_get(const char *palette_name) {
     memset(path_buff, 0, 4096);
     snprintf(path_buff, 4096, PALETTE_PATH, palette_name);
 
-    struct MpqStream *stream = file_manager_load(path_buff);
+    struct MpqStream *stream = FileManager_OpenFile(path_buff);
 
-    if (mpq_stream_get_size(stream) != 256 * 3) {
-        LOG_ERROR("Invalid Palette file size. Expected %d but %d was returned.", 256 * 3, mpq_stream_get_size(stream));
+    if (MpqStream_GetSize(stream) != 256 * 3) {
+        LOG_ERROR("Invalid Palette file size. Expected %d but %d was returned.", 256 * 3, MpqStream_GetSize(stream));
     }
 
     for (int i = 0; i < 256; i++) {
         uint8_t record[3];
-        mpq_stream_read(stream, record, 0, 3);
+        MpqStream_Read(stream, record, 0, 3);
         result->entries[i] = (uint32_t)record[2] << 24 | (uint32_t)record[1] << 16 | (uint32_t)record[0] << 8 | 0xFF;
     }
 
-    mpq_stream_free(stream);
+    MpqStream_Destroy(&stream);
 
     result->entries[0]          &= 0xFFFFFF00;
-    palettes                     = realloc(palettes, sizeof(struct Palette) * ++palette_count);
+    palettes                     = realloc(palettes, sizeof(struct Palette *) * ++palette_count);
     palettes[palette_count - 1]  = result;
 
     return result;

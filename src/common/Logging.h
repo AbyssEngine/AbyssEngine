@@ -3,16 +3,16 @@
 
 #include <stdarg.h>
 
-#define LOG_DEBUG(...) log_message(LOG_LEVEL_DEBUG, __FILE__, __LINE__, __VA_ARGS__)
-#define LOG_INFO(...)  log_message(LOG_LEVEL_INFO, __FILE__, __LINE__, __VA_ARGS__)
-#define LOG_WARN(...)  log_message(LOG_LEVEL_WARN, __FILE__, __LINE__, __VA_ARGS__)
-#define LOG_ERROR(...) log_message(LOG_LEVEL_ERROR, __FILE__, __LINE__, __VA_ARGS__)
+#define LOG_DEBUG(...) Log_Message(LOG_LEVEL_DEBUG, __FILE__, __LINE__, __VA_ARGS__)
+#define LOG_INFO(...)  Log_Message(LOG_LEVEL_INFO, __FILE__, __LINE__, __VA_ARGS__)
+#define LOG_WARN(...)  Log_Message(LOG_LEVEL_WARN, __FILE__, __LINE__, __VA_ARGS__)
+#define LOG_ERROR(...) Log_Message(LOG_LEVEL_ERROR, __FILE__, __LINE__, __VA_ARGS__)
 #define LOG_FATAL(...)                                                                                                 \
-    log_message(LOG_LEVEL_FATAL, __FILE__, __LINE__, __VA_ARGS__);                                                     \
+    Log_Message(LOG_LEVEL_FATAL, __FILE__, __LINE__, __VA_ARGS__);                                                     \
     exit(-1)
 
 #define FAIL_IF_NULL(ptr)                                                                                              \
-    if (ptr == NULL) {                                                                                                 \
+    if ((ptr) == NULL) {                                                                                               \
         LOG_FATAL("Failed to allocate memory.");                                                                       \
     }
 
@@ -27,7 +27,7 @@ enum LogLevel {
 
 extern enum LogLevel log_level;
 
-void log_set_level(enum LogLevel level);
-void log_message(enum LogLevel level, const char *file, int line, const char *format, ...);
+void Log_SetLevel(enum LogLevel level);
+void Log_Message(enum LogLevel level, const char *file, int line, const char *format, ...);
 
 #endif // ABYSS_LOG_H

@@ -23,27 +23,31 @@ uint8_t *wav_decompress(uint8_t *data, uint32_t buffer_len, int channel_count, u
     FAIL_IF_NULL(array2);
     memset(array2, 0, sizeof(int) * channel_count);
 
-    struct MemoryStream *memory_stream_in  = memory_stream_create_from_existing_buffer(data, buffer_len);
-    struct MemoryStream *memory_stream_out = memory_stream_create(true);
+    struct MemoryStream *memory_stream_in  = MemoryStream_CreateFromExistingBuffer(data, buffer_len);
+    struct MemoryStream *memory_stream_out = MemoryStream_Create(true);
 
     // Skip the first byte
-    memory_stream_read_skip_bytes(memory_stream_in, 1);
+    MemoryStream_SkipBytes(memory_stream_in, 1);
 
-    uint8_t shift = memory_stream_read_uint8(memory_stream_in);
+    uint8_t shift = MemoryStream_ReadUint8(memory_stream_in);
 
     for (int i = 0; i < channel_count; i++) {
-        int16_t temp = memory_stream_read_int16(memory_stream_in);
+        int16_t temp = MemoryStream_ReadInt16(memory_stream_in);
         array2[i]    = (int)temp;
-        memory_stream_write_int16(memory_stream_out, temp);
+        MemoryStream_WriteInt16(memory_stream_out, temp);
     }
 
     int channel = channel_count - 1;
 
-    while (memory_stream_get_read_remaining(memory_stream_in)) {
-        uint8_t value = memory_stream_read_uint8(memory_stream_in);
+    while (MemoryStream_GetBytesAvailableToRead(memory_stream_in)) {
+        uint8_t value = MemoryStream_ReadUint8(memory_stream_in);
 
         if (channel_count == 2) {
             channel = 1 - channel;
+        }
+
+        if (channel > 1) {
+            LOG_FATAL("Failure decoding WAV: Invalid channel index.");
         }
 
         if ((value & 0x80) != 0) {
@@ -52,7 +56,7 @@ uint8_t *wav_decompress(uint8_t *data, uint32_t buffer_len, int channel_count, u
                 if (array1[channel] != 0) {
                     array1[channel]--;
                 }
-                memory_stream_write_int16(memory_stream_out, (int16_t)array2[channel]);
+                MemoryStream_WriteInt16(memory_stream_out, (int16_t)array2[channel]);
                 break;
             case 1:
                 array1[channel] += 8;
@@ -79,7 +83,7 @@ uint8_t *wav_decompress(uint8_t *data, uint32_t buffer_len, int channel_count, u
             continue;
         }
 
-        if ((unsigned long)array1[channel] >= sizeof(lookup)) {
+        if ((channel > 1) || (unsigned long)array1[channel] >= sizeof(lookup)) {
             LOG_FATAL("Failure decoding WAV: Attempted lookup outside of range!");
         }
         int temp1 = lookup[array1[channel]];
@@ -118,7 +122,7 @@ uint8_t *wav_decompress(uint8_t *data, uint32_t buffer_len, int channel_count, u
         }
 
         array2[channel] = temp3;
-        memory_stream_write_int16(memory_stream_out, (int16_t)temp3);
+        MemoryStream_WriteInt16(memory_stream_out, (int16_t)temp3);
         array1[channel] += lookup2[value & 0x1F];
 
         if (array1[channel] < 0) {
@@ -130,10 +134,10 @@ uint8_t *wav_decompress(uint8_t *data, uint32_t buffer_len, int channel_count, u
 
     free(array2);
 
-    uint8_t *result_buffer = memory_stream_out->buffer;
-    *result_size           = (uint32_t)memory_stream_out->write_position;
+    uint8_t *result_buffer = MemoryStream_GetBuffer(memory_stream_out);
+    *result_size           = (uint32_t)MemoryStream_GetTotalBytesWritten(memory_stream_out);
 
-    memory_stream_free(memory_stream_in);
-    memory_stream_free(memory_stream_out);
+    MemoryStream_Destroy(&memory_stream_in);
+    MemoryStream_Destroy(&memory_stream_out);
     return result_buffer;
 }

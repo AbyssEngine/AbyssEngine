@@ -5,23 +5,22 @@
 #include <SDL2/SDL.h>
 #include <stdbool.h>
 
-struct AudioManager {
-    bool                audio_available;
-    bool                audio_mute;
-    SDL_AudioDeviceID   audio_device_id;
-    SDL_AudioSpec       audio_spec;
-    enum AVSampleFormat out_sample_format;
-    AVChannelLayout     channel_layout;
-    struct AudioStream *background_music;
+enum AudioSetVolumeType {
+    AUDIO_SET_VOLUME_TYPE_MASTER,
+    AUDIO_SET_VOLUME_TYPE_MUSIC,
+    AUDIO_SET_VOLUME_TYPE_SFX,
+    AUDIO_SET_VOLUME_TYPE_UI,
+    AUDIO_SET_VOLUME_TYPE_MAX
 };
 
-void audio_manager_init(void);
-void audio_manager_free(void);
-void audio_manager_update(void);
-void audio_manager_play_bgm(const char *path, bool loop);
-
-void audio_manager_fill_buffer(void *userdata, Uint8 *stream, int len);
-
-extern struct AudioManager *audio_manager;
+void                AudioManager_InitSingleton(void);
+void                AudioManager_DestroySingleton(void);
+void                AudioManager_Update(void);
+void                AudioManager_PlayMusic(const char *path, bool loop);
+void                AudioManager_SetVolume(enum AudioSetVolumeType audio_set_volume_type, float volume);
+void                AudioManager_FillBuffer(void *userdata, Uint8 *stream, int len);
+SDL_AudioSpec       AudioManager_GetAudioSpec(void);
+AVChannelLayout     AudioManager_GetChannelLayout(void);
+enum AVSampleFormat AudioManager_GetSampleFormat(void);
 
 #endif // ABYSS_AUDIOMAN_H

@@ -12,7 +12,10 @@
 #include <libavutil/log.h>
 
 int main(int argc, char **argv) {
-    log_set_level(LOG_LEVEL_EVERYTHING);
+    (void)(argc);
+    (void)(argv);
+
+    Log_SetLevel(LOG_LEVEL_EVERYTHING);
     av_log_set_level(AV_LOG_FATAL);
     LOG_INFO("Abyss Engine");
 
@@ -34,15 +37,15 @@ int main(int argc, char **argv) {
 #else
     snprintf(config_path, 4096, "%s/.config/abyss/abyss.ini", getenv("HOME"));
 #endif
-    abyss_configuration_load(config_path);
+    AbyssConfiguration_LoadSingleton(config_path);
 
     LOG_DEBUG("Initializing file manager...");
-    file_manager_init();
+    FileManager_CreateSingleton();
 
     LOG_DEBUG("Creating window...");
     sdl_window = SDL_CreateWindow("Abyss Engine", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                                  (int)((float)800 * abyss_configuration.graphics.initial_scale),
-                                  (int)((float)600 * abyss_configuration.graphics.initial_scale),
+                                  (int)((float)800 * AbyssConfiguration_GetInitialScale()),
+                                  (int)((float)600 * AbyssConfiguration_GetInitialScale()),
                                   SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 
     if (sdl_window == NULL) {
@@ -58,19 +61,19 @@ int main(int argc, char **argv) {
 
     SDL_RenderSetLogicalSize(sdl_renderer, 800, 600);
     SDL_ShowCursor(false);
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, abyss_configuration.graphics.scale_quality);
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, AbyssConfiguration_GetScaleQuality());
 
-    if (abyss_configuration.graphics.fullscreen) {
+    if (AbyssConfiguration_GetFullScreen()) {
         SDL_SetWindowFullscreen(sdl_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
     }
 
     palette_initialize();
-    cursor_initialize();
+    Cursor_CreateSingleton();
     scene_initialize();
-    cursor_set_type(CURSOR_STANDARD);
+    Cursor_SetType(CURSOR_STANDARD);
     scene_set(&scene_main_menu);
-    label_initialize_caches();
-    audio_manager_init();
+    Label_InitializeCaches();
+    AudioManager_InitSingleton();
 
     SDL_Event sdl_event;
     running             = true;
@@ -92,9 +95,9 @@ int main(int argc, char **argv) {
                 }
                 if (sdl_event.key.keysym.sym == SDLK_RETURN &&
                     (sdl_event.key.keysym.mod == KMOD_LALT || sdl_event.key.keysym.mod == KMOD_RALT)) {
-                    SDL_SetWindowFullscreen(
-                        sdl_window, abyss_configuration.graphics.fullscreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
-                    abyss_configuration.graphics.fullscreen = !abyss_configuration.graphics.fullscreen;
+                    const bool is_fullscreen = AbyssConfiguration_GetFullScreen();
+                    SDL_SetWindowFullscreen(sdl_window, is_fullscreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
+                    AbyssConfiguration_SetFullScreen(!is_fullscreen);
                 }
                 // if in text input, handle backspace
                 if (strlen(text_input) > 0 && sdl_event.key.keysym.sym == SDLK_BACKSPACE) {
@@ -125,21 +128,21 @@ int main(int argc, char **argv) {
         last_ticks = current_ticks;
 
         scene_update(tick_delta);
-        audio_manager_update();
+        AudioManager_Update();
 
         SDL_RenderClear(sdl_renderer);
         scene_render();
-        cursor_draw();
+        Cursor_Draw();
         SDL_RenderPresent(sdl_renderer);
     }
 
-    audio_manager_free();
-    label_finalize_caches();
+    AudioManager_DestroySingleton();
+    Label_FinalizeCaches();
     scene_finalize();
-    cursor_finalize();
+    Cursor_Destroy();
     palette_finalize();
-    abyss_configuration_free();
-    file_manager_free();
+    AbyssConfiguration_DestroySingleton();
+    FileManager_DestroySingleton();
 
     SDL_DestroyRenderer(sdl_renderer);
     SDL_DestroyWindow(sdl_window);

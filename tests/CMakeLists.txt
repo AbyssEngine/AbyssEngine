@@ -1,4 +1,4 @@
-add_executable(ring_buffer_test ./RingBufferTest.c ../src/common/RingBuffer.c)
+add_executable(ring_buffer_test ./RingBufferTest.c ../src/common/RingBuffer.c ../src/util/Mutex.c)
 target_link_libraries(ring_buffer_test)
 target_compile_definitions(ring_buffer_test PRIVATE NO_LOGGING)
 

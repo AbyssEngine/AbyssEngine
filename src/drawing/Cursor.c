@@ -10,23 +10,23 @@ struct Sprite  *cursor_sprite;
 enum CursorType cursor_sprite_type;
 bool            cursor_visible;
 
-void cursor_initialize(void) {
-    cursor_sprite  = sprite_load(CURSOR_DEFAULT, PALETTE_UNITS);
+void Cursor_CreateSingleton(void) {
+    cursor_sprite  = Sprite_Create(CURSOR_DEFAULT, PALETTE_UNITS);
     cursor_visible = true;
-    cursor_set_type(CURSOR_STANDARD);
+    Cursor_SetType(CURSOR_STANDARD);
 
-    sprite_set_blend_mode(cursor_sprite, SDL_BLENDMODE_BLEND);
+    Sprite_SetBlendMode(cursor_sprite, SDL_BLENDMODE_BLEND);
 }
 
-void cursor_finalize(void) { sprite_free(cursor_sprite); }
+void Cursor_Destroy(void) { Sprite_Destroy(&cursor_sprite); }
 
-void cursor_draw(void) {
+void Cursor_Draw(void) {
     if (!cursor_visible) {
         return;
     }
-    sprite_draw(cursor_sprite, cursor_sprite_type, mouse_x, mouse_y + 2);
+    Sprite_Draw(cursor_sprite, cursor_sprite_type, mouse_x, mouse_y + 2);
 }
 
-void cursor_set_type(const enum CursorType cursor_type) { cursor_sprite_type = cursor_type; }
+void Cursor_SetType(enum CursorType cursor_type) { cursor_sprite_type = cursor_type; }
 
-void cursor_set_visible(bool visible) { cursor_visible = visible; }
+void Cursor_SetVisible(bool visible) { cursor_visible = visible; }

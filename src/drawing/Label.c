@@ -3,15 +3,31 @@
 #include "../common/Globals.h"
 #include "../common/Logging.h"
 
-struct Label *label_create(const char *font_path, const char *palette_name) {
+struct Label {
+    struct DC6     *DC6;
+    struct Font    *Font;
+    struct Palette *Palette;
+    SDL_Texture    *texture;
+    uint16_t        width;
+    uint16_t        height;
+    label_align_t   horizontal_align;
+    label_align_t   vertical_align;
+    int             offset_x;
+    int             offset_y;
+    char           *text;
+};
+
+void Label__UpdateOffsets(Label *Label);
+
+Label *Label_Create(const char *font_path, const char *palette_name) {
     char dc6_path[4096];
 
-    struct Label *result = malloc(sizeof(struct Label));
+    Label *result = malloc(sizeof(Label));
     FAIL_IF_NULL(result);
-    memset(result, 0, sizeof(struct Label));
+    memset(result, 0, sizeof(Label));
 
     memset(dc6_path, 0, sizeof(dc6_path));
-    snprintf(dc6_path, sizeof(dc6_path), font_path, abyss_configuration.locale);
+    snprintf(dc6_path, sizeof(dc6_path), font_path, AbyssConfiguration_GetLocale());
     strncat(dc6_path, ".DC6", sizeof(dc6_path) - strlen(dc6_path) - 1);
 
     result->Font    = font_load(font_path);
@@ -21,26 +37,27 @@ struct Label *label_create(const char *font_path, const char *palette_name) {
     return result;
 }
 
-void label_free(struct Label *Label) {
-    if (Label->texture != NULL) {
-        SDL_DestroyTexture(Label->texture);
+void Label_Destroy(Label **label) {
+    if ((*label)->texture != NULL) {
+        SDL_DestroyTexture((*label)->texture);
     }
 
-    if (Label->text != NULL) {
-        free(Label->text);
+    if ((*label)->text != NULL) {
+        free((*label)->text);
     }
 
-    font_free(Label->Font);
-    dc6_free(Label->DC6);
+    font_free((*label)->Font);
+    dc6_free((*label)->DC6);
 
-    free(Label);
+    free((*label));
+    *label = NULL;
 }
 
-void label_initialize_caches(void) { LOG_DEBUG("Initializing Label caches..."); }
+void Label_InitializeCaches(void) { LOG_DEBUG("Initializing Label caches..."); }
 
-void label_finalize_caches(void) { LOG_DEBUG("Finalizing Label caches..."); }
+void Label_FinalizeCaches(void) { LOG_DEBUG("Finalizing Label caches..."); }
 
-void label_set_text(struct Label *Label, const char *text) {
+void Label_SetText(Label *Label, const char *text) {
     if (Label->texture != NULL) {
         SDL_DestroyTexture(Label->texture);
     }
@@ -119,10 +136,10 @@ void label_set_text(struct Label *Label, const char *text) {
     SDL_SetTextureBlendMode(Label->texture, SDL_BLENDMODE_BLEND);
     free(pixels);
 
-    label_update_offsets(Label);
+    Label__UpdateOffsets(Label);
 }
 
-void label_draw(const struct Label *Label, const int x, const int y) {
+void Label_Draw(const Label *Label, int x, int y) {
     if (Label->texture == NULL) {
         return;
     }
@@ -131,17 +148,17 @@ void label_draw(const struct Label *Label, const int x, const int y) {
     SDL_RenderCopy(sdl_renderer, Label->texture, NULL, &dest);
 }
 
-void label_set_color(struct Label *Label, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+void Label_SetColor(Label *Label, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
     SDL_SetTextureColorMod(Label->texture, r, g, b);
     SDL_SetTextureAlphaMod(Label->texture, a);
 }
 
-void label_set_align(struct Label *Label, label_align_t horizontal, label_align_t vertical) {
+void Label_SetAlignment(Label *Label, label_align_t horizontal, label_align_t vertical) {
     Label->horizontal_align = horizontal;
     Label->vertical_align   = vertical;
-    label_update_offsets(Label);
+    Label__UpdateOffsets(Label);
 }
-void label_update_offsets(struct Label *Label) {
+void Label__UpdateOffsets(Label *Label) {
     switch (Label->horizontal_align) {
     case LABEL_ALIGN_BEGIN:
         Label->offset_x = 0;

@@ -6,6 +6,7 @@
 #include "../util/WavDecompress.h"
 #include "Logging.h"
 #include "zlib.h"
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,6 +25,20 @@
 
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 
+struct MpqStream {
+    char            *file_name;
+    struct MPQ      *mpq;
+    struct MPQHash  *hash;
+    struct MPQBlock *block;
+    uint64_t         size;
+    uint32_t        *block_offsets;
+    uint32_t         block_offset_count;
+    void            *data_buffer;
+    uint32_t         data_buffer_size;
+    uint32_t         position;
+    uint32_t         block_index;
+};
+
 struct pk_info {
     void    *buff_in;
     void    *buff_out;
@@ -33,7 +48,18 @@ struct pk_info {
     uint32_t to_write;
 };
 
+void     MpqStream__LoadBlockOffset(MpqStream *mpq_stream);
+uint32_t MpqStream__ReadInternal(MpqStream *mpq_stream, void *buffer, uint32_t offset, uint32_t to_read);
+void     MpqStream__BufferData(MpqStream *mpq_stream);
+void    *MpqStream__LoadBlock(MpqStream *mpq_stream, uint32_t block_index, uint32_t expected_length);
+uint32_t MpqStream__Copy(MpqStream *mpq_stream, void *buffer, uint32_t offset, uint32_t position, uint32_t count);
+void    *MpqStream__DecompressMulti(void *buffer, uint32_t to_read, uint32_t expected_length);
+
 unsigned int explode_read(char *buf, unsigned int *size, void *param) {
+    assert(buf != NULL);
+    assert(*size > 0);
+    assert(param != NULL);
+
     struct pk_info *pk_info = param;
     const uint32_t  to_read = MIN(*size, pk_info->to_read);
     memcpy(buf, (char *)pk_info->buff_in + pk_info->in_pos, to_read);
@@ -44,7 +70,10 @@ unsigned int explode_read(char *buf, unsigned int *size, void *param) {
     return *size;
 }
 
-void explode_write(char *buf, unsigned int *size, void *param) {
+void explode_write(char *buf, unsigned int *size, void *param) { // NOLINT(*-non-const-parameter)
+    assert(buf != NULL);
+    assert(param != NULL);
+
     struct pk_info *pk_info = param;
 
     if (*size > pk_info->to_write) {
@@ -56,13 +85,16 @@ void explode_write(char *buf, unsigned int *size, void *param) {
     pk_info->to_write -= *size;
 }
 
-struct MpqStream *mpq_stream_create(struct MPQ *mpq, const char *file_name) {
+MpqStream *MpqStream_Create(struct MPQ *mpq, const char *file_name) {
+    assert(mpq != NULL);
+    assert(file_name != NULL);
+
     LOG_DEBUG("Loading '%s'", file_name);
 
-    struct MpqStream *result = malloc(sizeof(struct MpqStream));
+    MpqStream *result = malloc(sizeof(MpqStream));
     FAIL_IF_NULL(result);
 
-    memset(result, 0, sizeof(struct MpqStream));
+    memset(result, 0, sizeof(MpqStream));
 
     result->mpq         = mpq;
     result->file_name   = strdup(file_name);
@@ -91,13 +123,15 @@ struct MpqStream *mpq_stream_create(struct MPQ *mpq, const char *file_name) {
 
     if (((result->block->flags & FILE_FLAG_COMPRESS) || (result->block->flags & FILE_FLAG_IMPLODE)) &&
         !(result->block->flags & FILE_FLAG_SINGLE_UNIT)) {
-        mpq_stream_load_block_offset(result);
+        MpqStream__LoadBlockOffset(result);
     }
 
     return result;
 }
 
-void mpq_stream_load_block_offset(struct MpqStream *mpq_stream) {
+void MpqStream__LoadBlockOffset(MpqStream *mpq_stream) {
+    assert(mpq_stream != NULL);
+
     fseek(mpq_stream->mpq->file, mpq_stream->block->file_position, SEEK_SET);
 
     mpq_stream->block_offset_count =
@@ -131,7 +165,11 @@ void mpq_stream_load_block_offset(struct MpqStream *mpq_stream) {
     }
 }
 
-uint32_t mpq_stream_read(struct MpqStream *mpq_stream, void *buffer, uint32_t offset, const uint32_t size) {
+uint32_t MpqStream_Read(MpqStream *mpq_stream, void *buffer, uint32_t offset, uint32_t size) {
+    assert(mpq_stream != NULL);
+    assert(buffer != NULL);
+    assert(size > 0);
+
     if (mpq_stream->block->flags & FILE_FLAG_SINGLE_UNIT) {
         LOG_FATAL("TODO: Single unit loads");
     }
@@ -140,7 +178,7 @@ uint32_t mpq_stream_read(struct MpqStream *mpq_stream, void *buffer, uint32_t of
     uint32_t read_total = 0;
 
     while (to_read > 0) {
-        const uint32_t read = mpq_stream_read_internal(mpq_stream, (char *)buffer, offset, to_read);
+        const uint32_t read = MpqStream__ReadInternal(mpq_stream, (char *)buffer, offset, to_read);
         if (read == 0) {
             break;
         }
@@ -153,14 +191,19 @@ uint32_t mpq_stream_read(struct MpqStream *mpq_stream, void *buffer, uint32_t of
     return read_total;
 }
 
-uint32_t mpq_stream_read_internal(struct MpqStream *mpq_stream, void *buffer, const uint32_t offset,
-                                  const uint32_t to_read) {
-    mpq_stream_buffer_data(mpq_stream);
+uint32_t MpqStream__ReadInternal(MpqStream *mpq_stream, void *buffer, uint32_t offset, uint32_t to_read) {
+    assert(mpq_stream != NULL);
+    assert(buffer != NULL);
+    assert(to_read > 0);
+
+    MpqStream__BufferData(mpq_stream);
     const uint32_t local_position = mpq_stream->position % mpq_stream->size;
-    return mpq_stream_copy(mpq_stream, buffer, offset, local_position, to_read);
+    return MpqStream__Copy(mpq_stream, buffer, offset, local_position, to_read);
 }
 
-void mpq_stream_buffer_data(struct MpqStream *mpq_stream) {
+void MpqStream__BufferData(MpqStream *mpq_stream) {
+    assert(mpq_stream != NULL);
+
     const uint32_t block_index = mpq_stream->position / mpq_stream->size;
 
     if (block_index == mpq_stream->block_index) {
@@ -173,25 +216,33 @@ void mpq_stream_buffer_data(struct MpqStream *mpq_stream) {
 
     const uint32_t expected_length = (uint32_t)MIN(
         (uint64_t)mpq_stream->block->size_uncompressed - (block_index * mpq_stream->size), mpq_stream->size);
-    mpq_stream->data_buffer      = mpq_stream_load_block(mpq_stream, block_index, expected_length);
+    mpq_stream->data_buffer      = MpqStream__LoadBlock(mpq_stream, block_index, expected_length);
     mpq_stream->data_buffer_size = expected_length;
     mpq_stream->block_index      = block_index;
 }
 
-void mpq_stream_free(struct MpqStream *mpq_stream) {
-    if (mpq_stream->block_offsets != NULL) {
-        free(mpq_stream->block_offsets);
+void MpqStream_Destroy(MpqStream **mpq_stream) {
+    assert(mpq_stream != NULL);
+
+    if ((*mpq_stream)->block_offsets != NULL) {
+        free((*mpq_stream)->block_offsets);
     }
-    if (mpq_stream->data_buffer != NULL) {
-        free(mpq_stream->data_buffer);
+
+    if ((*mpq_stream)->data_buffer != NULL) {
+        free((*mpq_stream)->data_buffer);
     }
-    free(mpq_stream->file_name);
-    free(mpq_stream);
+    free((*mpq_stream)->file_name);
+    free((*mpq_stream));
+    *mpq_stream = NULL;
 }
 
-uint32_t mpq_stream_copy(struct MpqStream *mpq_stream, void *buffer, const uint32_t offset, const uint32_t position,
-                         const uint32_t count) {
+uint32_t MpqStream__Copy(MpqStream *mpq_stream, void *buffer, uint32_t offset, uint32_t position, uint32_t count) {
+    assert(mpq_stream != NULL);
+    assert(buffer != NULL);
+    assert(count > 0);
+
     const uint32_t bytes_to_copy = MIN(mpq_stream->data_buffer_size - position, count);
+
     if (bytes_to_copy <= 0) {
         //        LOG_FATAL("Tried reading past end of stream!");
         return 0;
@@ -203,7 +254,10 @@ uint32_t mpq_stream_copy(struct MpqStream *mpq_stream, void *buffer, const uint3
     return bytes_to_copy;
 }
 
-void *mpq_stream_load_block(struct MpqStream *mpq_stream, const uint32_t block_index, const uint32_t expected_length) {
+void *MpqStream__LoadBlock(MpqStream *mpq_stream, uint32_t block_index, uint32_t expected_length) {
+    assert(mpq_stream != NULL);
+    assert(expected_length > 0);
+
     uint32_t offset;
     uint32_t to_read;
 
@@ -238,7 +292,7 @@ void *mpq_stream_load_block(struct MpqStream *mpq_stream, const uint32_t block_i
             LOG_FATAL("TODO: PK Decompression");
         }
 
-        return mpq_stream_decompress_multi(data, to_read, expected_length);
+        return MpqStream__DecompressMulti(data, to_read, expected_length);
     }
 
     if ((mpq_stream->block->flags & FILE_FLAG_IMPLODE) && (to_read != expected_length)) {
@@ -248,7 +302,11 @@ void *mpq_stream_load_block(struct MpqStream *mpq_stream, const uint32_t block_i
     return data;
 }
 
-void *mpq_stream_decompress_multi(void *buffer, const uint32_t to_read, const uint32_t expected_length) {
+void *MpqStream__DecompressMulti(void *buffer, uint32_t to_read, uint32_t expected_length) {
+    assert(buffer != NULL);
+    assert(to_read > 0);
+    assert(expected_length > 0);
+
     const uint8_t compression_type = ((uint8_t *)buffer)[0];
 
     switch (compression_type) {
@@ -339,13 +397,21 @@ void *mpq_stream_decompress_multi(void *buffer, const uint32_t to_read, const ui
     }
 }
 
-uint32_t mpq_stream_get_size(const struct MpqStream *MpqStream) { return MpqStream->block->size_uncompressed; }
+uint32_t MpqStream_GetSize(const MpqStream *mpq_stream) {
+    assert(mpq_stream != NULL);
 
-bool mpq_stream_eof(const struct MpqStream *MpqStream) {
-    return MpqStream->position >= MpqStream->block->size_uncompressed;
+    return mpq_stream->block->size_uncompressed;
 }
 
-void mpq_stream_seek(struct MpqStream *mpq_stream, int64_t position, int32_t origin) {
+bool MpqStream_GetIsEof(const MpqStream *mpq_stream) {
+    assert(mpq_stream != NULL);
+
+    return mpq_stream->position >= mpq_stream->block->size_uncompressed;
+}
+
+void MpqStream_Seek(MpqStream *mpq_stream, int64_t position, int32_t origin) {
+    assert(mpq_stream != NULL);
+
     switch (origin) {
     case SEEK_SET:
         mpq_stream->position = (uint32_t)position;
@@ -369,4 +435,8 @@ void mpq_stream_seek(struct MpqStream *mpq_stream, int64_t position, int32_t ori
     }
 }
 
-uint32_t mpq_stream_tell(const struct MpqStream *mpq_stream) { return mpq_stream->position; }
+uint32_t MpqStream_Tell(const MpqStream *mpq_stream) {
+    assert(mpq_stream != NULL);
+
+    return mpq_stream->position;
+}
