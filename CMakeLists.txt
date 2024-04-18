@@ -14,9 +14,6 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")
-
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 function(setup_source_groups curdir)
