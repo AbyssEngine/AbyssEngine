@@ -1,7 +1,7 @@
 #ifndef ABYSS_AUDIOMAN_H
 #define ABYSS_AUDIOMAN_H
 
-#include "AudioStream.h"
+#include "../audio/AudioStream.h"
 #include <SDL2/SDL.h>
 #include <stdbool.h>
 

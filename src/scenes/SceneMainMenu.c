@@ -1,7 +1,7 @@
 #include "SceneMainMenu.h"
-#include "../audio/AudioManager.h"
 #include "../common/Globals.h"
 #include "../common/Logging.h"
+#include "../managers/AudioManager.h"
 #include <stdlib.h>
 #include <string.h>
 

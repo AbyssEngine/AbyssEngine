@@ -1,5 +1,7 @@
 #include "Cursor.h"
+
 #include "../common/Globals.h"
+#include "../managers/InputManager.h"
 #include "Sprite.h"
 
 #define CURSOR_FRAME_NORMAL  0
@@ -24,6 +26,10 @@ void Cursor_Draw(void) {
     if (!cursor_visible) {
         return;
     }
+    int mouse_x;
+    int mouse_y;
+    InputManager_GetMousePosition(&mouse_x, &mouse_y);
+
     Sprite_Draw(cursor_sprite, cursor_sprite_type, mouse_x, mouse_y + 2);
 }
 

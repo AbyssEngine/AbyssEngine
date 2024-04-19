@@ -1,10 +1,11 @@
-#include "audio/AudioManager.h"
 #include "common/AbyssConfiguration.h"
 #include "common/FileManager.h"
 #include "common/Globals.h"
 #include "common/Logging.h"
 #include "drawing/Cursor.h"
 #include "drawing/Label.h"
+#include "managers/AudioManager.h"
+#include "managers/InputManager.h"
 #include "scenes/Scene.h"
 #include "scenes/SceneMainMenu.h"
 #include "types/Palette.h"
@@ -74,6 +75,7 @@ int main(int argc, char **argv) {
     Scene_Set(SCENE_REF(MainMenu));
     Label_InitializeCaches();
     AudioManager_InitSingleton();
+    InputManager_InitializeSingleton();
 
     SDL_Event sdl_event;
     running             = true;
@@ -81,38 +83,13 @@ int main(int argc, char **argv) {
 
     while (running) {
         while (SDL_PollEvent(&sdl_event)) {
+            if (InputManager_ProcessSdlEvent(&sdl_event)) {
+                continue;
+            }
+
             switch (sdl_event.type) {
             case SDL_QUIT:
                 running = false;
-                continue;
-            case SDL_MOUSEMOTION:
-                mouse_x = sdl_event.motion.x;
-                mouse_y = sdl_event.motion.y;
-                continue;
-            case SDL_KEYDOWN:
-                if (sdl_event.key.keysym.sym == SDLK_F4 && sdl_event.key.keysym.mod == KMOD_LALT) {
-                    running = false;
-                }
-                if (sdl_event.key.keysym.sym == SDLK_RETURN &&
-                    (sdl_event.key.keysym.mod == KMOD_LALT || sdl_event.key.keysym.mod == KMOD_RALT)) {
-                    const bool is_fullscreen = AbyssConfiguration_GetFullScreen();
-                    SDL_SetWindowFullscreen(sdl_window, is_fullscreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
-                    AbyssConfiguration_SetFullScreen(!is_fullscreen);
-                }
-                // if in text input, handle backspace
-                if (strlen(text_input) > 0 && sdl_event.key.keysym.sym == SDLK_BACKSPACE) {
-                    text_input[strlen(text_input) - 1] = '\0';
-                }
-                key_pressed[sdl_event.key.keysym.scancode] = true;
-
-                continue;
-            case SDL_KEYUP:
-                key_pressed[sdl_event.key.keysym.scancode] = false;
-                continue;
-            case SDL_TEXTINPUT:
-                if (strlen(text_input) + strlen(sdl_event.text.text) < MAX_TEXT_INPUT_LENGTH) {
-                    strcat(text_input, sdl_event.text.text);
-                }
                 continue;
             }
         }
@@ -136,6 +113,7 @@ int main(int argc, char **argv) {
         SDL_RenderPresent(sdl_renderer);
     }
 
+    InputManager_DestroySingleton();
     AudioManager_DestroySingleton();
     Label_FinalizeCaches();
     Scene_DestroyManager();
