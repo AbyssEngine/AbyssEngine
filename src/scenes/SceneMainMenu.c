@@ -5,19 +5,28 @@
 #include <stdlib.h>
 #include <string.h>
 
+typedef struct SceneMainMenu {
+    Sprite *background_sprite;
+    Sprite *d2logo_black_left_sprite;
+    Sprite *d2logo_black_right_sprite;
+    Sprite *d2logo_fire_left_sprite;
+    Sprite *d2logo_fire_right_sprite;
+    Label  *copyright_label;
+    Label  *build_label;
+} SceneMainMenu;
+
 #ifndef ABYSS_VERSION_TEXT
 #define ABYSS_VERSION_TEXT "local build"
 #endif // ABYSS_VERSION_TEXT
 
-struct Scene scene_main_menu = {scene_mainmenu_create, scene_mainmenu_render, scene_mainmenu_update,
-                                scene_mainmenu_free};
+DEFINE_SCENE_CALLBACKS(MainMenu);
 
-void *scene_mainmenu_create(void) {
+void *MainMenu_Create(void) {
     AudioManager_PlayMusic(MUSIC_TITLE, true);
 
-    struct SceneMainMenu *result = malloc(sizeof(struct SceneMainMenu));
+    SceneMainMenu *result = malloc(sizeof(SceneMainMenu));
     FAIL_IF_NULL(result);
-    memset(result, 0, sizeof(struct SceneMainMenu));
+    memset(result, 0, sizeof(SceneMainMenu));
 
     result->background_sprite         = Sprite_Create(GAME_SELECT_SCREEN, PALETTE_SKY);
     result->d2logo_black_left_sprite  = Sprite_Create(D2LOGO_BLACK_LEFT, PALETTE_UNITS);
@@ -44,8 +53,8 @@ void *scene_mainmenu_create(void) {
     return result;
 }
 
-void scene_mainmenu_render(void *scene_ref) {
-    const struct SceneMainMenu *mainmenu = (struct SceneMainMenu *)scene_ref;
+void MainMenu_Render(void *scene_ref) {
+    const SceneMainMenu *mainmenu = (SceneMainMenu *)scene_ref;
 
     Sprite_DrawMulti(mainmenu->background_sprite, 0, 0, 0, 4, 3);
     Sprite_DrawAnimated(mainmenu->d2logo_black_left_sprite, 400, 120);
@@ -57,13 +66,13 @@ void scene_mainmenu_render(void *scene_ref) {
     Label_Draw(mainmenu->build_label, 797, 1);
 }
 
-void scene_mainmenu_update(void *scene_ref, uint64_t delta) {
+void MainMenu_Update(void *scene_ref, uint64_t delta) {
     (void)(scene_ref);
     (void)(delta);
 }
 
-void scene_mainmenu_free(void *scene_ref) {
-    struct SceneMainMenu *mainmenu = (struct SceneMainMenu *)scene_ref;
+void MainMenu_Free(void **scene_ref) {
+    SceneMainMenu *mainmenu = *((SceneMainMenu **)scene_ref);
 
     Label_Destroy(&mainmenu->copyright_label);
     Sprite_Destroy(&mainmenu->d2logo_black_left_sprite);
@@ -72,5 +81,6 @@ void scene_mainmenu_free(void *scene_ref) {
     Sprite_Destroy(&mainmenu->d2logo_fire_right_sprite);
     Sprite_Destroy(&mainmenu->background_sprite);
 
-    free(mainmenu);
+    free(*scene_ref);
+    *scene_ref = NULL;
 }

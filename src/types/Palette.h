@@ -3,13 +3,13 @@
 
 #include <stdint.h>
 
-struct Palette {
+typedef struct Palette {
     uint32_t entries[256];
     char    *name;
-};
+} Palette;
 
-void            palette_initialize(void);
-void            palette_finalize(void);
-struct Palette *palette_get(const char *palette_name);
+void           Palette_Initialize(void);
+void           Palette_Finalize(void);
+const Palette *Palette_Get(const char *palette_name);
 
 #endif // ABYSS_PALETTE_H

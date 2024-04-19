@@ -99,23 +99,17 @@ MpqStream *MpqStream_Create(struct MPQ *mpq, const char *file_name) {
     result->mpq         = mpq;
     result->file_name   = strdup(file_name);
     result->block_index = 0xFFFFFFFF;
+    result->size        = MPQ_GetBlockSize(mpq);
 
-    result->hash = mpq_get_file_hash(mpq, file_name);
-    if (result->hash == NULL) {
+    if ((result->hash = MPQ_GetFileHash(mpq, file_name)) == NULL) {
         LOG_FATAL("Failed to load '%s'!", file_name);
     }
-    const uint32_t block_index = result->hash->block_index;
 
-    if (block_index >= mpq->header.hash_table_entries) {
-        LOG_FATAL("Invalid block index for '%s'!", file_name);
-    }
-    result->block = &mpq->blocks[block_index];
+    result->block = MPQ_GetBlock(mpq, result->hash->block_index);
 
     if (result->block->flags & FILE_FLAG_FIX_KEY) {
-        mpq_block_calculate_encryption_seed(result->block, file_name);
+        MPQBlock_CalculateEncryptionSeed(result->block, file_name);
     }
-
-    result->size = 0x200 << mpq->header.block_size;
 
     if (result->block->flags & FILE_FLAG_PATCH_FILE) {
         LOG_FATAL("TODO: Patch Files");
@@ -131,8 +125,9 @@ MpqStream *MpqStream_Create(struct MPQ *mpq, const char *file_name) {
 
 void MpqStream__LoadBlockOffset(MpqStream *mpq_stream) {
     assert(mpq_stream != NULL);
+    FILE *file = MPQ_AcquireFileHandle(mpq_stream->mpq);
 
-    fseek(mpq_stream->mpq->file, mpq_stream->block->file_position, SEEK_SET);
+    fseek(file, mpq_stream->block->file_position, SEEK_SET);
 
     mpq_stream->block_offset_count =
         (uint32_t)((mpq_stream->block->size_uncompressed + mpq_stream->size - 1) / mpq_stream->size) + 1;
@@ -144,7 +139,7 @@ void MpqStream__LoadBlockOffset(MpqStream *mpq_stream) {
 
     memset(mpq_stream->block_offsets, 0, offset_file_load_size);
 
-    if (fread(mpq_stream->block_offsets, sizeof(uint32_t), mpq_stream->block_offset_count, mpq_stream->mpq->file) !=
+    if (fread(mpq_stream->block_offsets, sizeof(uint32_t), mpq_stream->block_offset_count, file) !=
         mpq_stream->block_offset_count) {
         LOG_FATAL("Failed to load block offsets for '%s'", mpq_stream->file_name);
     }
@@ -163,6 +158,8 @@ void MpqStream__LoadBlockOffset(MpqStream *mpq_stream) {
             LOG_FATAL("Decryption of MPQ failed");
         }
     }
+
+    MPQ_ReleaseFileHandle(mpq_stream->mpq);
 }
 
 uint32_t MpqStream_Read(MpqStream *mpq_stream, void *buffer, uint32_t offset, uint32_t size) {
@@ -274,8 +271,9 @@ void *MpqStream__LoadBlock(MpqStream *mpq_stream, uint32_t block_index, uint32_t
     void *data = malloc(to_read);
     FAIL_IF_NULL(data);
 
-    fseek(mpq_stream->mpq->file, offset, SEEK_SET);
-    if (fread(data, to_read, 1, mpq_stream->mpq->file) != 1) {
+    FILE *file = MPQ_AcquireFileHandle(mpq_stream->mpq);
+    fseek(file, offset, SEEK_SET);
+    if (fread(data, to_read, 1, file) != 1) {
         LOG_FATAL("Error loading file block data.");
     }
 
@@ -292,13 +290,16 @@ void *MpqStream__LoadBlock(MpqStream *mpq_stream, uint32_t block_index, uint32_t
             LOG_FATAL("TODO: PK Decompression");
         }
 
-        return MpqStream__DecompressMulti(data, to_read, expected_length);
+        void *result = MpqStream__DecompressMulti(data, to_read, expected_length);
+        MPQ_ReleaseFileHandle(mpq_stream->mpq);
+        return result;
     }
 
     if ((mpq_stream->block->flags & FILE_FLAG_IMPLODE) && (to_read != expected_length)) {
         LOG_FATAL("TODO: PK decompress");
     }
 
+    MPQ_ReleaseFileHandle(mpq_stream->mpq);
     return data;
 }
 
@@ -369,7 +370,7 @@ void *MpqStream__DecompressMulti(void *buffer, uint32_t to_read, uint32_t expect
         uint8_t *huffman_buffer      = huffman_decompress((uint8_t *)buffer + 1, to_read - 1, &huffman_buffer_size);
 
         uint32_t wav_size   = 0;
-        uint8_t *wav_buffer = wav_decompress(huffman_buffer, huffman_buffer_size, 1, &wav_size);
+        uint8_t *wav_buffer = WAV_Decompress(huffman_buffer, huffman_buffer_size, 1, &wav_size);
         if (wav_size != expected_length) {
             LOG_FATAL("Decompression failed: Expected WAV buffer of %d bytes, but got %d instead!", expected_length,
                       wav_size);
@@ -383,7 +384,7 @@ void *MpqStream__DecompressMulti(void *buffer, uint32_t to_read, uint32_t expect
         uint8_t *huffman_buffer      = huffman_decompress((uint8_t *)buffer + 1, to_read - 1, &huffman_buffer_size);
 
         uint32_t wav_size   = 0;
-        uint8_t *wav_buffer = wav_decompress(huffman_buffer, huffman_buffer_size, 2, &wav_size);
+        uint8_t *wav_buffer = WAV_Decompress(huffman_buffer, huffman_buffer_size, 2, &wav_size);
         if (wav_size != expected_length) {
             LOG_FATAL("Decompression failed: Expected WAV buffer of %d bytes, but got %d instead!", expected_length,
                       wav_size);

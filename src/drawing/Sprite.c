@@ -59,10 +59,10 @@ Sprite *Sprite_Create(const char *path, const char *palette_name) {
 }
 
 void Sprite__LoadDC6(Sprite *sprite, const char *path, const char *palette_name) {
-    struct DC6           *DC6     = dc6_load(path);
-    const struct Palette *Palette = palette_get(palette_name);
+    struct DC6           *dc6     = DC6_Load(path);
+    const struct Palette *Palette = Palette_Get(palette_name);
 
-    sprite->frame_count     = DC6->header.directions * DC6->header.frames_per_direction;
+    sprite->frame_count     = DC6_GetTotalFrameCount(dc6);
     sprite->frames          = malloc(sizeof(SpriteFrame) * sprite->frame_count);
     sprite->last_ticks      = SDL_GetTicks64();
     sprite->animation_index = 0;
@@ -72,30 +72,28 @@ void Sprite__LoadDC6(Sprite *sprite, const char *path, const char *palette_name)
     Sprite_SetPlayLength(sprite, 1.0f);
 
     for (uint32_t i = 0; i < sprite->frame_count; i++) {
-        const struct DC6Frame *dc6_frame = &DC6->frames[i];
-        SpriteFrame           *spr_frame = &sprite->frames[i];
+        SpriteFrame   *spr_frame        = &sprite->frames[i];
+        const uint8_t *frame_pixel_data = DC6_GetFramePixelData(dc6, i);
+
+        DC6_GetFrameSize(dc6, i, &spr_frame->width, &spr_frame->height);
+        DC6_GetFrameOffset(dc6, i, &spr_frame->offset_x, &spr_frame->offset_y);
 
         spr_frame->texture = SDL_CreateTexture(sdl_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC,
-                                               (int)dc6_frame->header.width, (int)dc6_frame->header.height);
-
-        spr_frame->width    = dc6_frame->header.width;
-        spr_frame->height   = dc6_frame->header.height;
-        spr_frame->offset_x = dc6_frame->header.offset_x;
-        spr_frame->offset_y = dc6_frame->header.offset_y;
+                                               (int)spr_frame->width, (int)spr_frame->height);
 
         uint32_t *pixels = malloc((size_t)spr_frame->width * spr_frame->height * 4);
         FAIL_IF_NULL(pixels);
         memset(pixels, 0, (size_t)spr_frame->width * spr_frame->height * 4);
 
         for (uint32_t idx = 0; idx < (spr_frame->width * spr_frame->height); idx++) {
-            pixels[idx] = Palette->entries[dc6_frame->indexed_pixel_data[idx]];
+            pixels[idx] = Palette->entries[frame_pixel_data[idx]];
         }
 
         SDL_UpdateTexture(spr_frame->texture, NULL, pixels, (int)spr_frame->width * 4);
         free(pixels);
     }
 
-    dc6_free(DC6);
+    DC6_Destroy(&dc6);
 }
 
 void Sprite_Destroy(Sprite **sprite) {

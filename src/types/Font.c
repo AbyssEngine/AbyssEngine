@@ -6,7 +6,21 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct Font *font_load(const char *path) {
+typedef struct FontGlyph {
+    uint16_t code;
+    uint16_t frame_index;
+    uint8_t  width;
+    uint8_t  height;
+} FontGlyph;
+
+struct Font {
+    FontGlyph *glyphs;
+    uint32_t   glyph_count;
+};
+
+const struct FontGlyph *Font__GetGlyph(const struct Font *font, uint16_t code);
+
+struct Font *Font_Load(const char *path) {
     char path_fixed[4096];
     memset(path_fixed, 0, 4096);
 
@@ -54,15 +68,37 @@ struct Font *font_load(const char *path) {
     return result;
 }
 
-void font_free(struct Font *Font) {
-    free(Font->glyphs);
-    free(Font);
+void Font_Destroy(struct Font *font) {
+    free(font->glyphs);
+    free(font);
 }
 
-struct FontGlyph *font_get_glyph(struct Font *Font, uint16_t code) {
-    for (uint32_t i = 0; i < Font->glyph_count; i++) {
-        if (Font->glyphs[i].code == code) {
-            return &Font->glyphs[i];
+void Font_GetGlyphMetrics(const Font *font, uint16_t code, uint16_t *frame_index, uint8_t *width, uint8_t *height) {
+    const struct FontGlyph *glyph = Font__GetGlyph(font, code);
+    if (glyph == NULL) {
+        glyph = Font__GetGlyph(font, '?');
+        if (glyph == NULL) {
+            LOG_FATAL("Failed to get glyph metrics for code %d.", code);
+        }
+    }
+
+    if (frame_index != NULL) {
+        *frame_index = glyph->frame_index;
+    }
+
+    if (width != NULL) {
+        *width = glyph->width;
+    }
+
+    if (height != NULL) {
+        *height = glyph->height;
+    }
+}
+
+const struct FontGlyph *Font__GetGlyph(const struct Font *font, uint16_t code) {
+    for (uint32_t i = 0; i < font->glyph_count; i++) {
+        if (font->glyphs[i].code == code) {
+            return &font->glyphs[i];
         }
     }
     return NULL;

@@ -4,17 +4,17 @@
 #include "../common/Logging.h"
 
 struct Label {
-    struct DC6     *DC6;
-    struct Font    *Font;
-    struct Palette *Palette;
-    SDL_Texture    *texture;
-    uint16_t        width;
-    uint16_t        height;
-    label_align_t   horizontal_align;
-    label_align_t   vertical_align;
-    int             offset_x;
-    int             offset_y;
-    char           *text;
+    DC6           *DC6;
+    Font          *Font;
+    const Palette *Palette;
+    SDL_Texture   *texture;
+    uint16_t       width;
+    uint16_t       height;
+    label_align_t  horizontal_align;
+    label_align_t  vertical_align;
+    int            offset_x;
+    int            offset_y;
+    char          *text;
 };
 
 void Label__UpdateOffsets(Label *Label);
@@ -30,9 +30,9 @@ Label *Label_Create(const char *font_path, const char *palette_name) {
     snprintf(dc6_path, sizeof(dc6_path), font_path, AbyssConfiguration_GetLocale());
     strncat(dc6_path, ".DC6", sizeof(dc6_path) - strlen(dc6_path) - 1);
 
-    result->Font    = font_load(font_path);
-    result->DC6     = dc6_load(dc6_path);
-    result->Palette = palette_get(palette_name);
+    result->Font    = Font_Load(font_path);
+    result->DC6     = DC6_Load(dc6_path);
+    result->Palette = Palette_Get(palette_name);
 
     return result;
 }
@@ -46,8 +46,8 @@ void Label_Destroy(Label **label) {
         free((*label)->text);
     }
 
-    font_free((*label)->Font);
-    dc6_free((*label)->DC6);
+    Font_Destroy((*label)->Font);
+    DC6_Destroy(&(*label)->DC6);
 
     free((*label));
     *label = NULL;
@@ -57,86 +57,98 @@ void Label_InitializeCaches(void) { LOG_DEBUG("Initializing Label caches..."); }
 
 void Label_FinalizeCaches(void) { LOG_DEBUG("Finalizing Label caches..."); }
 
-void Label_SetText(Label *Label, const char *text) {
-    if (Label->texture != NULL) {
-        SDL_DestroyTexture(Label->texture);
+void Label_SetText(Label *label, const char *text) {
+    if (label->texture != NULL) {
+        SDL_DestroyTexture(label->texture);
     }
 
-    if (Label->text != NULL) {
-        if (strcmp(Label->text, text) == 0) {
+    if (label->text != NULL) {
+        if (strcmp(label->text, text) == 0) {
             return;
         }
 
-        free(Label->text);
+        free(label->text);
     }
 
     if (text == NULL || text[0] == '\0') {
-        Label->width  = 0;
-        Label->height = 0;
+        label->width  = 0;
+        label->height = 0;
 
-        if (Label->texture != NULL) {
-            SDL_DestroyTexture(Label->texture);
-            Label->texture = NULL;
+        if (label->texture != NULL) {
+            SDL_DestroyTexture(label->texture);
+            label->texture = NULL;
         }
 
         return;
     }
 
-    Label->text   = strdup(text);
-    Label->width  = 0;
-    Label->height = 0;
+    label->text   = strdup(text);
+    label->width  = 0;
+    label->height = 0;
 
     for (const char *ch = text; *ch; ch++) {
-        struct FontGlyph *glyph  = font_get_glyph(Label->Font, *ch);
-        struct DC6Frame  *frame  = &Label->DC6->frames[glyph->frame_index];
-        Label->width            += glyph->width;
-        Label->height            = Label->height > frame->header.height ? Label->height : frame->header.height;
+        uint16_t frame_index;
+        uint8_t  frame_width;
+        uint32_t frame_height;
+
+        Font_GetGlyphMetrics(label->Font, *ch, &frame_index, &frame_width, NULL);
+        DC6_GetFrameSize(label->DC6, frame_index, NULL, &frame_height);
+
+        label->width  += frame_width;
+        label->height  = label->height > frame_height ? label->height : frame_height;
     }
 
-    if (Label->width == 0 || Label->height == 0) {
+    if (label->width == 0 || label->height == 0) {
         return;
     }
 
-    Label->texture = SDL_CreateTexture(sdl_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC, Label->width,
-                                       Label->height);
-    FAIL_IF_NULL(Label->texture);
+    label->texture = SDL_CreateTexture(sdl_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC, label->width,
+                                       label->height);
+    FAIL_IF_NULL(label->texture);
 
-    uint32_t *pixels = malloc((Label->width * Label->height) * sizeof(uint32_t));
+    uint32_t *pixels = malloc((label->width * label->height) * sizeof(uint32_t));
     FAIL_IF_NULL(pixels);
-    memset(pixels, 0, (Label->width * Label->height) * sizeof(uint32_t));
+    memset(pixels, 0, (label->width * label->height) * sizeof(uint32_t));
 
     int offset_x = 0;
     for (const char *ch = text; *ch; ch++) {
-        struct FontGlyph *glyph = font_get_glyph(Label->Font, *ch);
-        struct DC6Frame  *frame = &Label->DC6->frames[glyph->frame_index];
+        uint16_t frame_index;
+        uint32_t frame_width;
+        uint8_t  glyph_width;
+        uint32_t frame_height;
 
-        for (uint32_t y = 0; y < frame->header.height; y++) {
-            if (y >= Label->height) {
+        Font_GetGlyphMetrics(label->Font, *ch, &frame_index, &glyph_width, NULL);
+        DC6_GetFrameSize(label->DC6, frame_index, &frame_width, &frame_height);
+
+        const uint8_t *frame_pixel_data = DC6_GetFramePixelData(label->DC6, frame_index);
+
+        for (uint32_t y = 0; y < frame_height; y++) {
+            if (y >= label->height) {
                 break;
             }
-            for (uint32_t x = 0; x < frame->header.width; x++) {
-                if (x + offset_x >= Label->width) {
+            for (uint32_t x = 0; x < frame_width; x++) {
+                if (x + offset_x >= label->width) {
                     break;
                 }
-                const uint8_t  palette_index = frame->indexed_pixel_data[(y * frame->header.width) + x];
-                const uint32_t pixel_index   = (y * Label->width) + x + offset_x;
+                const uint8_t  palette_index = frame_pixel_data[(y * frame_width) + x];
+                const uint32_t pixel_index   = (y * label->width) + x + offset_x;
 
                 if (palette_index == 0) {
                     continue;
                 }
 
-                pixels[pixel_index] = Label->Palette->entries[palette_index];
+                pixels[pixel_index] = label->Palette->entries[palette_index];
             }
         }
 
-        offset_x += glyph->width;
+        offset_x += glyph_width;
     }
 
-    SDL_UpdateTexture(Label->texture, NULL, pixels, Label->width * 4);
-    SDL_SetTextureBlendMode(Label->texture, SDL_BLENDMODE_BLEND);
+    SDL_UpdateTexture(label->texture, NULL, pixels, label->width * 4);
+    SDL_SetTextureBlendMode(label->texture, SDL_BLENDMODE_BLEND);
     free(pixels);
 
-    Label__UpdateOffsets(Label);
+    Label__UpdateOffsets(label);
 }
 
 void Label_Draw(const Label *Label, int x, int y) {
@@ -148,44 +160,42 @@ void Label_Draw(const Label *Label, int x, int y) {
     SDL_RenderCopy(sdl_renderer, Label->texture, NULL, &dest);
 }
 
-void Label_SetColor(Label *Label, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-    SDL_SetTextureColorMod(Label->texture, r, g, b);
-    SDL_SetTextureAlphaMod(Label->texture, a);
+void Label_SetColor(Label *label, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+    SDL_SetTextureColorMod(label->texture, r, g, b);
+    SDL_SetTextureAlphaMod(label->texture, a);
 }
 
-void Label_SetAlignment(Label *Label, label_align_t horizontal, label_align_t vertical) {
-    Label->horizontal_align = horizontal;
-    Label->vertical_align   = vertical;
-    Label__UpdateOffsets(Label);
+void Label_SetAlignment(Label *label, label_align_t horizontal, label_align_t vertical) {
+    label->horizontal_align = horizontal;
+    label->vertical_align   = vertical;
+    Label__UpdateOffsets(label);
 }
-void Label__UpdateOffsets(Label *Label) {
-    switch (Label->horizontal_align) {
+void Label__UpdateOffsets(Label *label) {
+    switch (label->horizontal_align) {
     case LABEL_ALIGN_BEGIN:
-        Label->offset_x = 0;
+        label->offset_x = 0;
         break;
     case LABEL_ALIGN_CENTER:
-        Label->offset_x = -Label->width / 2;
+        label->offset_x = -label->width / 2;
         break;
     case LABEL_ALIGN_END:
-        Label->offset_x = -Label->width;
+        label->offset_x = -label->width;
         break;
     default:
-        LOG_FATAL("Invalid horizontal alignment value: %d", Label->horizontal_align);
-        break;
+        LOG_FATAL("Invalid horizontal alignment value: %d", label->horizontal_align);
     }
 
-    switch (Label->vertical_align) {
+    switch (label->vertical_align) {
     case LABEL_ALIGN_BEGIN:
-        Label->offset_y = 0;
+        label->offset_y = 0;
         break;
     case LABEL_ALIGN_CENTER:
-        Label->offset_y = -Label->height / 2;
+        label->offset_y = -label->height / 2;
         break;
     case LABEL_ALIGN_END:
-        Label->offset_y = -Label->height;
+        label->offset_y = -label->height;
         break;
     default:
-        LOG_FATAL("Invalid vertical alignment value: %d", Label->vertical_align);
-        break;
+        LOG_FATAL("Invalid vertical alignment value: %d", label->vertical_align);
     }
 }

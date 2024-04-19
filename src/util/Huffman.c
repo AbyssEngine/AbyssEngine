@@ -143,7 +143,7 @@ struct LinkedNode *huffman_decode(struct BitReader *bit_reader, struct LinkedNod
     struct LinkedNode *node = head;
 
     while (node->child_0 != NULL) {
-        int bit = bit_reader_read_bits(bit_reader, 1);
+        int bit = BitReader_ReadBits(bit_reader, 1);
         if (bit == -1) {
             LOG_FATAL("Failed to decode huffman table!");
         }
@@ -317,11 +317,14 @@ uint8_t *huffman_decompress(uint8_t *buffer, uint32_t buffer_len, uint32_t *resu
         LOG_FATAL("Invalid data while decompressing huffman table!");
     }
 
-    struct LinkedNode *tail      = huffman_build_list(primes[comp_type], primes_len[comp_type]);
-    struct LinkedNode *head      = huffman_build_tree(tail);
-    *result_size                 = 0;
-    uint8_t          *result     = calloc(0, sizeof(uint8_t));
-    struct BitReader *bit_reader = bit_reader_init(buffer, buffer_len);
+    struct LinkedNode *tail = huffman_build_list(primes[comp_type], primes_len[comp_type]);
+    struct LinkedNode *head = huffman_build_tree(tail);
+
+    *result_size = 0;
+
+    uint32_t          current_result_capacity = 8;
+    uint8_t          *result                  = calloc(0, current_result_capacity);
+    struct BitReader *bit_reader              = BitReader_Create(buffer, buffer_len);
     int               decoded;
 
     bool do_loop = true;
@@ -334,7 +337,7 @@ uint8_t *huffman_decompress(uint8_t *buffer, uint32_t buffer_len, uint32_t *resu
             do_loop = false;
             break;
         case DECOMP_VAL_2: {
-            int new_value = bit_reader_read_bits(bit_reader, 8);
+            int new_value = BitReader_ReadBits(bit_reader, 8);
             if (new_value < 0) {
                 LOG_FATAL("Failed to decompression huffman tree!");
             }
@@ -344,13 +347,17 @@ uint8_t *huffman_decompress(uint8_t *buffer, uint32_t buffer_len, uint32_t *resu
             tail                      = huffman_insert_node(tail, (uint8_t)new_value);
         } break;
         default:
-            *result_size             += 1;
-            result                    = realloc(result, *result_size);
-            result[*result_size - 1]  = decoded;
+            *result_size += 1;
+            if (*result_size >= current_result_capacity) {
+                current_result_capacity <<= 1;
+                result                    = realloc(result, current_result_capacity);
+            }
+
+            result[*result_size - 1] = decoded;
         }
     }
 
-    bit_reader_free(bit_reader);
+    BitReader_Destroy(bit_reader);
     huffman_free_linked_node(head);
     return result;
 }

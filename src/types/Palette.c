@@ -8,12 +8,12 @@
 struct Palette **palettes;
 int              palette_count;
 
-void palette_initialize(void) {
+void Palette_Initialize(void) {
     palettes      = calloc(0, sizeof(struct Palette *));
     palette_count = 0;
 }
 
-void palette_finalize(void) {
+void Palette_Finalize(void) {
     for (int i = 0; i < palette_count; i++) {
         free(palettes[i]->name);
         free(palettes[i]);
@@ -21,7 +21,7 @@ void palette_finalize(void) {
     free(palettes);
 }
 
-struct Palette *palette_get(const char *palette_name) {
+const Palette *Palette_Get(const char *palette_name) {
     for (int i = 0; i < palette_count; i++) {
         if (strcmp(palette_name, palettes[i]->name) != 0) {
             continue;
@@ -30,7 +30,7 @@ struct Palette *palette_get(const char *palette_name) {
         return palettes[i];
     }
 
-    struct Palette *result = malloc(sizeof(struct Palette));
+    Palette *result = malloc(sizeof(Palette));
     FAIL_IF_NULL(result);
 
     result->name = strdup(palette_name);
@@ -40,7 +40,7 @@ struct Palette *palette_get(const char *palette_name) {
     memset(path_buff, 0, 4096);
     snprintf(path_buff, 4096, PALETTE_PATH, palette_name);
 
-    struct MpqStream *stream = FileManager_OpenFile(path_buff);
+    MpqStream *stream = FileManager_OpenFile(path_buff);
 
     if (MpqStream_GetSize(stream) != 256 * 3) {
         LOG_ERROR("Invalid Palette file size. Expected %d but %d was returned.", 256 * 3, MpqStream_GetSize(stream));
@@ -55,7 +55,7 @@ struct Palette *palette_get(const char *palette_name) {
     MpqStream_Destroy(&stream);
 
     result->entries[0]          &= 0xFFFFFF00;
-    palettes                     = realloc(palettes, sizeof(struct Palette *) * ++palette_count);
+    palettes                     = realloc(palettes, sizeof(Palette *) * ++palette_count);
     palettes[palette_count - 1]  = result;
 
     return result;

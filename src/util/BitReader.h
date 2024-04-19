@@ -4,16 +4,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
-struct BitReader {
-    uint8_t *data_buffer;
-    size_t   buffer_len;
-    int      offset;
-    int      bits_read;
-};
+typedef struct BitReader BitReader;
 
-struct BitReader *bit_reader_init(uint8_t *data_buffer, size_t buffer_len);
-void              bit_reader_free(struct BitReader *br);
-uint32_t          bit_reader_read_bit(struct BitReader *br);
-uint32_t          bit_reader_read_bits(struct BitReader *br, int number_of_bits);
+BitReader *BitReader_Create(uint8_t *data_buffer, size_t buffer_len);
+void       BitReader_Destroy(BitReader *br);
+uint32_t   BitReader_ReadBit(BitReader *br);
+uint32_t   BitReader_ReadBits(BitReader *br, int number_of_bits);
 
 #endif // ABYSS_BIT_READER_H

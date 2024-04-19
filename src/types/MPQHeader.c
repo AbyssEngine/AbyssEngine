@@ -4,9 +4,9 @@
 
 static const char mpq_magic[4] = {'M', 'P', 'Q', 0x1A};
 
-void mpq_header_read(FILE *file, const char *mpq_path, struct MPQHeader *header) {
+void MPQHeader_Read(FILE *file, const char *mpq_path, MPQHeader *header) {
     fseek(file, 0, SEEK_SET);
-    fread(header, sizeof(struct MPQHeader), 1, file);
+    fread(header, sizeof(MPQHeader), 1, file);
 
     for (int i = 0; i < 4; i++) {
         if (header->magic[i] != mpq_magic[i]) {

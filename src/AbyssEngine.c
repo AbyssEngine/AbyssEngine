@@ -67,11 +67,11 @@ int main(int argc, char **argv) {
         SDL_SetWindowFullscreen(sdl_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
     }
 
-    palette_initialize();
+    Palette_Initialize();
     Cursor_CreateSingleton();
-    scene_initialize();
+    Scene_InitializeManager();
     Cursor_SetType(CURSOR_STANDARD);
-    scene_set(&scene_main_menu);
+    Scene_Set(SCENE_REF(MainMenu));
     Label_InitializeCaches();
     AudioManager_InitSingleton();
 
@@ -127,20 +127,20 @@ int main(int argc, char **argv) {
 
         last_ticks = current_ticks;
 
-        scene_update(tick_delta);
+        Scene_UpdateCurrentScene(tick_delta);
         AudioManager_Update();
 
         SDL_RenderClear(sdl_renderer);
-        scene_render();
+        Scene_RenderCurrentScene();
         Cursor_Draw();
         SDL_RenderPresent(sdl_renderer);
     }
 
     AudioManager_DestroySingleton();
     Label_FinalizeCaches();
-    scene_finalize();
+    Scene_DestroyManager();
     Cursor_Destroy();
-    palette_finalize();
+    Palette_Finalize();
     AbyssConfiguration_DestroySingleton();
     FileManager_DestroySingleton();
 

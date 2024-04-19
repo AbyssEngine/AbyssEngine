@@ -17,7 +17,7 @@ const int lookup[] = {0x0007, 0x0008, 0x0009, 0x000A, 0x000B, 0x000C, 0x000D, 0x
 const int lookup2[] = {-1, 0, -1, 4, -1, 2, -1, 6, -1, 1, -1, 5, -1, 3, -1, 7,
                        -1, 1, -1, 5, -1, 3, -1, 7, -1, 2, -1, 4, -1, 6, -1, 8};
 
-uint8_t *wav_decompress(uint8_t *data, uint32_t buffer_len, int channel_count, uint32_t *result_size) {
+uint8_t *WAV_Decompress(uint8_t *data, uint32_t buffer_len, int channel_count, uint32_t *result_size) {
     int  array1[] = {0x2C, 0x2C};
     int *array2   = malloc(sizeof(int) * channel_count);
     FAIL_IF_NULL(array2);

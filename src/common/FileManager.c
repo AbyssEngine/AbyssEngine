@@ -67,7 +67,7 @@ void FileManager_DestroySingleton(void) {
     free(file_manager->files);
 
     for (uint32_t mpq_idx = 0; mpq_idx < file_manager->mpq_count; mpq_idx++) {
-        mpq_free(file_manager->mpqs[mpq_idx]);
+        MPQ_Destroy(file_manager->mpqs[mpq_idx]);
     }
 
     free(file_manager->mpqs);
@@ -81,7 +81,7 @@ void FileManager_AddMpq(const char *mpq_path) {
     assert(mpq_path != NULL);
 
     file_manager->mpqs = realloc(file_manager->mpqs, sizeof(struct MPQ *) * ++file_manager->mpq_count);
-    file_manager->mpqs[file_manager->mpq_count - 1] = mpq_load(mpq_path);
+    file_manager->mpqs[file_manager->mpq_count - 1] = MPQ_Load(mpq_path);
 }
 
 MpqStream *FileManager_OpenFile(const char *file_path) {
@@ -102,7 +102,7 @@ MpqStream *FileManager_OpenFile(const char *file_path) {
 
     if (file_entry == NULL) {
         for (uint32_t mpq_idx = 0; mpq_idx < file_manager->mpq_count; mpq_idx++) {
-            if (!mpq_file_exists(file_manager->mpqs[mpq_idx], path_fixed)) {
+            if (!MPQ_FileExists(file_manager->mpqs[mpq_idx], path_fixed)) {
                 continue;
             }
 
