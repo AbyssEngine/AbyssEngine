@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
 
     LOG_DEBUG("Initializing SDL...");
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-        FATAL(SDL_GetError());
+        LOG_FATAL(SDL_GetError());
     }
 
     LOG_DEBUG("Initializing crypto...");
@@ -51,14 +51,14 @@ int main(int argc, char **argv) {
                                   SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 
     if (sdl_window == NULL) {
-        FATAL(SDL_GetError());
+        LOG_FATAL(SDL_GetError());
     }
 
     LOG_DEBUG("Creating renderer...");
     sdl_renderer = SDL_CreateRenderer(sdl_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
     if (sdl_renderer == NULL) {
-        FATAL(SDL_GetError());
+        LOG_FATAL(SDL_GetError());
     }
 
     SDL_RenderSetLogicalSize(sdl_renderer, 800, 600);

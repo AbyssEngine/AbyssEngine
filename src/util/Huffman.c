@@ -337,7 +337,7 @@ uint8_t *huffman_decompress(uint8_t *buffer, uint32_t buffer_len, uint32_t *resu
             do_loop = false;
             break;
         case DECOMP_VAL_2: {
-            int new_value = BitReader_ReadBits(bit_reader, 8);
+            int new_value = (int)BitReader_ReadBits(bit_reader, 8);
             if (new_value < 0) {
                 LOG_FATAL("Failed to decompression huffman tree!");
             }
