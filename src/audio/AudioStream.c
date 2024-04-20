@@ -52,7 +52,7 @@ AudioStream *AudioStream_Create(const char *path) {
 
     result->ring_buffer      = RingBuffer_Create(AUDIO_RING_BUFFER_SIZE);
     result->stream           = FileManager_OpenFile(path);
-    result->mutex            = mutex_create();
+    result->mutex            = Mutex_Create();
     result->audio_out_buffer = malloc(AUDIO_STREAM_DECODE_BUFFER_SIZE);
 
     const uint32_t stream_size = MpqStream_GetSize(result->stream);
@@ -137,8 +137,8 @@ AudioStream *AudioStream_Create(const char *path) {
 }
 
 void AudioStream_Destroy(struct AudioStream **audio_stream) {
-    mutex_destroy(&(*audio_stream)->mutex);
-    RingBuffer_Free(&(*audio_stream)->ring_buffer);
+    Mutex_Destroy(&(*audio_stream)->mutex);
+    RingBuffer_Destroy(&(*audio_stream)->ring_buffer);
     av_free((*audio_stream)->avio_context->buffer);
     avio_context_free(&(*audio_stream)->avio_context);
 
@@ -204,10 +204,10 @@ void AudioStream__ReadFrame(const struct AudioStream *audio_stream) {
 }
 
 int16_t AudioStream_GetSample(struct AudioStream *audio_stream) {
-    mutex_lock(audio_stream->mutex);
+    Mutex_Lock(audio_stream->mutex);
 
     if (!audio_stream->is_playing || audio_stream->is_paused) {
-        mutex_unlock(audio_stream->mutex);
+        Mutex_Unlock(audio_stream->mutex);
         return 0;
     }
 
@@ -217,7 +217,7 @@ int16_t AudioStream_GetSample(struct AudioStream *audio_stream) {
         audio_stream->is_playing = audio_stream->loop;
 
         if (!audio_stream->is_playing) {
-            mutex_unlock(audio_stream->mutex);
+            Mutex_Unlock(audio_stream->mutex);
             return 0;
         }
     }
@@ -227,23 +227,45 @@ int16_t AudioStream_GetSample(struct AudioStream *audio_stream) {
     }
 
     if (RingBuffer_GetRemainingToRead(audio_stream->ring_buffer) < 2) {
-        mutex_unlock(audio_stream->mutex);
+        Mutex_Unlock(audio_stream->mutex);
         return 0;
     }
 
     int16_t sample;
     RingBuffer_Read(audio_stream->ring_buffer, (char *)&sample, sizeof(int16_t));
 
-    mutex_unlock(audio_stream->mutex);
+    Mutex_Unlock(audio_stream->mutex);
 
     return sample;
 }
-bool AudioStream_IsLooping(const AudioStream *audio_stream) { return audio_stream->loop; }
+bool AudioStream_IsLooping(const AudioStream *audio_stream) {
+    Mutex_Lock(audio_stream->mutex);
+    bool result = audio_stream->loop;
+    Mutex_Unlock(audio_stream->mutex);
+    return result;
+}
 
-void AudioStream_SetLoop(AudioStream *audio_stream, bool loop) { audio_stream->loop = loop; }
+void AudioStream_SetLoop(AudioStream *audio_stream, bool loop) {
+    Mutex_Lock(audio_stream->mutex);
+    audio_stream->loop = loop;
+    Mutex_Unlock(audio_stream->mutex);
+}
 
-void AudioStream_Play(AudioStream *audio_stream) { audio_stream->is_playing = true; }
+void AudioStream_Play(AudioStream *audio_stream) {
+    Mutex_Lock(audio_stream->mutex);
+    audio_stream->is_playing = true;
+    Mutex_Unlock(audio_stream->mutex);
+}
 
-bool AudioStream_IsPlaying(const AudioStream *audio_stream) { return audio_stream->is_playing; }
+bool AudioStream_IsPlaying(const AudioStream *audio_stream) {
+    Mutex_Lock(audio_stream->mutex);
+    bool result = audio_stream->is_playing;
+    Mutex_Unlock(audio_stream->mutex);
+    return result;
+}
 
-void AudioStream_Stop(AudioStream *audio_stream) { audio_stream->is_playing = false; }
+void AudioStream_Stop(AudioStream *audio_stream) {
+    Mutex_Lock(audio_stream->mutex);
+    audio_stream->is_playing = false;
+    Mutex_Unlock(audio_stream->mutex);
+}

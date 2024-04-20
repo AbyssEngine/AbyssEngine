@@ -1,6 +1,7 @@
 #include "AudioManager.h"
 #include "../common/AbyssConfiguration.h"
 #include "../common/Logging.h"
+#include "../managers/VideoManager.h"
 
 typedef struct AudioManager {
     bool                audio_available;
@@ -36,8 +37,12 @@ void AudioManager_FillBuffer(void *userdata, Uint8 *stream, int len) {
     for (int i = 0; i < len; i += 2) {
         int32_t sample = 0;
 
-        if (manager->background_music != NULL) {
-            sample += (int32_t)((double)AudioStream_GetSample(manager->background_music) * volume_bgm);
+        if (VideoManager_IsPlayingVideo()) {
+            sample = VideoManager_GetAudioSample();
+        } else {
+            if (manager->background_music != NULL) {
+                sample += (int32_t)((double)AudioStream_GetSample(manager->background_music) * volume_bgm);
+            }
         }
 
         if (sample < -32768) {

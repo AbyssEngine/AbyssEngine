@@ -36,7 +36,7 @@ struct MPQ *MPQ_Load(const char *mpq_path) {
     result->hashes = MPQ_LoadHashTable(result->file, &result->header);
     result->blocks = MPQ__LoadBlocks(result->file, result);
 
-    result->mutex = mutex_create();
+    result->mutex = Mutex_Create();
 
     return result;
 }
@@ -44,13 +44,13 @@ struct MPQ *MPQ_Load(const char *mpq_path) {
 void MPQ_Destroy(MPQ *mpq) {
     LOG_DEBUG("Unloading '%s'...", mpq->path);
 
-    mutex_lock(mpq->mutex); // Ensure we have don't have dangling access open somewhere else...
+    Mutex_Lock(mpq->mutex); // Ensure we have don't have dangling access open somewhere else...
 
     fclose(mpq->file);
     free(mpq->path);
     free(mpq->blocks);
     free(mpq->hashes);
-    mutex_destroy(&mpq->mutex);
+    Mutex_Destroy(&mpq->mutex);
 
     free(mpq);
 }
@@ -87,11 +87,11 @@ uint64_t MPQ_GetBlockSize(const MPQ *mpq) {
 }
 
 FILE *MPQ_AcquireFileHandle(MPQ *mpq) {
-    mutex_lock(mpq->mutex);
+    Mutex_Lock(mpq->mutex);
     return mpq->file;
 }
 
-void MPQ_ReleaseFileHandle(MPQ *mpq) { mutex_unlock(mpq->mutex); }
+void MPQ_ReleaseFileHandle(MPQ *mpq) { Mutex_Unlock(mpq->mutex); }
 
 struct MPQBlock *MPQ__LoadBlocks(FILE *file, const MPQ *mpq) {
     struct MPQBlock *result = calloc(sizeof(struct MPQBlock), mpq->header.block_table_entries);

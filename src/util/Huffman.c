@@ -323,7 +323,7 @@ uint8_t *huffman_decompress(uint8_t *buffer, uint32_t buffer_len, uint32_t *resu
     *result_size = 0;
 
     uint32_t          current_result_capacity = 8;
-    uint8_t          *result                  = calloc(0, current_result_capacity);
+    uint8_t          *result                  = calloc(current_result_capacity, 1);
     struct BitReader *bit_reader              = BitReader_Create(buffer, buffer_len);
     int               decoded;
 
@@ -341,10 +341,13 @@ uint8_t *huffman_decompress(uint8_t *buffer, uint32_t buffer_len, uint32_t *resu
             if (new_value < 0) {
                 LOG_FATAL("Failed to decompression huffman tree!");
             }
-            *result_size             += 1;
-            result                    = realloc(result, *result_size);
-            result[*result_size - 1]  = new_value;
-            tail                      = huffman_insert_node(tail, (uint8_t)new_value);
+            *result_size += 1;
+            if (*result_size >= current_result_capacity) {
+                current_result_capacity <<= 1;
+                result                    = realloc(result, current_result_capacity);
+            }
+            result[*result_size - 1] = new_value;
+            tail                     = huffman_insert_node(tail, (uint8_t)new_value);
         } break;
         default:
             *result_size += 1;

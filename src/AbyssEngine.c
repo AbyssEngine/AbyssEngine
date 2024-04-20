@@ -6,8 +6,9 @@
 #include "drawing/Label.h"
 #include "managers/AudioManager.h"
 #include "managers/InputManager.h"
+#include "managers/VideoManager.h"
 #include "scenes/Scene.h"
-#include "scenes/SceneMainMenu.h"
+#include "scenes/SceneIntroVideos.h"
 #include "types/Palette.h"
 #include "util/Crypto.h"
 #include <libavutil/log.h>
@@ -72,10 +73,11 @@ int main(int argc, char **argv) {
     Cursor_CreateSingleton();
     Scene_InitializeManager();
     Cursor_SetType(CURSOR_STANDARD);
-    Scene_Set(SCENE_REF(MainMenu));
+    Scene_Set(SCENE_REF(IntroVideos));
     Label_InitializeCaches();
     AudioManager_InitSingleton();
     InputManager_InitializeSingleton();
+    VideoManager_InitializeSingleton();
 
     SDL_Event sdl_event;
     running             = true;
@@ -90,8 +92,12 @@ int main(int argc, char **argv) {
             switch (sdl_event.type) {
             case SDL_QUIT:
                 running = false;
-                continue;
+                break;
             }
+        }
+
+        if (!running) {
+            break;
         }
 
         const uint64_t current_ticks = SDL_GetTicks64();
@@ -104,17 +110,22 @@ int main(int argc, char **argv) {
 
         last_ticks = current_ticks;
 
-        Scene_UpdateCurrentScene(tick_delta);
+        VideoManager_IsPlayingVideo() ? VideoManager_Update(tick_delta) : Scene_UpdateCurrentScene(tick_delta);
         AudioManager_Update();
 
         SDL_RenderClear(sdl_renderer);
-        Scene_RenderCurrentScene();
-        Cursor_Draw();
+        if (VideoManager_IsPlayingVideo()) {
+            VideoManager_Render();
+        } else {
+            Scene_RenderCurrentScene();
+            Cursor_Draw();
+        }
         SDL_RenderPresent(sdl_renderer);
     }
 
+    AudioManager_DestroySingleton(); // Destroy this first as it reaches into things via threads
+    VideoManager_DestroySingleton();
     InputManager_DestroySingleton();
-    AudioManager_DestroySingleton();
     Label_FinalizeCaches();
     Scene_DestroyManager();
     Cursor_Destroy();

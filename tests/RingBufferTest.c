@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
     RingBuffer_Read(rb, buffer_out, 7);
     assert(strcmp(buffer_out, "abcdefg") == 0);
 
-    RingBuffer_Free(&rb);
+    RingBuffer_Destroy(&rb);
     assert(rb == NULL);
     return 0;
 }
