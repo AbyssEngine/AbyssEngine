@@ -255,9 +255,10 @@ void VideoManager_PlayVideo(const char *path) {
                        video_manager->video_codec_context->pix_fmt, video_manager->video_codec_context->width,
                        video_manager->video_codec_context->height, AV_PIX_FMT_YUV420P, SWS_POINT, NULL, NULL, NULL);
 
-    const size_t y_plane_size = video_manager->video_codec_context->width * video_manager->video_codec_context->height;
+    const size_t y_plane_size =
+        (size_t)video_manager->video_codec_context->width * video_manager->video_codec_context->height;
     const size_t uv_plane_size =
-        video_manager->video_codec_context->width * video_manager->video_codec_context->height / 4;
+        (size_t)video_manager->video_codec_context->width * video_manager->video_codec_context->height / 4;
 
     video_manager->y_plane  = malloc(y_plane_size);
     video_manager->u_plane  = malloc(uv_plane_size);
