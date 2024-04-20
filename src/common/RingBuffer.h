@@ -2,6 +2,7 @@
 #define ABYSS_RING_BUFFER_H
 
 #include "../util/Mutex.h"
+#include <stdint.h>
 #include <stdlib.h>
 
 typedef struct RingBuffer RingBuffer;

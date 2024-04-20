@@ -427,10 +427,6 @@ void MpqStream_Seek(MpqStream *mpq_stream, int64_t position, int32_t origin) {
         LOG_FATAL("Invalid origin for seek: %d", origin);
     }
 
-    if (mpq_stream->position < 0) {
-        mpq_stream->position = 0;
-    }
-
     if (mpq_stream->position >= mpq_stream->block->size_uncompressed) {
         mpq_stream->position = mpq_stream->block->size_uncompressed;
     }

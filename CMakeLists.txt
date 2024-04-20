@@ -92,6 +92,8 @@ if (APPLE)
             ${OSX_COREMEDIA}
             ${OSX_SECURITY}
     )
+elseif (UNIX)
+    set(ADDITIONAL_LIBRARIES "m")
 endif ()
 
 target_link_libraries(AbyssEngine

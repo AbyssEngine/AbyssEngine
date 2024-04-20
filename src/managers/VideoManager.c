@@ -65,7 +65,7 @@ void VideoManager_InitializeSingleton(void) {
 }
 
 void VideoManager_DestroySingleton(void) {
-    Mutex_Lock(&video_manager->mutex);
+    Mutex_Lock(video_manager->mutex);
     VideoManager_StopVideo();
     Mutex_Destroy(&video_manager->mutex);
     free(video_manager);
