@@ -1,21 +1,16 @@
 #ifndef ABYSS_RING_BUFFER_H
 #define ABYSS_RING_BUFFER_H
 
+#include "../util/Mutex.h"
 #include <stdint.h>
+#include <stdlib.h>
 
-struct RingBuffer {
-    uint32_t size;
-    uint32_t read_position;
-    uint32_t write_position;
-    uint32_t remaining_to_read;
-    uint32_t remaining_to_write;
-    char    *buffer;
-};
+typedef struct RingBuffer RingBuffer;
 
-struct RingBuffer *ring_buffer_create(uint32_t size);
-void               ring_buffer_free(struct RingBuffer *RingBuffer);
-void               ring_buffer_write(struct RingBuffer *RingBuffer, const char *data, uint32_t length);
-uint32_t           ring_buffer_read(struct RingBuffer *RingBuffer, char *buffer, uint32_t length);
-double             ring_buffer_get_fill_percentage(const struct RingBuffer *RingBuffer);
+RingBuffer *RingBuffer_Create(uint32_t size);
+void        RingBuffer_Destroy(RingBuffer **ring_buffer);
+void        RingBuffer_Write(RingBuffer *ring_buffer, const char *data, uint32_t length);
+uint32_t    RingBuffer_Read(RingBuffer *ring_buffer, char *buffer, uint32_t length);
+size_t      RingBuffer_GetRemainingToRead(RingBuffer *ring_buffer);
 
 #endif // ABYSS_RING_BUFFER_H

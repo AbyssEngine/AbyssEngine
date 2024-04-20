@@ -5,30 +5,14 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-struct SpriteFrame {
-    SDL_Texture *texture;
-    uint32_t     width;
-    uint32_t     height;
-    int32_t      offset_x;
-    int32_t      offset_y;
-};
+typedef struct Sprite Sprite;
 
-struct Sprite {
-    struct SpriteFrame *frames;
-    uint32_t            frame_count;
-    double              play_length;
-    uint32_t            ticks_per_frame;
-    uint64_t            last_ticks;
-    uint32_t            animation_index;
-};
-
-struct Sprite *sprite_load(const char *path, const char *palette_name);
-void           sprite_free(struct Sprite *Sprite);
-void           sprite_set_blend_mode(const struct Sprite *Sprite, SDL_BlendMode blend_mode);
-void           sprite_set_play_length(struct Sprite *Sprite, double play_length);
-void           sprite_draw(const struct Sprite *Sprite, uint8_t frame_index, int x, int y);
-void sprite_draw_multi(const struct Sprite *Sprite, uint8_t frame_index, int x, int y, int frames_x, int frames_y);
-void sprite_draw_animated(struct Sprite *Sprite, int x, int y);
-void sprite_load_dc6(struct Sprite *Sprite, const char *path, const char *palette_name);
+Sprite *Sprite_Create(const char *path, const char *palette_name);
+void    Sprite_Destroy(Sprite **sprite);
+void    Sprite_SetBlendMode(const Sprite *sprite, SDL_BlendMode blend_mode);
+void    Sprite_SetPlayLength(Sprite *sprite, double play_length);
+void    Sprite_Draw(const Sprite *sprite, uint8_t frame_index, int x, int y);
+void    Sprite_DrawMulti(const Sprite *sprite, uint8_t frame_index, int x, int y, int frames_x, int frames_y);
+void    Sprite_DrawAnimated(Sprite *sprite, int x, int y);
 
 #endif // ABYSS_SPRITE_H

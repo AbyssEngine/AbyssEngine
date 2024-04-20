@@ -7,18 +7,15 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-struct MPQ {
-    char                *path;
-    FILE                *file;
-    struct MPQHeader     header;
-    struct MPQHashEntry *hashes;
-    struct MPQBlock     *blocks;
-    int                  hashes_count;
-};
+typedef struct MPQ MPQ;
 
-struct MPQ     *mpq_load(const char *mpq_path);
-void            mpq_free(struct MPQ *mpq);
-bool            mpq_file_exists(struct MPQ *mpq, const char *file_path);
-struct MPQHash *mpq_get_file_hash(const struct MPQ *mpq, const char *file_path);
+MPQ             *MPQ_Load(const char *mpq_path);
+void             MPQ_Destroy(MPQ *mpq);
+bool             MPQ_FileExists(const MPQ *mpq, const char *file_path);
+struct MPQHash  *MPQ_GetFileHash(const MPQ *mpq, const char *file_path);
+struct MPQBlock *MPQ_GetBlock(const MPQ *mpq, uint32_t block_index);
+uint64_t         MPQ_GetBlockSize(const MPQ *mpq);
+FILE            *MPQ_AcquireFileHandle(MPQ *mpq);
+void             MPQ_ReleaseFileHandle(MPQ *mpq);
 
 #endif // ABYSS_MPQ_H

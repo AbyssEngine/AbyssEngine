@@ -46,7 +46,7 @@ jobs:
                 with:
                     vcpkgJsonGlob: "**/vcpkg.json"
                     vcpkgDirectory: "${{ github.workspace }}/vcpkg"
-                    vcpkgGitCommitId: "ad3bae57455a3c3ce528fcd47d8e8027d0498add"
+                    vcpkgGitCommitId: "b4a3d89125e45bc8f80fb94bef9761d4f4e14fb9"
 
             -   name: Configure CMake
                 run: >
@@ -56,6 +56,7 @@ jobs:
                     -DCMAKE_CXX_COMPILER=clang++
                     -DCMAKE_C_COMPILER=clang
                     -DCMAKE_BUILD_TYPE=Release
+                    -DGITHUB_ACTIONS=1
                     -S ${{ github.workspace }}
                     -B ${{ github.workspace }}/build
 

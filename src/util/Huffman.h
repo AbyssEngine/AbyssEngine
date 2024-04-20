@@ -15,8 +15,8 @@ struct LinkedNode {
 struct LinkedNode *huffman_create_linked_node(int decompressed_value, int weight);
 struct LinkedNode *huffman_get_child1(struct LinkedNode *node);
 struct LinkedNode *huffman_insert(struct LinkedNode *node, struct LinkedNode *other);
-struct LinkedNode *huffman_decode(struct BitReader *BitReader, struct LinkedNode *head);
-struct LinkedNode *huffman_build_list(uint16_t *prime_table);
+struct LinkedNode *huffman_decode(struct BitReader *bit_reader, struct LinkedNode *head);
+struct LinkedNode *huffman_build_list(uint8_t *prime_table, int prime_len);
 struct LinkedNode *huffman_insert_node(struct LinkedNode *tail, int decomp);
 void               huffman_adjust_tree(struct LinkedNode *new_node);
 struct LinkedNode *huffman_build_tree(struct LinkedNode *tail);

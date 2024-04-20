@@ -11,6 +11,10 @@
 #define D2LOGO_FIRE_LEFT   "/data/global/ui/FrontEnd/D2logoFireLeft.DC6"
 #define D2LOGO_FIRE_RIGHT  "/data/global/ui/FrontEnd/D2logoFireRight.DC6"
 
+// --- Credits ---
+
+#define RESOURCE_PATH_CREDITS_TEXT = "/data/local/ui/%s/ExpansionCredits.txt"
+
 // --
 
 #define LOADING_SCREEN "/data/global/ui/loading/loadingscreen.DC6"
@@ -94,4 +98,8 @@
 #define MUSIC_ACT5_XTEMPLE              "/data/global/music/Act5/xtemple.wav"
 #define MUSIC_ACT5_ICECAVES             "/data/global/music/Act5/icecaves.wav"
 #define MUSIC_ACT5_NIHLATHAK            "/data/global/music/Act5/nihlathakmusic.wav"
+
+// -- Videos
+#define VIDEO_BLIZZARD_STARTUP_1 "/data/local/video/New_Bliz640x480.bik"
+#define VIDEO_BLIZZARD_STARTUP_2 "/data/local/video/BlizNorth640x480.bik"
 #endif // ABYSS_RESOURCEPATHS_H

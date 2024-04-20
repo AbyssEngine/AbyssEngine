@@ -2,8 +2,8 @@
 #include "../util/Crypto.h"
 #include <stdlib.h>
 
-struct MPQHashEntry *mpq_hash_read_table(FILE *file, const struct MPQHeader *mpq_header) {
-    struct MPQHashEntry *result = calloc(sizeof(struct MPQHashEntry), mpq_header->hash_table_entries);
+MPQHashEntry *MPQ_LoadHashTable(FILE *file, const MPQHeader *mpq_header) {
+    MPQHashEntry *result = calloc(sizeof(MPQHashEntry), mpq_header->hash_table_entries);
     fseek(file, mpq_header->hash_table_offset, SEEK_SET);
 
     uint32_t *hash_data = crypto_decrypt_table(file, mpq_header->hash_table_entries, "(hash table)");
@@ -11,7 +11,7 @@ struct MPQHashEntry *mpq_hash_read_table(FILE *file, const struct MPQHeader *mpq
     uint32_t n;
     uint32_t i;
     for (n = 0, i = 0; i < mpq_header->hash_table_entries; n += 4, i++) {
-        struct MPQHash *entry = &result[i].hash;
+        MPQHash *entry = &result[i].hash;
 
         entry->a           = hash_data[n];
         entry->b           = hash_data[n + 1];

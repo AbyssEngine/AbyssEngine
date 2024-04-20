@@ -1,47 +1,72 @@
 #include "AudioStream.h"
+
 #include "../common/FileManager.h"
 #include "../common/Logging.h"
+#include "../managers/AudioManager.h"
+#include <libavutil/opt.h>
+#include <stdio.h>
 
-#define AUDIO_STREAM_DECODE_BUFFER_SIZE 1024
+struct AudioStream {
+    bool                    is_playing;
+    bool                    is_paused;
+    bool                    loop;
+    int                     audio_stream_index;
+    struct MpqStream       *stream;
+    unsigned char          *av_buffer;
+    struct AVIOContext     *avio_context;
+    struct AVFormatContext *av_format_context;
+    struct AVCodecContext  *audio_codec_context;
+    struct SwrContext      *av_resample_context;
+    struct AVFrame         *av_frame;
+    struct RingBuffer      *ring_buffer;
+    struct Mutex           *mutex;
+    uint8_t                *audio_out_buffer;
+};
+
+void AudioStream__ReadFrame(const struct AudioStream *audio_stream);
+
+#define AUDIO_STREAM_DECODE_BUFFER_SIZE (1024 * 8)
+#define AUDIO_STREAM_MAX_BUFF_SIZE      (1024 * 10)
+#define AUDIO_RING_BUFFER_SIZE          (1024 * 1024)
 
 int audio_stream_read_callback(void *opaque, unsigned char *buffer, const int size) {
-    struct AudioStream *AudioStream = (struct AudioStream *)opaque;
-    return (int)mpq_stream_read(AudioStream->stream, buffer, 0, size);
+    const AudioStream *audio_stream = (AudioStream *)opaque;
+
+    const int result = MpqStream_Read(audio_stream->stream, buffer, 0, size);
+    return result;
 }
 
 int64_t audio_stream_seek_callback(void *opaque, const int64_t offset, const int whence) {
-    struct AudioStream *AudioStream = (struct AudioStream *)opaque;
+    const AudioStream *audio_stream = (AudioStream *)opaque;
     if (whence == AVSEEK_SIZE) {
-        return mpq_stream_get_size(AudioStream->stream);
+        return MpqStream_GetSize(audio_stream->stream);
     }
 
-    mpq_stream_seek(AudioStream->stream, offset, whence);
-    return mpq_stream_tell(AudioStream->stream);
+    MpqStream_Seek(audio_stream->stream, offset, whence);
+    return MpqStream_Tell(audio_stream->stream);
 }
 
-struct AudioStream *audio_stream_create(const char *path) {
-    struct AudioStream *result = malloc(sizeof(struct AudioStream));
-    memset(result, 0, sizeof(struct AudioStream));
+AudioStream *AudioStream_Create(const char *path) {
+    AudioStream *result = malloc(sizeof(AudioStream));
+    memset(result, 0, sizeof(AudioStream));
 
-    result->stream     = file_manager_load(path);
-    result->RingBuffer = ring_buffer_create(1024 * 1024);
+    result->ring_buffer      = RingBuffer_Create(AUDIO_RING_BUFFER_SIZE);
+    result->stream           = FileManager_OpenFile(path);
+    result->mutex            = Mutex_Create();
+    result->audio_out_buffer = malloc(AUDIO_STREAM_DECODE_BUFFER_SIZE);
 
-    const uint32_t stream_size = mpq_stream_get_size(result->stream);
-    const uint32_t decode_buffer_size =
-        stream_size < AUDIO_STREAM_DECODE_BUFFER_SIZE ? stream_size : AUDIO_STREAM_DECODE_BUFFER_SIZE;
+    const uint32_t stream_size = MpqStream_GetSize(result->stream);
 
-    result->av_buffer = av_malloc(decode_buffer_size);
-    memset(result->av_buffer, 0, decode_buffer_size);
+    const size_t decode_buffer_size =
+        stream_size < AUDIO_STREAM_MAX_BUFF_SIZE ? stream_size : AUDIO_STREAM_MAX_BUFF_SIZE;
 
-    result->avio_context = avio_alloc_context(result->av_buffer, (int)decode_buffer_size, 0, result->RingBuffer,
+    result->av_buffer    = av_malloc(decode_buffer_size);
+    result->avio_context = avio_alloc_context(result->av_buffer, decode_buffer_size, 0, result,
                                               audio_stream_read_callback, NULL, audio_stream_seek_callback);
 
-    result->avio_context->opaque = result;
-
-    result->av_format_context          = avformat_alloc_context();
-    result->av_format_context->opaque  = result;
-    result->av_format_context->pb      = result->avio_context;
-    result->av_format_context->flags  |= AVFMT_FLAG_CUSTOM_IO;
+    result->av_format_context         = avformat_alloc_context();
+    result->av_format_context->pb     = result->avio_context;
+    result->av_format_context->flags |= AVFMT_FLAG_CUSTOM_IO;
 
     int av_error;
 
@@ -67,7 +92,7 @@ struct AudioStream *audio_stream_create(const char *path) {
         LOG_FATAL("No audio stream found for '%s'!", path);
     }
 
-    struct AVCodecParameters *audio_codec_par =
+    const struct AVCodecParameters *audio_codec_par =
         result->av_format_context->streams[result->audio_stream_index]->codecpar;
 
     const struct AVCodec *audio_decoder = avcodec_find_decoder(audio_codec_par->codec_id);
@@ -75,24 +100,34 @@ struct AudioStream *audio_stream_create(const char *path) {
     if (audio_decoder == NULL) {
         LOG_FATAL("Missing audio codec for '%s'!", path);
     }
-    AVChannelLayout layout_stereo = AV_CHANNEL_LAYOUT_STEREO;
-    AVChannelLayout layout_mono   = AV_CHANNEL_LAYOUT_MONO;
 
-    AVChannelLayout *layout_in  = (audio_codec_par->ch_layout.nb_channels == 2) ? &layout_stereo : &layout_mono;
-    AVChannelLayout *layout_out = &layout_stereo;
+    LOG_DEBUG("Using %s to decode %s", audio_decoder->long_name, path);
 
-    av_error = swr_alloc_set_opts2(&result->av_resample_context,
-                                   layout_out,                   // output channel layout (e. g. AV_CHANNEL_LAYOUT_*)
-                                   AV_SAMPLE_FMT_S16,            // output sample format (AV_SAMPLE_FMT_*).
-                                   44100,                        // output sample rate (frequency in Hz)
-                                   layout_in,                    // input channel layout (e. g. AV_CHANNEL_LAYOUT_*)
-                                   audio_codec_par->format,      // input sample format (AV_SAMPLE_FMT_*).
-                                   audio_codec_par->sample_rate, // input sample rate (frequency in Hz)
-                                   0,                            // logging level offset
-                                   NULL                          // log_ctx
-    );
+    result->audio_codec_context = avcodec_alloc_context3(audio_decoder);
+    if ((av_error = avcodec_parameters_to_context(result->audio_codec_context, audio_codec_par)) < 0) {
+        LOG_FATAL("Failed to copy codec parameters to decoder context: %s", av_err2str(av_error));
+    }
 
-    if (av_error < 0) {
+    if ((av_error = avcodec_open2(result->audio_codec_context, audio_decoder, NULL)) < 0) {
+        LOG_FATAL("Failed to open the audio codec: ", av_err2str(av_error));
+    }
+
+    AVChannelLayout channel_layout = AudioManager_GetChannelLayout();
+
+    result->av_resample_context = swr_alloc();
+    av_opt_set_int(result->av_resample_context, "in_sample_rate", audio_codec_par->sample_rate, 0);
+    av_opt_set_chlayout(result->av_resample_context, "in_chlayout", &result->audio_codec_context->ch_layout, 0);
+    av_opt_set_sample_fmt(result->av_resample_context, "in_sample_fmt", audio_codec_par->format, 0);
+
+    av_opt_set_int(result->av_resample_context, "out_sample_rate", AudioManager_GetAudioSpec().freq, 0);
+    av_opt_set_chlayout(result->av_resample_context, "out_chlayout", &channel_layout, 0);
+    av_opt_set_sample_fmt(result->av_resample_context, "out_sample_fmt", AudioManager_GetSampleFormat(), 0);
+
+    if ((av_error = swr_init(result->av_resample_context)) < 0) {
+        LOG_FATAL("Failed to set re-sampler options: %s", av_err2str(av_error));
+    }
+
+    if ((av_error = swr_init(result->av_resample_context)) < 0) {
         LOG_FATAL("Failed to initialize re-sampler: %s", av_err2str(av_error));
     }
 
@@ -101,28 +136,136 @@ struct AudioStream *audio_stream_create(const char *path) {
     return result;
 }
 
-void audio_stream_free(struct AudioStream *AudioStream) {
-    av_free(AudioStream->avio_context->buffer);
-    avio_context_free(&AudioStream->avio_context);
-    if (AudioStream->audio_stream_index >= 0) {
-        avcodec_free_context(&AudioStream->av_codec_context);
-        swr_free(&AudioStream->av_resample_context);
-    }
-    av_frame_free(&AudioStream->av_frame);
-    avformat_close_input(&AudioStream->av_format_context);
-    avformat_free_context(AudioStream->av_format_context);
+void AudioStream_Destroy(struct AudioStream **audio_stream) {
+    Mutex_Destroy(&(*audio_stream)->mutex);
+    RingBuffer_Destroy(&(*audio_stream)->ring_buffer);
+    av_free((*audio_stream)->avio_context->buffer);
+    avio_context_free(&(*audio_stream)->avio_context);
 
-    ring_buffer_free(AudioStream->RingBuffer);
-    mpq_stream_free(AudioStream->stream);
-    free(AudioStream);
+    if ((*audio_stream)->audio_stream_index >= 0) {
+        avcodec_free_context(&(*audio_stream)->audio_codec_context);
+        swr_free(&(*audio_stream)->av_resample_context);
+    }
+
+    av_frame_free(&(*audio_stream)->av_frame);
+
+    avformat_close_input(&(*audio_stream)->av_format_context);
+    avformat_free_context((*audio_stream)->av_format_context);
+
+    MpqStream_Destroy(&(*audio_stream)->stream);
+
+    free((*audio_stream)->audio_out_buffer);
+    free((*audio_stream));
+    *audio_stream = NULL;
 }
 
-void audio_stream_fill(struct AudioStream *AudioStream) {
-    if (AudioStream->av_format_context == NULL) {
+void AudioStream__ReadFrame(const struct AudioStream *audio_stream) {
+    if (audio_stream->av_format_context == NULL) {
         return;
     }
 
     struct AVPacket *packet = av_packet_alloc();
+    int              av_error;
+
+    if ((av_error = av_read_frame(audio_stream->av_format_context, packet)) < 0) {
+        LOG_FATAL("Error reading audio frame: ", av_err2str(av_error));
+    }
+
+    if (packet->stream_index != audio_stream->audio_stream_index) {
+        av_packet_free(&packet);
+        return;
+    }
+
+    if ((av_error = avcodec_send_packet(audio_stream->audio_codec_context, packet)) < 0) {
+        LOG_FATAL("Error decoding packet: ", av_err2str(av_error));
+    }
 
     av_packet_free(&packet);
+
+    while (true) {
+        if ((av_error = avcodec_receive_frame(audio_stream->audio_codec_context, audio_stream->av_frame)) < 0) {
+            if (av_error == AVERROR(EAGAIN) || av_error == AVERROR_EOF) {
+                return;
+            }
+
+            LOG_FATAL("Failed to receive frame: ", av_err2str(av_error));
+        }
+
+        const size_t sample_size = av_get_bytes_per_sample(AudioManager_GetSampleFormat());
+        const int    total_samples =
+            AUDIO_STREAM_DECODE_BUFFER_SIZE / (sample_size * AudioManager_GetChannelLayout().nb_channels);
+
+        uint8_t  *ptr[1] = {audio_stream->audio_out_buffer};
+        const int result =
+            swr_convert(audio_stream->av_resample_context, ptr, total_samples,
+                        (const uint8_t **)audio_stream->av_frame->data, audio_stream->av_frame->nb_samples);
+        RingBuffer_Write(audio_stream->ring_buffer, (char *)audio_stream->audio_out_buffer, result * 4);
+    }
+}
+
+int16_t AudioStream_GetSample(struct AudioStream *audio_stream) {
+    Mutex_Lock(audio_stream->mutex);
+
+    if (!audio_stream->is_playing || audio_stream->is_paused) {
+        Mutex_Unlock(audio_stream->mutex);
+        return 0;
+    }
+
+    if (MpqStream_GetIsEof(audio_stream->stream)) {
+        avcodec_flush_buffers(audio_stream->audio_codec_context);
+        av_seek_frame(audio_stream->av_format_context, audio_stream->audio_stream_index, 0, AVSEEK_FLAG_FRAME);
+        audio_stream->is_playing = audio_stream->loop;
+
+        if (!audio_stream->is_playing) {
+            Mutex_Unlock(audio_stream->mutex);
+            return 0;
+        }
+    }
+
+    if (RingBuffer_GetRemainingToRead(audio_stream->ring_buffer) < 2) {
+        AudioStream__ReadFrame(audio_stream);
+    }
+
+    if (RingBuffer_GetRemainingToRead(audio_stream->ring_buffer) < 2) {
+        Mutex_Unlock(audio_stream->mutex);
+        return 0;
+    }
+
+    int16_t sample;
+    RingBuffer_Read(audio_stream->ring_buffer, (char *)&sample, sizeof(int16_t));
+
+    Mutex_Unlock(audio_stream->mutex);
+
+    return sample;
+}
+bool AudioStream_IsLooping(const AudioStream *audio_stream) {
+    Mutex_Lock(audio_stream->mutex);
+    bool result = audio_stream->loop;
+    Mutex_Unlock(audio_stream->mutex);
+    return result;
+}
+
+void AudioStream_SetLoop(AudioStream *audio_stream, bool loop) {
+    Mutex_Lock(audio_stream->mutex);
+    audio_stream->loop = loop;
+    Mutex_Unlock(audio_stream->mutex);
+}
+
+void AudioStream_Play(AudioStream *audio_stream) {
+    Mutex_Lock(audio_stream->mutex);
+    audio_stream->is_playing = true;
+    Mutex_Unlock(audio_stream->mutex);
+}
+
+bool AudioStream_IsPlaying(const AudioStream *audio_stream) {
+    Mutex_Lock(audio_stream->mutex);
+    bool result = audio_stream->is_playing;
+    Mutex_Unlock(audio_stream->mutex);
+    return result;
+}
+
+void AudioStream_Stop(AudioStream *audio_stream) {
+    Mutex_Lock(audio_stream->mutex);
+    audio_stream->is_playing = false;
+    Mutex_Unlock(audio_stream->mutex);
 }

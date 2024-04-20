@@ -4,17 +4,21 @@
 #include <stddef.h>
 #include <stdint.h>
 
-struct Scene {
+typedef struct Scene {
     void *(*create)(void);
     void (*render)(void *scene_ref);
     void (*update)(void *scene_ref, uint64_t delta);
-    void (*free)(void *scene_ref);
-};
+    void (*free)(void **scene_ref);
+} Scene;
 
-void scene_initialize(void);
-void scene_finalize(void);
-void scene_render(void);
-void scene_update(uint64_t delta);
-void scene_set(struct Scene *scene);
+void Scene_InitializeManager(void);
+void Scene_DestroyManager(void);
+void Scene_RenderCurrentScene(void);
+void Scene_UpdateCurrentScene(uint64_t delta);
+void Scene_Set(Scene *scene);
+
+#define DESCRIBE_SCENE_CALLBACKS(C) extern Scene C
+#define DEFINE_SCENE_CALLBACKS(C)   Scene C = {C##_Create, C##_Render, C##_Update, C##_Free}
+#define SCENE_REF(C)                &C
 
 #endif // ABYSS_SCENE_H

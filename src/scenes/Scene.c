@@ -1,20 +1,21 @@
 #include "Scene.h"
 #include "../common/Logging.h"
+#include "../managers/InputManager.h"
 #include <stdlib.h>
 
-void         *current_scene_ptr;
-struct Scene *current_scene;
-struct Scene *next_scene;
+void  *current_scene_ptr;
+Scene *current_scene;
+Scene *next_scene;
 
-void scene_initialize(void) {
+void Scene_InitializeManager(void) {
     current_scene     = NULL;
     next_scene        = NULL;
     current_scene_ptr = NULL;
 }
 
-void scene_finalize(void) {
+void Scene_DestroyManager(void) {
     if (current_scene != NULL) {
-        current_scene->free(current_scene_ptr);
+        current_scene->free(&current_scene_ptr);
     }
 
     current_scene_ptr = NULL;
@@ -22,7 +23,7 @@ void scene_finalize(void) {
     next_scene        = NULL;
 }
 
-void scene_render(void) {
+void Scene_RenderCurrentScene(void) {
     if (current_scene == NULL) {
         return;
     }
@@ -30,11 +31,13 @@ void scene_render(void) {
     current_scene->render(current_scene_ptr);
 }
 
-void scene_update(uint64_t delta) {
+void Scene_UpdateCurrentScene(uint64_t delta) {
     if (next_scene != NULL) {
         if (current_scene != NULL) {
-            current_scene->free(current_scene_ptr);
+            current_scene->free(&current_scene_ptr);
         }
+
+        InputManager_ResetMouseButtons();
 
         current_scene     = next_scene;
         next_scene        = NULL;
@@ -48,7 +51,7 @@ void scene_update(uint64_t delta) {
     current_scene->update(current_scene_ptr, delta);
 }
 
-void scene_set(struct Scene *scene) {
+void Scene_Set(Scene *scene) {
     if (next_scene != NULL) {
         LOG_FATAL("Attempted to set a new Scene when one was already queued!");
     }

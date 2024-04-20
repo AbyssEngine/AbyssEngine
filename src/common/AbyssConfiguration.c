@@ -10,6 +10,27 @@
 #include <unistd.h>
 #endif
 
+typedef struct AbyssConfiguration {
+    char  *base_path;
+    char  *locale;
+    char **mpqs;
+    int    num_mpqs;
+    struct {
+        char *scale_quality;
+        float initial_scale;
+        bool  fullscreen;
+    } graphics;
+    struct {
+        float master_volume;
+        float music_volume;
+        float sfx_volume;
+        float ui_volume;
+    } audio;
+} AbyssConfiguration;
+
+void AbyssConfiguration__SetSaneDefaults(void);
+void AbyssConfiguration_SetValue(const char *category, const char *key, const char *value);
+
 struct AbyssConfiguration abyss_configuration;
 bool                      added_mpq = false;
 
@@ -114,7 +135,7 @@ void extract_key_value(const char *str, char *key, char *value) {
     *(end + 1) = '\0';
 }
 
-void abyss_configuration_set_value(char *category, char *key, char *value) {
+void AbyssConfiguration_SetValue(const char *category, const char *key, const char *value) {
     if (IS_STR_EQUAL(category, "general")) {
         if (IS_STR_EQUAL(key, "basepath")) {
             if (strlen(abyss_configuration.base_path) != 0) {
@@ -202,7 +223,7 @@ void abyss_configuration_set_value(char *category, char *key, char *value) {
             abyss_configuration.mpqs     = calloc(0, sizeof(char *));
         }
 
-        abyss_configuration_add_mpq(value);
+        AbyssConfiguration_AddMpq(value);
     } else if (strlen(category) == 0) {
         LOG_FATAL("Invalid key '%s' outside of a category in the configuration file!", key);
     } else {
@@ -210,12 +231,12 @@ void abyss_configuration_set_value(char *category, char *key, char *value) {
     }
 }
 
-void abyss_configuration_load(const char *file_path) {
+void AbyssConfiguration_LoadSingleton(const char *file_path) {
     memset(&abyss_configuration, 0, sizeof(struct AbyssConfiguration));
     abyss_configuration.mpqs     = calloc(0, sizeof(char *));
     abyss_configuration.num_mpqs = 0;
 
-    abyss_configuration_set_sane_defaults();
+    AbyssConfiguration__SetSaneDefaults();
 
     char category[MAX_LINE_LEN];
     char key[MAX_LINE_LEN];
@@ -265,13 +286,13 @@ void abyss_configuration_load(const char *file_path) {
             continue;
         }
 
-        abyss_configuration_set_value(category, key, value);
+        AbyssConfiguration_SetValue(category, key, value);
     }
 
     fclose(ini_file);
 }
 
-void abyss_configuration_free(void) {
+void AbyssConfiguration_DestroySingleton(void) {
     free(abyss_configuration.base_path);
     free(abyss_configuration.locale);
     free(abyss_configuration.graphics.scale_quality);
@@ -283,7 +304,7 @@ void abyss_configuration_free(void) {
     free(abyss_configuration.mpqs);
 }
 
-void abyss_configuration_add_mpq(const char *mpq_file) {
+void AbyssConfiguration_AddMpq(const char *mpq_file) {
     abyss_configuration.num_mpqs++;
 
     abyss_configuration.mpqs = realloc(abyss_configuration.mpqs, abyss_configuration.num_mpqs * sizeof(char *));
@@ -296,8 +317,29 @@ void abyss_configuration_add_mpq(const char *mpq_file) {
     strcat(abyss_configuration.mpqs[abyss_configuration.num_mpqs - 1], abyss_configuration.base_path);
     strcat(abyss_configuration.mpqs[abyss_configuration.num_mpqs - 1], mpq_file);
 }
+const char *AbyssConfiguration_GetLocale(void) { return abyss_configuration.locale; }
 
-void abyss_configuration_set_sane_defaults(void) {
+size_t AbyssConfiguration_GetMpqCount(void) { return abyss_configuration.num_mpqs; }
+
+const char *AbyssConfiguration_GetMpqFileName(size_t index) { return abyss_configuration.mpqs[index]; }
+
+float AbyssConfiguration_GetInitialScale(void) { return abyss_configuration.graphics.initial_scale; }
+
+const char *AbyssConfiguration_GetScaleQuality(void) { return abyss_configuration.graphics.scale_quality; }
+
+bool AbyssConfiguration_GetFullScreen(void) { return abyss_configuration.graphics.fullscreen; }
+
+void AbyssConfiguration_SetFullScreen(const bool fullscreen) { abyss_configuration.graphics.fullscreen = fullscreen; }
+
+float AbyssConfiguration_GetMasterVolume(void) { return abyss_configuration.audio.master_volume; }
+
+float AbyssConfiguration_GetMusicVolume(void) { return abyss_configuration.audio.music_volume; }
+
+float AbyssConfiguration_GetSfxVolume(void) { return abyss_configuration.audio.sfx_volume; }
+
+float AbyssConfiguration_GetUiVolume(void) { return abyss_configuration.audio.ui_volume; }
+
+void AbyssConfiguration__SetSaneDefaults(void) {
     char base_path[4096];
     memset(base_path, 0, sizeof(char) * 4096);
     getcwd(base_path, 4096);
@@ -305,7 +347,7 @@ void abyss_configuration_set_sane_defaults(void) {
 
     added_mpq = false;
     for (const char **mpq_path = default_mpqs; *mpq_path != NULL; mpq_path++) {
-        abyss_configuration_add_mpq(*mpq_path);
+        AbyssConfiguration_AddMpq(*mpq_path);
     }
 
     SET_PARAM_STR(abyss_configuration.graphics.scale_quality, "nearest");

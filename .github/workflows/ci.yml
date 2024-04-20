@@ -23,16 +23,19 @@ jobs:
                         c_compiler: cl
                         cpp_compiler: cl
                         triplet: x64-windows
+                        build_type: Release
                     -   name: Ubuntu (GCC)
                         os: ubuntu-latest
                         c_compiler: gcc
                         cpp_compiler: g++
                         triplet: x64-linux
+                        build_type: Release
                     -   name: MacOS (Clang)
                         os: macos-13
                         c_compiler: clang
                         cpp_compiler: clang++
                         triplet: arm64-osx
+                        build_type: Release
 
         steps:
             -   name: Checkout
@@ -91,7 +94,7 @@ jobs:
                 with:
                     vcpkgJsonGlob: "**/vcpkg.json"
                     vcpkgDirectory: "${{ github.workspace }}/vcpkg"
-                    vcpkgGitCommitId: "ad3bae57455a3c3ce528fcd47d8e8027d0498add"
+                    vcpkgGitCommitId: "b4a3d89125e45bc8f80fb94bef9761d4f4e14fb9"
 
             -   name: Configure CMake (Windows/Linux)
                 if: runner.os != 'MacOS'
@@ -102,7 +105,8 @@ jobs:
                     -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
                     -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
                     -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-                    _DABYSS_VERSION_TEXT="${{ github.sha }}"
+                    -DGITHUB_ACTIONS=1
+                    -DABYSS_VERSION_TEXT="${{ github.sha }}"
                     -S ${{ github.workspace }}
                     -B ${{ steps.strings.outputs.build-output-dir }}
 
@@ -114,7 +118,8 @@ jobs:
                     -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
                     -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
                     -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-                    _DABYSS_VERSION_TEXT="${{ github.sha }}"
+                    -DGITHUB_ACTIONS=1
+                    -DABYSS_VERSION_TEXT="${{ github.sha }}"
                     -S ${{ github.workspace }}
                     -B ${{ steps.strings.outputs.build-output-dir }}
 
