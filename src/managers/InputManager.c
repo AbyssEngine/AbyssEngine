@@ -7,10 +7,11 @@
 #define MAX_TEXT_INPUT_LENGTH 100
 
 typedef struct InputManager {
-    int  mouse_x;
-    int  mouse_y;
-    bool key_pressed[SDL_NUM_SCANCODES];
-    char text_input[MAX_TEXT_INPUT_LENGTH + 1];
+    int     mouse_x;
+    int     mouse_y;
+    bool    key_pressed[SDL_NUM_SCANCODES];
+    char    text_input[MAX_TEXT_INPUT_LENGTH + 1];
+    uint8_t mouse_buttons;
 } InputManager;
 
 InputManager *input_manager;
@@ -31,6 +32,16 @@ bool InputManager_ProcessSdlEvent(SDL_Event *sdl_event) {
     case SDL_MOUSEMOTION:
         input_manager->mouse_x = sdl_event->motion.x;
         input_manager->mouse_y = sdl_event->motion.y;
+        return true;
+    case SDL_MOUSEBUTTONDOWN:
+        input_manager->mouse_x        = sdl_event->button.x;
+        input_manager->mouse_y        = sdl_event->button.y;
+        input_manager->mouse_buttons |= sdl_event->button.button;
+        return true;
+    case SDL_MOUSEBUTTONUP:
+        input_manager->mouse_x        = sdl_event->button.x;
+        input_manager->mouse_y        = sdl_event->button.y;
+        input_manager->mouse_buttons &= ~sdl_event->button.button;
         return true;
     case SDL_KEYDOWN:
         if (sdl_event->key.keysym.sym == SDLK_RETURN &&
@@ -80,3 +91,19 @@ void InputManager_GetMousePosition(int *mouse_x, int *mouse_y) {
         *mouse_y = input_manager->mouse_y;
     }
 }
+
+void InputManager_GetMouseButtons(bool *left, bool *middle, bool *right) {
+    if (left != NULL) {
+        *left = (input_manager->mouse_buttons & SDL_BUTTON_LEFT) > 0;
+    }
+
+    if (middle != NULL) {
+        *middle = (input_manager->mouse_buttons & SDL_BUTTON_MIDDLE) > 0;
+    }
+
+    if (right != NULL) {
+        *right = (input_manager->mouse_buttons & SDL_BUTTON_RIGHT) > 0;
+    }
+}
+
+void InputManager_ResetMouseButtons(void) { input_manager->mouse_buttons = 0; }

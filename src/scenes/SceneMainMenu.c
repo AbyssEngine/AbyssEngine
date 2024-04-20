@@ -1,6 +1,7 @@
 #include "SceneMainMenu.h"
 #include "../common/Globals.h"
 #include "../common/Logging.h"
+#include "../drawing/Cursor.h"
 #include "../managers/AudioManager.h"
 #include <stdlib.h>
 #include <string.h>
@@ -22,6 +23,8 @@ typedef struct SceneMainMenu {
 DEFINE_SCENE_CALLBACKS(MainMenu);
 
 void *MainMenu_Create(void) {
+    Cursor_SetVisible(true);
+
     AudioManager_PlayMusic(MUSIC_TITLE, true);
 
     SceneMainMenu *result = malloc(sizeof(SceneMainMenu));

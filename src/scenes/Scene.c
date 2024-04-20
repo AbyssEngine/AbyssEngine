@@ -1,5 +1,6 @@
 #include "Scene.h"
 #include "../common/Logging.h"
+#include "../managers/InputManager.h"
 #include <stdlib.h>
 
 void  *current_scene_ptr;
@@ -35,6 +36,8 @@ void Scene_UpdateCurrentScene(uint64_t delta) {
         if (current_scene != NULL) {
             current_scene->free(&current_scene_ptr);
         }
+
+        InputManager_ResetMouseButtons();
 
         current_scene     = next_scene;
         next_scene        = NULL;

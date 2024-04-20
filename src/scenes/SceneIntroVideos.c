@@ -1,6 +1,7 @@
 #include "SceneIntroVideos.h"
 
 #include "../common/ResourcePaths.h"
+#include "../drawing/Cursor.h"
 #include "../managers/VideoManager.h"
 #include "SceneMainMenu.h"
 #include <stdlib.h>
@@ -21,6 +22,8 @@ DEFINE_SCENE_CALLBACKS(IntroVideos);
 
 void *IntroVideos_Create(void) {
     SceneIntroVideos *result = malloc(sizeof(SceneIntroVideos));
+
+    Cursor_SetVisible(false);
 
     result->intro_video_state = INTRO_VIDEO_STATE_STARTUP_1;
 

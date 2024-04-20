@@ -6,6 +6,7 @@
 #include "../common/RingBuffer.h"
 #include "../util/Mutex.h"
 #include "AudioManager.h"
+#include "InputManager.h"
 #include <assert.h>
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
@@ -80,6 +81,16 @@ bool VideoManager_IsPlayingVideo(void) {
 
 void VideoManager_Update(uint64_t delta) {
     Mutex_Lock(video_manager->mutex);
+
+    bool mouse_button_left;
+    InputManager_GetMouseButtons(&mouse_button_left, NULL, NULL);
+    if (mouse_button_left) {
+        Mutex_Unlock(video_manager->mutex);
+        VideoManager_StopVideo();
+        InputManager_ResetMouseButtons();
+        return;
+    }
+
     video_manager->total_ticks += delta;
 
     while (video_manager->is_playing) {
