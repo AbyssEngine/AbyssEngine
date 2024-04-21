@@ -2,6 +2,7 @@
 #include "../common/Globals.h"
 #include "../common/Logging.h"
 #include "../drawing/Cursor.h"
+#include "../drawing/button.h"
 #include "../managers/AudioManager.h"
 #include <stdlib.h>
 #include <string.h>
@@ -15,6 +16,7 @@ typedef struct SceneMainMenu {
     Label  *disclaimer_label;
     Label  *copyright_label;
     Label  *build_label;
+    Button *single_player_button;
 } SceneMainMenu;
 
 DEFINE_SCENE_CALLBACKS(MainMenu);
@@ -33,6 +35,7 @@ void *MainMenu_Create(void) {
     result->d2logo_black_right_sprite = Sprite_Create(D2LOGO_BLACK_RIGHT, PALETTE_UNITS);
     result->d2logo_fire_left_sprite   = Sprite_Create(D2LOGO_FIRE_LEFT, PALETTE_UNITS);
     result->d2logo_fire_right_sprite  = Sprite_Create(D2LOGO_FIRE_RIGHT, PALETTE_UNITS);
+    result->single_player_button      = Button_Create(BUTTON_TYPE_WIDE, "Single Player");
 
     Sprite_SetBlendMode(result->d2logo_black_left_sprite, SDL_BLENDMODE_BLEND);
     Sprite_SetBlendMode(result->d2logo_black_right_sprite, SDL_BLENDMODE_BLEND);
@@ -70,7 +73,7 @@ void MainMenu_Render(void *scene_ref) {
     Label_Draw(mainmenu->build_label, 797, 1);
 }
 
-void MainMenu_Update(void *scene_ref, uint64_t delta) {
+void MainMenu_Update(void *scene_ref, const uint64_t delta) {
     (void)(scene_ref);
     (void)(delta);
 }
@@ -78,6 +81,7 @@ void MainMenu_Update(void *scene_ref, uint64_t delta) {
 void MainMenu_Free(void **scene_ref) {
     SceneMainMenu *mainmenu = *((SceneMainMenu **)scene_ref);
 
+    Button_Destroy(&mainmenu->single_player_button);
     Label_Destroy(&mainmenu->copyright_label);
     Label_Destroy(&mainmenu->disclaimer_label);
     Sprite_Destroy(&mainmenu->d2logo_black_left_sprite);

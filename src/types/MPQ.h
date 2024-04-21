@@ -3,7 +3,6 @@
 
 #include "MPQBlock.h"
 #include "MPQHash.h"
-#include "MPQHeader.h"
 #include <stdbool.h>
 #include <stdio.h>
 
@@ -15,7 +14,7 @@ bool             MPQ_FileExists(const MPQ *mpq, const char *file_path);
 struct MPQHash  *MPQ_GetFileHash(const MPQ *mpq, const char *file_path);
 struct MPQBlock *MPQ_GetBlock(const MPQ *mpq, uint32_t block_index);
 uint64_t         MPQ_GetBlockSize(const MPQ *mpq);
-FILE            *MPQ_AcquireFileHandle(MPQ *mpq);
-void             MPQ_ReleaseFileHandle(MPQ *mpq);
+FILE            *MPQ_AcquireFileHandle(const MPQ *mpq);
+void             MPQ_ReleaseFileHandle(const MPQ *mpq);
 
 #endif // ABYSS_MPQ_H

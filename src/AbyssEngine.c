@@ -93,6 +93,8 @@ int main(int argc, char **argv) {
             case SDL_QUIT:
                 running = false;
                 break;
+            default:
+                break;
             }
         }
 

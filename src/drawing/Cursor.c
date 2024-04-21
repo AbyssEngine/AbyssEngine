@@ -33,6 +33,6 @@ void Cursor_Draw(void) {
     Sprite_Draw(cursor_sprite, cursor_sprite_type, mouse_x, mouse_y + 2);
 }
 
-void Cursor_SetType(enum CursorType cursor_type) { cursor_sprite_type = cursor_type; }
+void Cursor_SetType(const enum CursorType cursor_type) { cursor_sprite_type = cursor_type; }
 
 void Cursor_SetVisible(bool visible) { cursor_visible = visible; }

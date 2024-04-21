@@ -73,7 +73,8 @@ void Font_Destroy(struct Font *font) {
     free(font);
 }
 
-void Font_GetGlyphMetrics(const Font *font, uint16_t code, uint16_t *frame_index, uint8_t *width, uint8_t *height) {
+void Font_GetGlyphMetrics(const Font *font, const uint16_t code, uint16_t *frame_index, uint8_t *width,
+                          uint8_t *height) {
     const struct FontGlyph *glyph = Font__GetGlyph(font, code);
     if (glyph == NULL) {
         glyph = Font__GetGlyph(font, '?');
@@ -95,7 +96,7 @@ void Font_GetGlyphMetrics(const Font *font, uint16_t code, uint16_t *frame_index
     }
 }
 
-const struct FontGlyph *Font__GetGlyph(const struct Font *font, uint16_t code) {
+const struct FontGlyph *Font__GetGlyph(const struct Font *font, const uint16_t code) {
     for (uint32_t i = 0; i < font->glyph_count; i++) {
         if (font->glyphs[i].code == code) {
             return &font->glyphs[i];

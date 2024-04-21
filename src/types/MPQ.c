@@ -70,7 +70,7 @@ struct MPQHash *MPQ_GetFileHash(const MPQ *mpq, const char *file_path) {
     return NULL;
 }
 
-struct MPQBlock *MPQ_GetBlock(const MPQ *mpq, uint32_t block_index) {
+struct MPQBlock *MPQ_GetBlock(const MPQ *mpq, const uint32_t block_index) {
     assert(mpq != NULL);
 
     if (block_index >= mpq->header.hash_table_entries) {
@@ -86,12 +86,12 @@ uint64_t MPQ_GetBlockSize(const MPQ *mpq) {
     return 0x200 << mpq->header.block_size;
 }
 
-FILE *MPQ_AcquireFileHandle(MPQ *mpq) {
+FILE *MPQ_AcquireFileHandle(const MPQ *mpq) {
     Mutex_Lock(mpq->mutex);
     return mpq->file;
 }
 
-void MPQ_ReleaseFileHandle(MPQ *mpq) { Mutex_Unlock(mpq->mutex); }
+void MPQ_ReleaseFileHandle(const MPQ *mpq) { Mutex_Unlock(mpq->mutex); }
 
 struct MPQBlock *MPQ__LoadBlocks(FILE *file, const MPQ *mpq) {
     struct MPQBlock *result = calloc(sizeof(struct MPQBlock), mpq->header.block_table_entries);

@@ -6,7 +6,6 @@
 #include "../managers/VideoManager.h"
 #include "SceneMainMenu.h"
 #include <stdlib.h>
-#include <string.h>
 
 enum IntroVideoState { INTRO_VIDEO_STATE_STARTUP_1, INTRO_VIDEO_STATE_STARTUP_2, INTRO_VIDEO_STATE_TRANSITION_TO_GAME };
 
@@ -32,11 +31,13 @@ void *IntroVideos_Create(void) {
 }
 
 void IntroVideos_Render(void *scene_ref) {
-    SceneIntroVideos *scene = (SceneIntroVideos *)scene_ref;
+    (void)(scene_ref);
+    // SceneIntroVideos *scene = (SceneIntroVideos *)scene_ref;
     //
 }
 
 void IntroVideos_Update(void *scene_ref, uint64_t delta) {
+    (void)(delta);
     SceneIntroVideos *scene = (SceneIntroVideos *)scene_ref;
 
     if (AbyssConfiguration_GetSkipIntroMovies()) {

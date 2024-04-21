@@ -78,7 +78,7 @@ bool VideoManager_IsPlayingVideo(void) {
     return result;
 }
 
-void VideoManager_Update(uint64_t delta) {
+void VideoManager_Update(const uint64_t delta) {
     Mutex_Lock(video_manager->mutex);
 
     bool mouse_button_left;
@@ -216,7 +216,7 @@ void VideoManager_PlayVideo(const char *path) {
         LOG_FATAL("Failed to open audio context: %s", av_err2str(av_error));
     }
 
-    AVChannelLayout channel_layout = AudioManager_GetChannelLayout();
+    const AVChannelLayout channel_layout = AudioManager_GetChannelLayout();
 
     video_manager->resample_context = swr_alloc();
     av_opt_set_int(video_manager->resample_context, "in_sample_rate", video_manager->audio_codec_context->sample_rate,
@@ -316,25 +316,27 @@ void VideoManager_StopVideo(void) {
     Mutex_Unlock(video_manager->mutex);
 }
 
-int VideoManager__StreamRead(void *opaque, uint8_t *buf, int buf_size) {
-    VideoManager *vm = (VideoManager *)opaque;
+int VideoManager__StreamRead(void *opaque, uint8_t *buf, const int buf_size) {
+    const VideoManager *vm = (VideoManager *)opaque;
 
     return vm->is_playing ? (int)MpqStream_Read(vm->mpq_stream, buf, 0, buf_size) : 0;
 }
 
-int64_t VideoManager__StreamSeek(void *opaque, int64_t offset, int whence) {
-    VideoManager *vm = (VideoManager *)opaque;
+int64_t VideoManager__StreamSeek(void *opaque, int64_t offset, const int whence) {
+    const VideoManager *vm = (VideoManager *)opaque;
 
     if (!vm->is_playing) {
         return -1;
     }
 
     if (whence == AVSEEK_SIZE) {
-        int64_t result = (int)MpqStream_GetSize(vm->mpq_stream);
+        const int64_t result = (int)MpqStream_GetSize(vm->mpq_stream);
         return result;
     }
 
-    int64_t result = MpqStream_Tell(vm->mpq_stream);
+    MpqStream_Seek(vm->mpq_stream, offset, whence);
+
+    const int64_t result = MpqStream_Tell(vm->mpq_stream);
     return result;
 }
 
