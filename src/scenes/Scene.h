@@ -1,7 +1,6 @@
 #ifndef ABYSS_SCENE_H
 #define ABYSS_SCENE_H
 
-#include <stddef.h>
 #include <stdint.h>
 
 typedef struct Scene {

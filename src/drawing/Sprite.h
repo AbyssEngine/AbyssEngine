@@ -14,5 +14,6 @@ void    Sprite_SetPlayLength(Sprite *sprite, double play_length);
 void    Sprite_Draw(const Sprite *sprite, uint8_t frame_index, int x, int y);
 void    Sprite_DrawMulti(const Sprite *sprite, uint8_t frame_index, int x, int y, int frames_x, int frames_y);
 void    Sprite_DrawAnimated(Sprite *sprite, int x, int y);
+void    Sprite_GetFrameSize(const Sprite *sprite, int frame_index, int *width, int *height);
 
 #endif // ABYSS_SPRITE_H

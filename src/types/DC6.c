@@ -5,7 +5,6 @@
 
 #include <assert.h>
 #include <stdlib.h>
-#include <string.h>
 
 typedef struct DC6Header {
     int32_t  version;
@@ -65,21 +64,21 @@ void DC6_Destroy(struct DC6 **dc6) {
 
 uint32_t DC6_GetTotalFrameCount(const DC6 *dc6) { return dc6->header.directions * dc6->header.frames_per_direction; }
 
-void DC6_GetFrameSize(const DC6 *dc6, uint32_t frame_index, uint32_t *width, uint32_t *height) {
+void DC6_GetFrameSize(const DC6 *dc6, const uint32_t frame_index, uint32_t *width, uint32_t *height) {
     assert(dc6 != NULL);
     assert(frame_index < (dc6->header.directions * dc6->header.frames_per_direction));
 
     DC6Frame_GetFrameSize(dc6->dc6_frames[frame_index], width, height);
 }
 
-const uint8_t *DC6_GetFramePixelData(const DC6 *dc6, uint32_t frame_index) {
+const uint8_t *DC6_GetFramePixelData(const DC6 *dc6, const uint32_t frame_index) {
     assert(dc6 != NULL);
     assert(frame_index < (dc6->header.directions * dc6->header.frames_per_direction));
 
     return DC6Frame_GetPixelData(dc6->dc6_frames[frame_index]);
 }
 
-void DC6_GetFrameOffset(const DC6 *dc6, uint32_t frame_index, int32_t *offset_x, int32_t *offset_y) {
+void DC6_GetFrameOffset(const DC6 *dc6, const uint32_t frame_index, int32_t *offset_x, int32_t *offset_y) {
     assert(dc6 != NULL);
     assert(frame_index < (dc6->header.directions * dc6->header.frames_per_direction));
 

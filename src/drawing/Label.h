@@ -20,7 +20,7 @@ Label *Label_Create(const char *font_path, const char *palette_name);
 void   Label_Destroy(Label **Label);
 void   Label_SetText(Label *Label, const char *text);
 void   Label_Draw(const Label *Label, int x, int y);
-void   Label_SetColor(Label *Label, uint8_t r, uint8_t g, uint8_t b, uint8_t a);
+void   Label_SetColor(const Label *Label, uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 void   Label_SetAlignment(Label *Label, label_align_t horizontal, label_align_t vertical);
 
 #endif // ABYSS_LABEL_H

@@ -32,7 +32,7 @@ void AudioStream__ReadFrame(const struct AudioStream *audio_stream);
 int audio_stream_read_callback(void *opaque, unsigned char *buffer, const int size) {
     const AudioStream *audio_stream = (AudioStream *)opaque;
 
-    const int result = MpqStream_Read(audio_stream->stream, buffer, 0, size);
+    const int result = (int)MpqStream_Read(audio_stream->stream, buffer, 0, size);
     return result;
 }
 
@@ -61,7 +61,7 @@ AudioStream *AudioStream_Create(const char *path) {
         stream_size < AUDIO_STREAM_MAX_BUFF_SIZE ? stream_size : AUDIO_STREAM_MAX_BUFF_SIZE;
 
     result->av_buffer    = av_malloc(decode_buffer_size);
-    result->avio_context = avio_alloc_context(result->av_buffer, decode_buffer_size, 0, result,
+    result->avio_context = avio_alloc_context(result->av_buffer, (int)decode_buffer_size, 0, result,
                                               audio_stream_read_callback, NULL, audio_stream_seek_callback);
 
     result->av_format_context         = avformat_alloc_context();

@@ -113,7 +113,7 @@ struct LinkedNode *huffman_create_linked_node(int decompressed_value, int weight
     return node;
 }
 
-struct LinkedNode *huffman_get_child1(struct LinkedNode *node) { return node->child_0->prev; }
+struct LinkedNode *huffman_get_child1(const struct LinkedNode *node) { return node->child_0->prev; }
 
 struct LinkedNode *huffman_insert(struct LinkedNode *node, struct LinkedNode *other) {
     if (other->weight <= node->weight) {
@@ -159,11 +159,9 @@ struct LinkedNode *huffman_decode(struct BitReader *bit_reader, struct LinkedNod
     return node;
 }
 
-struct LinkedNode *huffman_build_list(uint8_t *prime_table, int prime_len) {
-    struct LinkedNode *root;
-
-    root = huffman_create_linked_node(DECOMP_VAL_1, 1);
-    root = huffman_insert(root, huffman_create_linked_node(DECOMP_VAL_2, 1));
+struct LinkedNode *huffman_build_list(const uint8_t *prime_table, int prime_len) {
+    struct LinkedNode *root = huffman_create_linked_node(DECOMP_VAL_1, 1);
+    root                    = huffman_insert(root, huffman_create_linked_node(DECOMP_VAL_2, 1));
 
     for (int i = 0; i < prime_len; i++) {
         if (prime_table[i] != 0) {
@@ -205,10 +203,9 @@ void huffman_adjust_tree(struct LinkedNode *new_node) {
     while (current != NULL) {
         current->weight++;
 
-        struct LinkedNode *insert_point;
         struct LinkedNode *prev;
 
-        insert_point = current;
+        struct LinkedNode *insert_point = current;
 
         while (true) {
             prev = insert_point->prev;
@@ -309,7 +306,7 @@ void huffman_free_linked_node(struct LinkedNode *node) {
 
 uint8_t *huffman_decompress(uint8_t *buffer, uint32_t buffer_len, uint32_t *result_size) {
 
-    uint8_t comp_type = *buffer;
+    const uint8_t comp_type = *buffer;
     buffer++;
     buffer_len--;
 
@@ -325,19 +322,18 @@ uint8_t *huffman_decompress(uint8_t *buffer, uint32_t buffer_len, uint32_t *resu
     uint32_t          current_result_capacity = 8;
     uint8_t          *result                  = calloc(current_result_capacity, 1);
     struct BitReader *bit_reader              = BitReader_Create(buffer, buffer_len);
-    int               decoded;
 
     bool do_loop = true;
     while (do_loop) {
-        struct LinkedNode *node = huffman_decode(bit_reader, head);
-        decoded                 = node->decompressed_value;
+        const struct LinkedNode *node    = huffman_decode(bit_reader, head);
+        const int                decoded = node->decompressed_value;
 
         switch (decoded) {
         case DECOMP_VAL_1:
             do_loop = false;
             break;
         case DECOMP_VAL_2: {
-            int new_value = BitReader_ReadBits(bit_reader, 8);
+            const int new_value = (int)BitReader_ReadBits(bit_reader, 8);
             if (new_value < 0) {
                 LOG_FATAL("Failed to decompression huffman tree!");
             }

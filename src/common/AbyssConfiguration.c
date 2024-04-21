@@ -15,6 +15,7 @@ typedef struct AbyssConfiguration {
     char  *locale;
     char **mpqs;
     int    num_mpqs;
+    bool   skip_intro_movies;
     struct {
         char *scale_quality;
         float initial_scale;
@@ -149,6 +150,15 @@ void AbyssConfiguration_SetValue(const char *category, const char *key, const ch
             }
             SET_PARAM_STR(abyss_configuration.locale, value);
             LOG_DEBUG("Setting locale to '%s'", abyss_configuration.locale);
+        } else if (IS_STR_EQUAL(key, "skipintromovies")) {
+            if (IS_STR_EQUAL(value, "true")) {
+                abyss_configuration.skip_intro_movies = true;
+            } else if (IS_STR_EQUAL(value, "false")) {
+                abyss_configuration.skip_intro_movies = false;
+            } else {
+                LOG_FATAL("Invalid value '%s' for key '%s' in the configuration file!", value, key);
+            }
+            LOG_DEBUG("Setting fullscreen to '%s'", abyss_configuration.graphics.fullscreen ? "true" : "false");
         } else {
             LOG_FATAL("Invalid key '%s' in the configuration file!", key);
         }
@@ -339,11 +349,15 @@ float AbyssConfiguration_GetSfxVolume(void) { return abyss_configuration.audio.s
 
 float AbyssConfiguration_GetUiVolume(void) { return abyss_configuration.audio.ui_volume; }
 
+bool AbyssConfiguration_GetSkipIntroMovies(void) { return abyss_configuration.skip_intro_movies; }
+
 void AbyssConfiguration__SetSaneDefaults(void) {
     char base_path[4096];
     memset(base_path, 0, sizeof(char) * 4096);
     getcwd(base_path, 4096);
     SET_PARAM_STR(abyss_configuration.base_path, base_path);
+
+    abyss_configuration.skip_intro_movies = false;
 
     added_mpq = false;
     for (const char **mpq_path = default_mpqs; *mpq_path != NULL; mpq_path++) {

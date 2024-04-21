@@ -19,5 +19,6 @@ float       AbyssConfiguration_GetMasterVolume(void);
 float       AbyssConfiguration_GetMusicVolume(void);
 float       AbyssConfiguration_GetSfxVolume(void);
 float       AbyssConfiguration_GetUiVolume(void);
+bool        AbyssConfiguration_GetSkipIntroMovies(void);
 
 #endif // ABYSS_CONFIG_H

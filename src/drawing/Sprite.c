@@ -107,7 +107,7 @@ void Sprite_Destroy(Sprite **sprite) {
     *sprite = NULL;
 }
 
-void Sprite_Draw(const Sprite *sprite, uint8_t frame_index, int x, int y) {
+void Sprite_Draw(const Sprite *sprite, const uint8_t frame_index, const int x, const int y) {
     const SpriteFrame *frame = &sprite->frames[frame_index];
 
     const SDL_Rect dest = {x + frame->offset_x, y - (int)frame->height + frame->offset_y, (int)frame->width,
@@ -116,7 +116,7 @@ void Sprite_Draw(const Sprite *sprite, uint8_t frame_index, int x, int y) {
     SDL_RenderCopy(sdl_renderer, frame->texture, NULL, &dest);
 }
 
-void Sprite_DrawAnimated(Sprite *sprite, int x, int y) {
+void Sprite_DrawAnimated(Sprite *sprite, const int x, const int y) {
     if (sprite->ticks_per_frame == 0) {
         LOG_FATAL("Attempted to animate a Sprite with no ticks per frame!");
     }
@@ -134,8 +134,18 @@ void Sprite_DrawAnimated(Sprite *sprite, int x, int y) {
 
     Sprite_Draw(sprite, (uint8_t)sprite->animation_index, x, y);
 }
+void Sprite_GetFrameSize(const Sprite *sprite, const int frame_index, int *width, int *height) {
+    if (width != NULL) {
+        *width = sprite->frames[frame_index].width;
+    }
 
-void Sprite_DrawMulti(const Sprite *sprite, uint8_t frame_index, int x, int y, int frames_x, int frames_y) {
+    if (height != NULL) {
+        *height = sprite->frames[frame_index].height;
+    }
+}
+
+void Sprite_DrawMulti(const Sprite *sprite, const uint8_t frame_index, const int x, const int y, const int frames_x,
+                      const int frames_y) {
     int cur_x     = x;
     int cur_y     = y;
     int cur_frame = frame_index;
@@ -152,7 +162,7 @@ void Sprite_DrawMulti(const Sprite *sprite, uint8_t frame_index, int x, int y, i
     }
 }
 
-void Sprite_SetBlendMode(const Sprite *sprite, SDL_BlendMode blend_mode) {
+void Sprite_SetBlendMode(const Sprite *sprite, const SDL_BlendMode blend_mode) {
     for (uint32_t frame_idx = 0; frame_idx < sprite->frame_count; frame_idx++) {
         SDL_SetTextureBlendMode(sprite->frames[frame_idx].texture, blend_mode);
     }

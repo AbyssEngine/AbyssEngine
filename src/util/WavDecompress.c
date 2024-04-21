@@ -83,7 +83,7 @@ uint8_t *WAV_Decompress(uint8_t *data, uint32_t buffer_len, int channel_count, u
             continue;
         }
 
-        if ((channel > 1) || (unsigned long)array1[channel] >= sizeof(lookup)) {
+        if ((unsigned long)array1[channel] >= sizeof(lookup)) {
             LOG_FATAL("Failure decoding WAV: Attempted lookup outside of range!");
         }
         int temp1 = lookup[array1[channel]];

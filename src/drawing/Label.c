@@ -2,6 +2,7 @@
 #include "../common/AbyssConfiguration.h"
 #include "../common/Globals.h"
 #include "../common/Logging.h"
+#include <string.h>
 
 struct Label {
     DC6           *DC6;
@@ -17,7 +18,7 @@ struct Label {
     char          *text;
 };
 
-void Label__UpdateOffsets(Label *Label);
+void Label__UpdateOffsets(Label *label);
 
 Label *Label_Create(const char *font_path, const char *palette_name) {
     char dc6_path[4096];
@@ -151,7 +152,7 @@ void Label_SetText(Label *label, const char *text) {
     Label__UpdateOffsets(label);
 }
 
-void Label_Draw(const Label *Label, int x, int y) {
+void Label_Draw(const Label *Label, const int x, const int y) {
     if (Label->texture == NULL) {
         return;
     }
@@ -160,12 +161,12 @@ void Label_Draw(const Label *Label, int x, int y) {
     SDL_RenderCopy(sdl_renderer, Label->texture, NULL, &dest);
 }
 
-void Label_SetColor(Label *label, uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+void Label_SetColor(const Label *label, const uint8_t r, const uint8_t g, const uint8_t b, const uint8_t a) {
     SDL_SetTextureColorMod(label->texture, r, g, b);
     SDL_SetTextureAlphaMod(label->texture, a);
 }
 
-void Label_SetAlignment(Label *label, label_align_t horizontal, label_align_t vertical) {
+void Label_SetAlignment(Label *label, const label_align_t horizontal, const label_align_t vertical) {
     label->horizontal_align = horizontal;
     label->vertical_align   = vertical;
     Label__UpdateOffsets(label);
