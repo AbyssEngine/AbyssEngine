@@ -1,8 +1,8 @@
 #include "SceneMainMenu.h"
 #include "../common/Globals.h"
 #include "../common/Logging.h"
+#include "../drawing/Button.h"
 #include "../drawing/Cursor.h"
-#include "../drawing/button.h"
 #include "../managers/AudioManager.h"
 #include <stdlib.h>
 #include <string.h>
